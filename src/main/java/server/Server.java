@@ -4,6 +4,7 @@ package server;
 class Server {
     public static void main(String[] args) {
         // [AuthenticationService.authenticate] is statick so we do not need to create obejct from it
+        
         boolean isAuthenticated = AuthenticationService.authenticate("a@a.com", "password123"); // return a boolean value
     
 
@@ -14,7 +15,7 @@ class Server {
         } else {
             System.out.println("Invalid email or password.");
         }
-        
+        // testttttttttttt
     }
 }
 
