@@ -1,0 +1,88 @@
+EventEase/
+│
+├── **src/**                           # 🔹 All source code and business logic
+│   ├── **main/**                      # 🔹 Primary application logic
+│   │   ├── **java/**                   # 🔹 Java source files (follows package structure)
+│   │   │   ├── **ui/**                 # 🎨 User Interface (Frontend)
+│   │   │   │   ├── EventView.java       # Displays event details to users
+│   │   │   │   ├── TicketView.java      # Displays ticket details
+│   │   │   │   ├── NotificationView.java# Manages user notifications
+│   │   │   │   ├── LoginView.java       # Handles login UI
+│   │   │   │   ├── AdminDashboard.java  # Admin UI (event & user management)
+│   │   │   │   ├── BookingView.java     # Shows booking details
+│   │   │   │   ├── ReportsView.java     # Displays analytics & reports
+│   │   │   │   └── UserInterface.java   # **Main UI controller**
+│   │   │   │
+│   │   │   ├── **server/**              # 🖥️ Server & backend logic
+│   │   │   │   ├── DatabaseManager.java  # Handles DB connections & queries
+│   │   │   │   ├── EventManager.java     # Manages event creation, updates, deletion
+│   │   │   │   ├── BookingManager.java   # Manages bookings (CRUD operations)
+│   │   │   │   ├── NotificationManager.java# Sends notifications to users
+│   │   │   │   ├── SalesAnalytics.java   # Revenue & ticket sales tracking
+│   │   │   │   ├── InputValidator.java   # Validates user input
+│   │   │   │   ├── AuthenticationService.java # Handles login authentication
+│   │   │   │   ├── APIService.java       # REST API layer for external integrations
+│   │   │   │   └── Server.java           # **Main server logic**
+│   │   │   │
+│   │   │   ├── **database/**             # 🗄️ Database interaction
+│   │   │   │   ├── Database.java         # Manages database connection pool
+│   │   │   │   ├── DataModel.java        # Generic data model abstraction
+│   │   │   │   ├── QueryBuilder.java     # Dynamically builds SQL queries
+│   │   │   │   ├── BackupManager.java    # Handles database backups
+│   │   │   │   ├── DatabaseSeeder.java   # Seeds initial data for testing
+│   │   │   │   ├── migrations/           # Stores database migration scripts
+│   │   │   │   └── schema.sql            # Database schema definition
+│   │   │   │
+│   │   │   ├── **models/**               # 🏗️ Data models (Entity representations)
+│   │   │   │   ├── Customer.java         # Customer details & authentication
+│   │   │   │   ├── Event.java            # Event details
+│   │   │   │   ├── TicketBooking.java    # Booking details
+│   │   │   │   ├── TicketCategory.java   # Enum: VIP, Standard, Economy
+│   │   │   │   ├── Notification.java     # Notification structure
+│   │   │   │   ├── Report.java           # Revenue & sales report
+│   │   │   │   ├── Role.java             # Enum: Manager, Cashier, Other
+│   │   │   │   ├── Payment.java          # Payment transactions
+│   │   │   │   └── Invoice.java          # Generates customer invoices
+│   │   │   │
+│   │   │   ├── **controllers/**          # 🎮 Business logic controllers (Mediators)
+│   │   │   │   ├── AdminController.java   # Admin functionalities (login, reset password)
+│   │   │   │   ├── EventController.java   # Handles event management logic
+│   │   │   │   ├── BookingController.java # Handles ticket bookings
+│   │   │   │   ├── NotificationController.java# Handles notifications
+│   │   │   │   ├── ReportController.java  # Handles report generation
+│   │   │   │   ├── PaymentController.java # Handles payment processing
+│   │   │   │   └── APIController.java     # Handles API requests
+│   │   │   │
+│   │   │   ├── **utils/**                 # ⚙️ Helper utilities
+│   │   │   │   ├── DateUtils.java         # Date formatting and manipulation
+│   │   │   │   ├── Logger.java            # Logs system events
+│   │   │   │   ├── ConfigLoader.java      # Loads configuration settings
+│   │   │   │   ├── EncryptionUtil.java    # Encrypts passwords & sensitive data
+│   │   │   │   └── EmailService.java      # Sends email notifications
+│   │   │   │
+│   │   ├── **resources/**                 # 📜 Config files & assets
+│   │   │   ├── application.properties     # General app configuration
+│   │   │   ├── log4j.xml                  # Logging configuration
+│   │   │   ├── schema.sql                 # Database schema
+│   │   │   └── email-templates/           # Email notification templates
+│   │
+│   ├── **test/**                          # ✅ Unit & integration tests
+│   │   ├── ui/                            # UI testing
+│   │   ├── server/                        # Server logic tests
+│   │   ├── models/                        # Data model tests
+│   │   ├── controllers/                   # Controller logic tests
+│   │   ├── utils/                         # Utility function tests
+│   │   └── integration/                   # Full system integration tests
+│
+├── **target/**                            # 🚀 Compiled output (generated by Maven)
+│
+├── **docs/**                              # 📖 Documentation & guides
+│   ├── system-architecture.md             # System design & architecture
+│   ├── API-reference.md                   # API documentation
+│   ├── UserManual.md                      # User guide
+│   ├── DatabaseSchema.png                 # Diagram of the database schema
+│   ├── SequenceDiagrams/                  # UML sequence diagrams
+│   └── TestReports/                       # Test execution reports
+│
+├── **pom.xml**                            # 📜 Maven build configuration file
+└── **README.md**                          # 📘 Project overview
