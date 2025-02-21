@@ -36,6 +36,10 @@ public class Database {
     }
   }
 
+  public static String getDatabasePath() {
+    return DB_URL.replace("jdbc:sqlite:", ""); // Adjust this based on your DB_URL format
+  }
+
   public static void connect() {
     try (Connection conn = getConnection()) {
       if (conn != null) {
@@ -47,8 +51,4 @@ public class Database {
     }
   }
 
-  // Main method for testing the Database connection
-  public static void main(String[] args) {
-    connect(); // Call the connect method to test the database connection
-  }
 }
