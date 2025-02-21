@@ -54,7 +54,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-          <mainClass>database.Database</mainClass> <!-- Change to your Main Class -->
+          <mainClass>server.Server</mainClass> <!-- Change to your Main Class -->
         </configuration>
       </plugin>
     </plugins>
