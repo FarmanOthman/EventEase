@@ -47,5 +47,8 @@ public class Database {
     }
   }
 
-  // Main method for testing
+  // Main method for testing the Database connection
+  public static void main(String[] args) {
+    connect(); // Call the connect method to test the database connection
+  }
 }
