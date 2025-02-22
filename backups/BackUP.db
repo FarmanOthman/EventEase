@@ -1,0 +1,135 @@
+-- SQLite Database Backup
+-- Generated on: Fri Feb 21 21:28:22 AST 2025
+
+-- Schema for table: ADMIN
+CREATE TABLE ADMIN (
+    admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,  -- Store password hashes, not plain text
+    role_id INTEGER NOT NULL,
+    email TEXT UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES ROLE(role_id),
+    CONSTRAINT username_unique UNIQUE(username) -- Ensure unique username
+);
+
+
+-- Schema for table: BOOKING
+CREATE TABLE BOOKING (
+    booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    customer_id INTEGER NOT NULL,
+    ticket_category INTEGER NOT NULL,
+    price REAL NOT NULL CHECK (price > 0),  -- Ensure valid price
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'Pending',
+    payment_status TEXT DEFAULT 'Unpaid',
+    receipt_number TEXT UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES EVENT(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (ticket_category) REFERENCES TICKET_CATEGORY(ticket_category_id) ON DELETE CASCADE
+);
+
+
+-- Schema for table: CUSTOMER
+CREATE TABLE CUSTOMER (
+    customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    contact_number TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT email_unique UNIQUE(email)  -- Ensures email is unique
+);
+
+INSERT INTO CUSTOMER VALUES('1', 'John', 'Doe', '123-456-7890', 'H1PdI@example.com', '2025-02-21 18:22:34', '2025-02-21 18:22:34');
+
+-- Schema for table: EVENT
+CREATE TABLE EVENT (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    team_a INTEGER NOT NULL,
+    team_b INTEGER NOT NULL,
+    event_date TIMESTAMP NOT NULL,
+    venue_id INTEGER NOT NULL,
+    event_status TEXT DEFAULT 'Scheduled',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (team_a) REFERENCES TEAM(team_id) ON DELETE CASCADE,
+    FOREIGN KEY (team_b) REFERENCES TEAM(team_id) ON DELETE CASCADE,
+    FOREIGN KEY (venue_id) REFERENCES VENUE(venue_id) ON DELETE CASCADE,
+    CONSTRAINT event_unique UNIQUE (team_a, team_b, event_date) -- Prevent duplicate events
+);
+
+
+-- Schema for table: NOTIFICATION
+CREATE TABLE NOTIFICATION (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    booking_id INTEGER NOT NULL,
+    admin_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    notification_type TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT 0, -- 0 for unread, 1 for read
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id) ON DELETE CASCADE
+);
+
+
+-- Schema for table: REPORT
+CREATE TABLE REPORT (
+    report_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_revenue REAL NOT NULL CHECK (total_revenue >= 0),  -- Ensure valid revenue
+    total_tickets_sold INTEGER NOT NULL CHECK (total_tickets_sold >= 0), -- Ensure valid ticket count
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES EVENT(event_id) ON DELETE CASCADE
+);
+
+
+-- Schema for table: ROLE
+CREATE TABLE ROLE (
+    role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role_name TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Schema for table: TEAM
+CREATE TABLE TEAM (
+    team_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    team_name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT team_name_unique UNIQUE(team_name) -- Ensures unique team names
+);
+
+
+-- Schema for table: TICKET_CATEGORY
+CREATE TABLE TICKET_CATEGORY (
+    ticket_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_name TEXT NOT NULL,
+    category_price REAL NOT NULL CHECK (category_price > 0),  -- Ensure valid price
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Schema for table: VENUE
+CREATE TABLE VENUE (
+    venue_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    venue_name TEXT NOT NULL,
+    location TEXT NOT NULL,
+    capacity INTEGER NOT NULL CHECK (capacity > 0),  -- Ensure valid capacity
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
