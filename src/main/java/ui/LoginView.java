@@ -14,9 +14,11 @@ public class LoginView {
     private RoundedTextField userField;
     private RoundedPasswordField passField;
     private RoundedButton loginButton;
+    private boolean loginSuccessful = false; // Flag to indicate login success
+    private boolean isVisible = false; // Track if GUI is visible
 
     public LoginView() {
-        // Create the frame for the login view
+        // Initialize the frame but do not make it visible yet
         frame = new JFrame("Login");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 800);
@@ -90,18 +92,37 @@ public class LoginView {
                 boolean result = AuthenticationService.authenticate(username, password);
 
                 if (result) {
+                    loginSuccessful = true; // Set the flag to true
                     JOptionPane.showMessageDialog(frame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } else {
+                    loginSuccessful = false; // Set the flag to false
                     JOptionPane.showMessageDialog(frame, "Login failed. Please check your credentials.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+    }
 
-        // Make the frame visible
-        frame.setVisible(true);
+    public void show() {
+        if (!isVisible) {
+            frame.setVisible(true);
+            isVisible = true;
+        }
+    }
+
+    public void hide() {
+        if (isVisible) {
+            frame.setVisible(false);
+            isVisible = false;
+        }
     }
 
     public JFrame getFrame() {
         return frame;
     }
+
+    public boolean isLoginSuccessful() {
+        return loginSuccessful;
+    }
+
+
 }
