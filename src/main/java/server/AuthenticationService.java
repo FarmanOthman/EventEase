@@ -10,9 +10,7 @@ class AuthenticationService {
 
     public static boolean authenticate(String email, String password) {
         try (Connection connection = Database.getConnection()) {
-            String query = "SELECT COUNT(*) FROM ADMIN WHERE email = ? AND password = ?";
-            System.out.println(query); // Added console log for query
-      
+            String query = "SELECT COUNT(*) FROM ADMIN WHERE email = ? AND password = ?";      
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.setString(1, email);
                 statement.setString(2, password);
