@@ -291,12 +291,18 @@ public class QueryBuilder {
 
     public static void main(String[] args) {
         try {
-            // Example: Execute an INSERT query
+            // Example: Execute an INSERT query for ADMIN
+            QueryBuilder insertAdminQuery = new QueryBuilder();
+            insertAdminQuery.insert("ADMIN")
+                    .addParameters(1, "admin", "admin123", "admin@example.com", new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())).query
+                    .append(" (admin_id, username, password, email, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            insertAdminQuery.executeUpdate();
+
             // Example: Execute an INSERT query
             QueryBuilder insertQuery = new QueryBuilder();
             insertQuery.insert("CUSTOMER")
                     .addParameters(1, "John", "Doe", "123-456-7890", "H1PdI@example.com").query
-                    .append(" (customer_id, first_name, last_name, contact_number, email) VALUES (?, ?, ?, ?, ?)");
+                    .append(" (customer_id, first_name, last_name, contact_number, email) VALUES (?, ?, ?, ?, ?, ?, ?)");
             insertQuery.executeUpdate();
 
             // Example: Execute a SELECT query
