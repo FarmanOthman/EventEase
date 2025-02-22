@@ -289,31 +289,35 @@ public class QueryBuilder {
 
     // Additional helper methods can be added for more complex queries or actions.
 
-    public static void main(String[] args) {
-        try {
-            // Example: Execute an INSERT query for ADMIN
-            QueryBuilder insertAdminQuery = new QueryBuilder();
-            insertAdminQuery.insert("ADMIN")
-                    .addParameters(1, "admin", "admin123", "admin@example.com", new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())).query
-                    .append(" (admin_id, username, password, email, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            insertAdminQuery.executeUpdate();
 
-            // Example: Execute an INSERT query
-            QueryBuilder insertQuery = new QueryBuilder();
-            insertQuery.insert("CUSTOMER")
-                    .addParameters(1, "John", "Doe", "123-456-7890", "H1PdI@example.com").query
-                    .append(" (customer_id, first_name, last_name, contact_number, email) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            insertQuery.executeUpdate();
+    
+    // Example usage of QueryBuilder class and every thing works fine
 
-            // Example: Execute a SELECT query
-            QueryBuilder selectQuery = new QueryBuilder();
-            selectQuery.select("CUSTOMER")
-                    .where("customer_id = ?")
-                    .addParameters(1);
-            List<Map<String, Object>> results = selectQuery.executeRead();
-            System.out.println(results);
-        } catch (SQLException e) {
-            logger.severe("Error: " + e.getMessage());
-        }
-    }
+    // public static void main(String[] args) {
+    //     try {
+    //         // Example: Execute an INSERT query for ADMIN
+    //         QueryBuilder insertAdminQuery = new QueryBuilder();
+    //         insertAdminQuery.insert("ADMIN")
+    //                 .addParameters(1, "admin", "admin123", "admin@example.com", new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())).query
+    //                 .append(" (admin_id, username, password, email, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    //         insertAdminQuery.executeUpdate();
+
+    //         // Example: Execute an INSERT query
+    //         QueryBuilder insertQuery = new QueryBuilder();
+    //         insertQuery.insert("CUSTOMER")
+    //                 .addParameters(1, "John", "Doe", "123-456-7890", "H1PdI@example.com").query
+    //                 .append(" (customer_id, first_name, last_name, contact_number, email) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    //         insertQuery.executeUpdate();
+
+    //         // Example: Execute a SELECT query
+    //         QueryBuilder selectQuery = new QueryBuilder();
+    //         selectQuery.select("CUSTOMER")
+    //                 .where("customer_id = ?")
+    //                 .addParameters(1);
+    //         List<Map<String, Object>> results = selectQuery.executeRead();
+    //         System.out.println(results);
+    //     } catch (SQLException e) {
+    //         logger.severe("Error: " + e.getMessage());
+    //     }
+    // }
 }
