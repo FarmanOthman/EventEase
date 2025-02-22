@@ -1,5 +1,38 @@
-<<<<<<< HEAD
-.vscode/
-=======
+# Java
+*.class
+*.log
+*.war
+*.ear
+*.jar
+*.jar.pack
+
+# Maven
 target/
->>>>>>> Database-Implementation
+!.mvn/wrapper/maven-wrapper.jar
+*.iml
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# VS Code
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.bak
+*.swp
+*.swo
