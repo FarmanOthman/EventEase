@@ -14,6 +14,7 @@ public class LoginView {
     private RoundedTextField userField;
     private RoundedPasswordField passField;
     private RoundedButton loginButton;
+    private JPanel panel;
 
     public LoginView() {
         // Initialize the frame
@@ -24,7 +25,7 @@ public class LoginView {
         frame.getContentPane().setBackground(new Color(242, 242, 242)); // Light grey background
 
         // Create a panel to hold the components
-        JPanel panel = new JPanel();
+        panel = new JPanel();
         panel.setLayout(null);
         panel.setOpaque(false);
         frame.add(panel);
@@ -88,18 +89,25 @@ public class LoginView {
                 boolean result = AuthenticationService.authenticate(username, password);
 
                 if (result) {
-                    JOptionPane.showMessageDialog(frame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Replace login UI with admin dashboard
+                    // Clear the frame and set new content
                     frame.getContentPane().removeAll();
-                    frame.setContentPane(new AdminDashboard().getPanel()); // Set AdminDashboard panel
+                    frame.setLayout(new BorderLayout()); // Ensure proper layout for dashboard
+                    frame.setContentPane(new AdminDashboard().getPanel());
+                    
+                    // Refresh UI
                     frame.revalidate();
                     frame.repaint();
-                } else {
+                }
+                
+                else {
                     JOptionPane.showMessageDialog(frame, "Login failed. Please check your credentials.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+    }
+
+    public JPanel getPanel() {
+        return panel;
     }
 
     public void show() {

@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import database.Database;
 
-
 public class AuthenticationService {
 
     public static boolean authenticate(String username, String password) {
@@ -26,4 +25,5 @@ public class AuthenticationService {
         }
         return false;
     }
+
 }

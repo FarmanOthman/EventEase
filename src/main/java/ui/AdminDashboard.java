@@ -34,6 +34,20 @@ public class AdminDashboard {
             button.setFont(new Font("Arial", Font.BOLD, 16));
             button.setFocusPainted(false);
             button.setBorderPainted(false);
+            if (item.equals("Logout")) {
+              button.addActionListener(e -> {
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(mainPanel);
+                
+                // Dispose the current window
+                topFrame.dispose(); 
+            
+                // Open a new login window
+                SwingUtilities.invokeLater(() -> {
+                    new LoginView().show(); // Ensures LoginView is properly recreated
+                });
+            });
+            
+            }
             sidebarPanel.add(button);
         }
         mainPanel.add(sidebarPanel, BorderLayout.WEST);
