@@ -1,245 +1,445 @@
-Here's a detailed markdown file based on the `QueryBuilder` class you've provided. The file includes an overview of the class, methods, and examples for usage.
+# QueryBuilder - A Guide for Developers
+
+## Overview
+The `QueryBuilder` class provides a simple interface to interact with an SQLite database using **jOOQ (Java Object Oriented Querying)**. This class supports **CRUD (Create, Read, Update, Delete)** operations, making it easy for developers to perform database queries programmatically.
 
 ---
 
-# QueryBuilder Class Documentation
-
-## Overview
-
-The `QueryBuilder` class is a utility to dynamically construct and execute SQL queries. It supports various SQL operations like `INSERT`, `UPDATE`, `DELETE`, and `SELECT`, including clauses such as `WHERE`, `JOIN`, `GROUP BY`, `ORDER BY`, and `LIMIT`. This class allows developers to build SQL queries programmatically and execute them through a `PreparedStatement`.
-
-The class is designed for use in database interaction within Java applications.
-
 ## Features
+- **Connects** to an SQLite database automatically.
+- **Performs CRUD operations** (Insert, Select, Update, Delete).
+- Uses **jOOQ** for SQL query construction.
+- **Handles exceptions** gracefully.
+- **Ensures reusability** for future database operations.
 
-- Supports constructing SQL queries with dynamic parameters.
-- Enables SQL operations: `INSERT`, `UPDATE`, `DELETE`, `SELECT`.
-- Includes support for advanced query clauses such as `JOIN`, `GROUP BY`, `ORDER BY`, and `LIMIT`.
-- Handles SQL parameter binding with appropriate data types.
-- Logger support to track query execution success or failure.
+---
 
-## Enum: `QueryType`
+## Project Structure
+```
+project-root/
+├── src/main/java/database/QueryBuilder.java   # The QueryBuilder class
+├── src/main/resources/EventEase.db            # SQLite database file
+```
 
-The `QueryType` enum defines the supported SQL query types:
+---
+
+## 1. Database Connection
+The constructor initializes the database connection and creates a `DSLContext` object to execute SQL queries.
 
 ```java
-public enum QueryType {
-    SELECT, INSERT, UPDATE, DELETE
+private static final String DB_URL = "jdbc:sqlite:src/main/resources/EventEase.db";
+
+public QueryBuilder() {
+    this.connection = connectToDatabase();
+    this.create = DSL.using(connection, SQLDialect.SQLITE);
 }
 ```
 
-## Constructor
-
+### **Connecting to SQLite**
 ```java
-public QueryBuilder()
+private Connection connectToDatabase() {
+    try {
+        return DriverManager.getConnection(DB_URL);
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Failed to connect to the database", e);
+    }
+}
 ```
 
-- Initializes an empty query builder with a `StringBuilder` for query construction and a `List<Object>` for query parameters.
-
-## Methods
-
-### `insert(String table)`
-
-Begins an `INSERT` query for the specified table.
-
-- **Parameters:**
-  - `table`: The name of the table to insert into.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `update(String table)`
-
-Begins an `UPDATE` query for the specified table.
-
-- **Parameters:**
-  - `table`: The name of the table to update.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `delete(String table)`
-
-Begins a `DELETE` query for the specified table.
-
-- **Parameters:**
-  - `table`: The name of the table to delete from.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `select(String table)`
-
-Begins a `SELECT` query for the specified table.
-
-- **Parameters:**
-  - `table`: The name of the table to select from.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `set(String setClause)`
-
-Adds a `SET` clause for `UPDATE` and `INSERT` queries.
-
-- **Parameters:**
-  - `setClause`: The `SET` clause (e.g., `"column1 = ?, column2 = ?"`).
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `where(String whereClause)`
-
-Adds a `WHERE` clause to the query.
-
-- **Parameters:**
-  - `whereClause`: The `WHERE` clause (e.g., `"column1 = ?"`)
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `whereIn(String column, List<Object> values)`
-
-Adds a `WHERE IN` clause to the query.
-
-- **Parameters:**
-  - `column`: The column to use in the `IN` clause.
-  - `values`: A list of values for the `IN` clause.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `join(String table, String onClause)`
-
-Adds a `JOIN` clause to the query.
-
-- **Parameters:**
-  - `table`: The table to join with.
-  - `onClause`: The `ON` clause for the `JOIN` (e.g., `"a.id = b.id"`).
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `groupBy(String groupByClause)`
-
-Adds a `GROUP BY` clause to the query.
-
-- **Parameters:**
-  - `groupByClause`: The column to group by (e.g., `"column1"`).
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `orderBy(String orderByClause)`
-
-Adds an `ORDER BY` clause to the query.
-
-- **Parameters:**
-  - `orderByClause`: The `ORDER BY` clause (e.g., `"column1 ASC"`).
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `limit(int limit)`
-
-Adds a `LIMIT` clause to the query.
-
-- **Parameters:**
-  - `limit`: The number of rows to limit the query to.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `addParameters(Object... params)`
-
-Adds parameters to the query.
-
-- **Parameters:**
-  - `params`: The values to add as parameters.
-  
-- **Returns:** 
-  - The current `QueryBuilder` instance for method chaining.
-
-### `build()`
-
-Builds the final SQL query string.
-
-- **Returns:** 
-  - The constructed SQL query string.
-
-- **Throws:**
-  - `IllegalStateException` if the query type is not set.
-
-### `executeUpdate()`
-
-Executes the `INSERT`, `UPDATE`, or `DELETE` query.
-
-- **Throws:**
-  - `SQLException` if an SQL error occurs during query execution.
-
-### `executeRead()`
-
-Executes a `SELECT` query and returns the results as a list of maps (column name → value).
-
-- **Returns:** 
-  - A list of maps representing the query result.
-
-- **Throws:**
-  - `SQLException` if an SQL error occurs during query execution.
-
-### `setParameters(PreparedStatement pstmt)`
-
-Sets parameters for the `PreparedStatement`.
-
-- **Parameters:**
-  - `pstmt`: The `PreparedStatement` to set parameters on.
-
-- **Throws:**
-  - `SQLException` if an error occurs while setting parameters.
-
-### `validateTableName(String table)`
-
-Validates if the table name is valid (non-null and non-empty).
-
-- **Parameters:**
-  - `table`: The table name to validate.
-
-- **Throws:**
-  - `IllegalArgumentException` if the table name is null or empty.
-
-### `validateClause(String clause)`
-
-Validates if a SQL clause (such as `WHERE`, `SET`) is valid (non-null and non-empty).
-
-- **Parameters:**
-  - `clause`: The SQL clause to validate.
-
-- **Throws:**
-  - `IllegalArgumentException` if the clause is null or empty.
-
-## Example Usage
-
-### Insert Example
-
+### **Closing the Connection**
 ```java
-QueryBuilder insertQuery = new QueryBuilder();
-insertQuery.insert("CUSTOMER")
-    .addParameters(1, "John", "Doe", "123-456-7890", "H1PdI@example.com")
-    .set("customer_id, first_name, last_name, contact_number, email")
-    .executeUpdate();
+public void closeConnection() {
+    try {
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+            System.out.println("Connection closed.");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
 ```
 
-### Select Example
+---
+
+## 2. Insert Data
+Inserts a new record into a specified table.
 
 ```java
-QueryBuilder selectQuery = new QueryBuilder();
-selectQuery.select("CUSTOMER")
-    .where("customer_id = ?")
-    .addParameters(1);
-List<Map<String, Object>> results = selectQuery.executeRead();
-System.out.println(results);
+public void insert(String table, Map<String, Object> values) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+
+    List<Field<?>> columns = new ArrayList<>();
+    List<Object> insertValues = new ArrayList<>();
+
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+        columns.add(DSL.field(DSL.name(entry.getKey()), SQLDataType.VARCHAR));
+        insertValues.add(entry.getValue());
+    }
+
+    try {
+        create.insertInto(targetTable, columns.toArray(new Field[0]))
+                .values(insertValues.toArray())
+                .execute();
+        System.out.println("Record inserted into table: " + table);
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error inserting data into table: " + table);
+    }
+}
 ```
 
-## Conclusion
+### **Usage Example:**
+```java
+Map<String, Object> insertValues = new HashMap<>();
+insertValues.put("first_name", "Farman");
+insertValues.put("last_name", "Othman");
+insertValues.put("contact_number", "07500000000");
+insertValues.put("email", "james1234@gmail.com");
+qb.insert("Customer", insertValues);
+```
 
-The `QueryBuilder` class provides a flexible and reusable way to construct SQL queries dynamically, making it easier to work with databases in Java. By supporting various SQL operations and advanced query features, it simplifies complex database interactions and reduces the likelihood of SQL injection vulnerabilities.
+---
+
+## 3. Select Data
+Retrieves data from a table based on specified columns.
+
+```java
+public void select(String table, String... columns) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+    List<Field<?>> fieldList = new ArrayList<>();
+
+    for (String column : columns) {
+        fieldList.add(DSL.field(DSL.name(column)));
+    }
+
+    try {
+        Result<Record> result = create.select(fieldList).from(targetTable).fetch();
+        for (Record record : result) {
+            System.out.println("Fetched Record: " + record);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error selecting data from table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+qb.select("Customer", "first_name", "last_name", "email");
+```
+
+---
+
+## 4. Update Data
+Modifies existing records in a table.
+
+```java
+public void update(String table, Map<String, Object> values, String conditionColumn, Object conditionValue) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+    UpdateSetFirstStep<?> updateQuery = create.update(targetTable);
+    UpdateSetMoreStep<?> finalQuery = null;
+
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+        if (finalQuery == null) {
+            finalQuery = updateQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+        } else {
+            finalQuery = finalQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+        }
+    }
+
+    if (finalQuery != null) {
+        finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
+        System.out.println("Record updated in table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+Map<String, Object> updateValues = new HashMap<>();
+updateValues.put("email", "newemail@example.com");
+qb.update("Customer", updateValues, "first_name", "Farman");
+```
+
+---
+
+## 5. Delete Data
+Removes records from a table based on a condition.
+
+```java
+public void delete(String table, String conditionColumn, Object conditionValue) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+
+    try {
+        create.deleteFrom(targetTable)
+                .where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue))
+                .execute();
+        System.out.println("Record deleted from table: " + table);
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error deleting data from table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+qb.delete("Customer", "first_name", "Farman");
+```
+
+---
+
+## 6. Main Method (Testing the QueryBuilder)
+```java
+public static void main(String[] args) {
+    QueryBuilder qb = new QueryBuilder();
+
+    // Insert Example
+    qb.insert("Customer", insertValues);
+
+    // Select Example
+    qb.select("Customer", "first_name", "last_name", "email");
+
+    // Update Example
+    qb.update("Customer", updateValues, "first_name", "Farman");
+
+    // Delete Example
+    qb.delete("Customer", "first_name", "Farman");
+
+    // Close Connection
+    qb.closeConnection();
+}
+```
+
+In **jOOQ**, you can use SQL keywords like `WHERE`, `LIMIT`, `IN`, and many others by leveraging its fluent API. Below are the essential **SQL clauses** you might need when working with `QueryBuilder` in **jOOQ**.
+
+---
+
+## **1. WHERE Clause**
+The `WHERE` clause filters records based on conditions.
+
+### **Example (Simple WHERE)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").eq("james1234@gmail.com"))
+    .fetch();
+```
+
+### **Example (WHERE with Multiple Conditions)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("first_name").eq("Farman")
+        .and(DSL.field("last_name").eq("Othman")))
+    .fetch();
+```
+
+---
+
+## **2. LIMIT Clause**
+Limits the number of rows returned.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .limit(5) // Get only 5 records
+    .fetch();
+```
+
+---
+
+## **3. IN Clause**
+Filters records where a column matches any value in a given list.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").in("james1234@gmail.com", "newemail@example.com"))
+    .fetch();
+```
+
+---
+
+## **4. ORDER BY Clause**
+Sorts results in ascending (`ASC`) or descending (`DESC`) order.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .orderBy(DSL.field("first_name").asc()) // Sort by first_name in ascending order
+    .fetch();
+```
+
+---
+
+## **5. GROUP BY Clause**
+Groups results based on column values.
+
+### **Example**
+```java
+Result<Record> result = create.select(DSL.field("last_name"), DSL.count())
+    .from(DSL.table("Customer"))
+    .groupBy(DSL.field("last_name"))
+    .fetch();
+```
+
+---
+
+## **6. JOIN Clause**
+Used to combine rows from multiple tables.
+
+### **Example (INNER JOIN)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .join(DSL.table("Booking"))
+    .on(DSL.field("Customer.id").eq(DSL.field("Booking.customer_id")))
+    .fetch();
+```
+
+### **Example (LEFT JOIN)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .leftJoin(DSL.table("Booking"))
+    .on(DSL.field("Customer.id").eq(DSL.field("Booking.customer_id")))
+    .fetch();
+```
+
+---
+
+## **7. BETWEEN Clause**
+Filters records within a range.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Ticket"))
+    .where(DSL.field("price").between(50).and(100))
+    .fetch();
+```
+
+---
+
+## **8. EXISTS Clause**
+Checks if a subquery returns any results.
+
+### **Example**
+```java
+boolean exists = create.fetchExists(
+    create.selectOne()
+        .from(DSL.table("Customer"))
+        .where(DSL.field("email").eq("james1234@gmail.com"))
+);
+```
+
+---
+
+## **9. LIKE Clause**
+Filters records using pattern matching (`%` for any characters, `_` for a single character).
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").like("%gmail.com")) // Ends with gmail.com
+    .fetch();
+```
+
+---
+
+## **10. DISTINCT Clause**
+Returns unique values.
+
+### **Example**
+```java
+Result<Record> result = create.selectDistinct(DSL.field("email"))
+    .from(DSL.table("Customer"))
+    .fetch();
+```
+
+---
+
+## **11. COUNT Function**
+Counts the number of rows.
+
+### **Example**
+```java
+int count = create.fetchCount(DSL.table("Customer"));
+```
+
+---
+
+## **12. EXISTS with Subquery**
+Check if a value exists in another table.
+
+### **Example**
+```java
+boolean exists = create.fetchExists(
+    create.selectOne()
+        .from(DSL.table("Booking"))
+        .where(DSL.field("customer_id").eq(1))
+);
+```
+
+---
+
+## **13. CASE WHEN (Conditional Querying)**
+Used for conditional expressions.
+
+### **Example**
+```java
+Result<Record> result = create.select(
+    DSL.field("first_name"),
+    DSL.when(DSL.field("age").gt(18), "Adult")
+        .otherwise("Minor").as("status")
+).from(DSL.table("Customer")).fetch();
+```
+
+---
+
+## **14. UNION and UNION ALL**
+Combines results from multiple queries.
+
+### **Example**
+```java
+Result<Record> result = create.select(DSL.field("first_name"))
+    .from(DSL.table("Customer"))
+    .union(
+        create.select(DSL.field("manager_name"))
+            .from(DSL.table("Manager"))
+    ).fetch();
+```
+
+---
+
+## **15. DELETE Query**
+Deletes rows based on a condition.
+
+### **Example**
+```java
+create.deleteFrom(DSL.table("Customer"))
+    .where(DSL.field("email").eq("james1234@gmail.com"))
+    .execute();
+```
+
+---
+
+## **16. UPDATE Query**
+Updates specific values in a row.
+
+### **Example**
+```java
+create.update(DSL.table("Customer"))
+    .set(DSL.field("email"), "newemail@example.com")
+    .where(DSL.field("first_name").eq("Farman"))
+    .execute();
+```
+
