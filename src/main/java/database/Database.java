@@ -35,16 +35,9 @@ public class Database {
    * 
    * @return a Connection object to the database, or null if the connection fails.
    */
-  public static Connection getConnection() {
-    try {
-      // Attempt to get a connection using the provided DB URL
-      return DriverManager.getConnection(DB_URL);
-    } catch (SQLException e) {
-      // Handle SQL exceptions if the connection fails
-      System.err.println("❌ Failed to establish connection!");
-      e.printStackTrace();
-      return null; // Return null if connection cannot be established
-    }
+  public static Connection getConnection() throws SQLException {
+    // Attempt to get a connection using the provided DB URL
+    return DriverManager.getConnection(DB_URL);
   }
 
   /**

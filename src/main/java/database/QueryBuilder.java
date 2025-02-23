@@ -1,238 +1,153 @@
 package database;
 
+import org.jooq.*;
+import org.jooq.Record;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
+
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.Scanner;
+import java.util.*;
 
 public class QueryBuilder {
-    private StringBuilder query;
-    private List<Object> parameters;
+
+    private DSLContext create;
     private Connection connection;
-    private static final Logger LOGGER = Logger.getLogger(QueryBuilder.class.getName());
+    private static final String DB_URL = "jdbc:sqlite:src/main/resources/EventEase.db";
 
-    // Allowed tables and columns based on EventEase schema
-    private static final List<String> ALLOWED_TABLES = List.of(
-            "CUSTOMER", "TEAM", "EVENT", "BOOKING_EVENT", "BOOKING_TICKET",
-            "TICKET_CATEGORY", "TICKET", "ADMIN", "MANAGER", "ROLE",
-            "REPORT", "NOTIFICATION");
-
-    private static final List<String> ALLOWED_COLUMNS = List.of(
-            "id", "name", "email", "booking_date", "ticket_id",
-            "team_id", "event_id", "price", "status",
-            "created_at", "updated_at", "first_name", "last_name",
-            "password", "category_name", "total_price", "message",
-            "notification_type", "is_read", "receipt_number");
-
+    // Constructor initializes the database connection
     public QueryBuilder() {
-        this.query = new StringBuilder();
-        this.parameters = new ArrayList<>();
         this.connection = connectToDatabase();
+        this.create = DSL.using(connection, SQLDialect.SQLITE);
     }
 
+    // Establish connection to the SQLite database
     private Connection connectToDatabase() {
-        String dbUrl = "jdbc:sqlite:src/main/resources/EventEase.db";
         try {
-            return DriverManager.getConnection(dbUrl);
+            return DriverManager.getConnection(DB_URL);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to connect to the database", e);
-            throw new RuntimeException("Database connection error", e);
+            e.printStackTrace();
+            throw new RuntimeException("Failed to connect to the database", e);
         }
     }
 
+    // Close the database connection
     public void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                LOGGER.info("Database connection closed.");
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Error closing the database connection", e);
-            }
-        }
-    }
-
-    public QueryBuilder select(String... columns) {
-        query.append("SELECT ");
-        if (columns.length == 0) {
-            query.append("*");
-        } else {
-            for (String column : columns) {
-                validateColumn(column);
-            }
-            query.append(String.join(", ", columns));
-        }
-        return this;
-    }
-
-    public QueryBuilder from(String table) {
-        validateTable(table);
-        query.append(" FROM ").append(table);
-        return this;
-    }
-
-    private void validateTable(String table) {
-        if (!ALLOWED_TABLES.contains(table)) {
-            throw new IllegalArgumentException("Invalid table name: " + table);
-        }
-    }
-
-    private void validateColumn(String column) {
-        if (!ALLOWED_COLUMNS.contains(column)) {
-            throw new IllegalArgumentException("Invalid column name: " + column);
-        }
-    }
-
-    public QueryBuilder where(String condition, Object... params) {
-        query.append(" WHERE ").append(condition);
-        for (Object param : params) {
-            parameters.add(param);
-        }
-        return this;
-    }
-
-    private boolean isUpdateOrDeleteQuery() {
-        String queryString = query.toString().toUpperCase();
-        return queryString.startsWith("UPDATE") || queryString.startsWith("DELETE");
-    }
-
-    private void confirmDangerousQuery() {
-        if (isUpdateOrDeleteQuery() && !query.toString().contains("WHERE")) {
-            try (Scanner scanner = new Scanner(System.in)) {
-                System.out.println(
-                        "Warning: You are about to run an UPDATE/DELETE query without a WHERE clause, which could affect the entire table.");
-                System.out.print("Do you want to proceed? (yes/no): ");
-                String response = scanner.nextLine();
-                if (!response.equalsIgnoreCase("yes")) {
-                    throw new IllegalStateException("Query aborted by user.");
-                }
-            }
-        }
-    }
-
-    public void executeUpdate() {
         try {
-            confirmDangerousQuery();
-            try (PreparedStatement stmt = connection.prepareStatement(build())) {
-                for (int i = 0; i < parameters.size(); i++) {
-                    stmt.setObject(i + 1, parameters.get(i));
-                }
-                stmt.executeUpdate();
-                LOGGER.info("Query executed successfully: " + build());
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                System.out.println("Connection closed.");
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error executing query: " + build() + " with parameters: " + parameters, e);
-            throw new RuntimeException("Error executing query", e);
-        }
-    }
-
-    public ResultSet executeQuery() {
-        try (PreparedStatement stmt = connection.prepareStatement(build())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                stmt.setObject(i + 1, parameters.get(i));
-            }
-            return stmt.executeQuery();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error executing query: " + build() + " with parameters: " + parameters, e);
-            throw new RuntimeException("Error executing query", e);
-        }
-    }
-
-    public String build() {
-        return query.toString();
-    }
-
-    public QueryBuilder andCondition(String condition, Object... params) {
-        query.append(" AND ").append(condition);
-        for (Object param : params) {
-            parameters.add(param);
-        }
-        return this;
-    }
-
-    public QueryBuilder orCondition(String condition, Object... params) {
-        query.append(" OR ").append(condition);
-        for (Object param : params) {
-            parameters.add(param);
-        }
-        return this;
-    }
-
-    public QueryBuilder inCondition(String column, List<Object> values) {
-        query.append(" AND ").append(column).append(" IN (");
-        for (int i = 0; i < values.size(); i++) {
-            query.append("?");
-            if (i < values.size() - 1) {
-                query.append(", ");
-            }
-            parameters.add(values.get(i));
-        }
-        query.append(")");
-        return this;
-    }
-
-    public QueryBuilder join(String table, String onCondition) {
-        validateTable(table);
-        query.append(" JOIN ").append(table).append(" ON ").append(onCondition);
-        return this;
-    }
-
-    public QueryBuilder leftJoin(String table, String onCondition) {
-        validateTable(table);
-        query.append(" LEFT JOIN ").append(table).append(" ON ").append(onCondition);
-        return this;
-    }
-
-    public QueryBuilder rightJoin(String table, String onCondition) {
-        validateTable(table);
-        query.append(" RIGHT JOIN ").append(table).append(" ON ").append(onCondition);
-        return this;
-    }
-
-    public QueryBuilder aggregate(String function, String column) {
-        query.append(" ").append(function).append("(").append(column).append(")");
-        return this;
-    }
-
-    public QueryBuilder whereSubquery(String column, String operator, QueryBuilder subquery) {
-        query.append(" WHERE ").append(column).append(" ").append(operator).append(" (").append(subquery.build())
-                .append(")");
-        parameters.addAll(subquery.parameters);
-        return this;
-    }
-
-    public QueryBuilder limit(int limit) {
-        query.append(" LIMIT ").append(limit);
-        return this;
-    }
-
-    public QueryBuilder offset(int offset) {
-        query.append(" OFFSET ").append(offset);
-        return this;
-    }
-
-    public void close() {
-        closeConnection();
-    }
-
-    public static void main(String[] args) {
-        String dbUrl = "jdbc:sqlite:src/main/resources/EventEase.db";
-
-        try (Connection connection = DriverManager.getConnection(dbUrl)) {
-            QueryBuilder qb = new QueryBuilder();
-            qb.select().from("CUSTOMER");
-
-            System.out.println("Constructed Query: " + qb.build());
-            System.out.println("Parameters: " + qb.parameters);
-
-            ResultSet rs = qb.executeQuery();
-            while (rs.next()) {
-                System.out.println("Name: " + rs.getString("name") + ", Email: " + rs.getString("email"));
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // Insert data into a table
+    public void insert(String table, Map<String, Object> values) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+
+        List<Field<?>> columns = new ArrayList<>();
+        List<Object> insertValues = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            columns.add(DSL.field(DSL.name(entry.getKey()), SQLDataType.VARCHAR));
+            insertValues.add(entry.getValue());
+        }
+
+        try {
+            create.insertInto(targetTable, columns.toArray(new Field[0]))
+                    .values(insertValues.toArray())
+                    .execute();
+            System.out.println("Record inserted into table: " + table);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error inserting data into table: " + table);
+        }
+    }
+
+    // Select data from a table
+    public void select(String table, String... columns) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        List<Field<?>> fieldList = new ArrayList<>();
+
+        for (String column : columns) {
+            fieldList.add(DSL.field(DSL.name(column)));
+        }
+
+        try {
+            Result<Record> result = create.select(fieldList).from(targetTable).fetch();
+            for (Record record : result) {
+                System.out.println("Fetched Record: " + record);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error selecting data from table: " + table);
+        }
+    }
+
+    // Update data in a table
+    public void update(String table, Map<String, Object> values, String conditionColumn, Object conditionValue) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        UpdateSetFirstStep<?> updateQuery = create.update(targetTable);
+
+        UpdateSetMoreStep<?> finalQuery = null;
+
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            if (finalQuery == null) {
+                finalQuery = updateQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+            } else {
+                finalQuery = finalQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+            }
+        }
+
+        if (finalQuery != null) {
+            finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
+            System.out.println("Record updated in table: " + table);
+        }
+    }
+
+    // Delete data from a table
+    public void delete(String table, String conditionColumn, Object conditionValue) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+
+        try {
+            create.deleteFrom(targetTable)
+                    .where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue))
+                    .execute();
+            System.out.println("Record deleted from table: " + table);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error deleting data from table: " + table);
+        }
+    }
+
+    // Main method to test the functionality
+    public static void main(String[] args) {
+        QueryBuilder qb = new QueryBuilder();
+
+        // Prepare values for insertion
+        Map<String, Object> insertValues = new HashMap<>();
+        insertValues.put("first_name", "Farman");
+        insertValues.put("last_name", "Othman");
+        insertValues.put("contact_number", "07500000000");
+        insertValues.put("email", "james@gmail.com");
+
+        // Insert example
+        qb.insert("Customer", insertValues);
+
+        // Select example
+        System.out.println("Fetching customer data:");
+        qb.select("Customer", "first_name", "last_name", "email");
+
+        // Update example
+        Map<String, Object> updateValues = new HashMap<>();
+        updateValues.put("email", "newemail@example.com");
+        qb.update("Customer", updateValues, "first_name", "Farman");
+
+        // Delete example
+        qb.delete("Customer", "first_name", "Farman");
+
+        // Close the connection
+        qb.closeConnection();
     }
 }

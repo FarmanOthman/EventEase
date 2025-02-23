@@ -1,183 +1,445 @@
----
-
-# EventEase Project: QueryBuilder Developer Guide
+# QueryBuilder - A Guide for Developers
 
 ## Overview
-This guide will help developers understand how to use and extend the `QueryBuilder` class for managing SQL queries in the EventEase project. It includes best practices, instructions on how to work with the class, and what precautions should be taken to prevent errors, especially when executing `UPDATE` and `DELETE` queries.
+The `QueryBuilder` class provides a simple interface to interact with an SQLite database using **jOOQ (Java Object Oriented Querying)**. This class supports **CRUD (Create, Read, Update, Delete)** operations, making it easy for developers to perform database queries programmatically.
 
 ---
 
-## Table of Contents
-1. [General Instructions](#general-instructions)
-2. [Working with QueryBuilder Methods](#working-with-querybuilder-methods)
-3. [Security Considerations](#security-considerations)
-4. [Error Handling and Logging](#error-handling-and-logging)
-5. [Extending the QueryBuilder](#extending-the-querybuilder)
-6. [Safeguards for UPDATE and DELETE Queries](#safeguards-for-update-and-delete-queries)
-7. [How to Test QueryBuilder Queries](#how-to-test-querybuilder-queries)
-8. [Common Pitfalls and How to Avoid Them](#common-pitfalls-and-how-to-avoid-them)
-9. [Conclusion](#conclusion)
+## Features
+- **Connects** to an SQLite database automatically.
+- **Performs CRUD operations** (Insert, Select, Update, Delete).
+- Uses **jOOQ** for SQL query construction.
+- **Handles exceptions** gracefully.
+- **Ensures reusability** for future database operations.
 
 ---
 
-## General Instructions
-
-- **Use `QueryBuilder` for all SQL queries**: All database interactions within EventEase should be done via the `QueryBuilder` to ensure that queries are built in a safe, consistent, and reusable way.
-  
-- **Do not write raw SQL queries directly**: Writing raw SQL queries directly bypasses the safeguards and validations that the `QueryBuilder` offers, especially against SQL injection.
-
----
-
-## Working with QueryBuilder Methods
-
-1. **Building Queries**:
-    - Start by using the `select()`, `from()`, `where()`, and other methods to build your SQL query.
-    - Example:
-      ```java
-      QueryBuilder qb = new QueryBuilder();
-      qb.select("id", "name")
-        .from("CUSTOMER")
-        .where("status = ?", "active");
-      ```
-
-2. **Joining Tables**:
-    - Use `join()`, `leftJoin()`, or `rightJoin()` to join tables. Ensure you're joining valid tables as per the schema.
-    - Example:
-      ```java
-      qb.leftJoin("BOOKING", "CUSTOMER.id = BOOKING.customer_id");
-      ```
-
-3. **Adding Conditions**:
-    - Use `andCondition()` and `orCondition()` to add `AND` or `OR` clauses to your query.
-    - Example:
-      ```java
-      qb.andCondition("age > ?", 18);
-      qb.orCondition("name LIKE ?", "%John%");
-      ```
-
-4. **Limit and Offset**:
-    - Use `limit()` and `offset()` methods for pagination in queries.
-    - Example:
-      ```java
-      qb.limit(10).offset(0);
-      ```
-
-5. **Aggregation**:
-    - Use `aggregate()` to perform SQL aggregate functions like `COUNT()`, `SUM()`, etc.
-    - Example:
-      ```java
-      qb.aggregate("COUNT", "id");
-      ```
+## Project Structure
+```
+project-root/
+├── src/main/java/database/QueryBuilder.java   # The QueryBuilder class
+├── src/main/resources/EventEase.db            # SQLite database file
+```
 
 ---
 
-## Security Considerations
+## 1. Database Connection
+The constructor initializes the database connection and creates a `DSLContext` object to execute SQL queries.
 
-1. **Table and Column Validation**:
-    - The `QueryBuilder` class validates table names and column names to prevent SQL injection.
-    - Always make sure that table and column names are valid by referencing the pre-approved lists in the `QueryBuilder` class.
-    - Example: `validateTable("CUSTOMER")` ensures that only valid tables are used.
+```java
+private static final String DB_URL = "jdbc:sqlite:src/main/resources/EventEase.db";
 
-2. **SQL Injection Prevention**:
-    - Use parameterized queries via `PreparedStatement` to safely insert user input into SQL queries.
-    - Avoid concatenating user inputs directly into SQL strings.
-    - Example:
-      ```java
-      qb.where("status = ?", "active");
-      ```
+public QueryBuilder() {
+    this.connection = connectToDatabase();
+    this.create = DSL.using(connection, SQLDialect.SQLITE);
+}
+```
 
-3. **Prepared Statements**:
-    - Always use `PreparedStatement` for executing queries to automatically handle escaping of input data.
+### **Connecting to SQLite**
+```java
+private Connection connectToDatabase() {
+    try {
+        return DriverManager.getConnection(DB_URL);
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Failed to connect to the database", e);
+    }
+}
+```
 
----
-
-## Error Handling and Logging
-
-1. **Error Handling**:
-    - The `QueryBuilder` class includes logging of SQL exceptions in the `executeUpdate()` and `executeQuery()` methods.
-    - Make sure to catch and log errors properly when executing queries to ensure that issues are logged and easy to debug.
-
-2. **Logging**:
-    - Log every executed query (both successful and failed) for auditing and troubleshooting purposes.
-    - The logger provides details on the executed query and its parameters for transparency.
-
----
-
-## Extending the QueryBuilder
-
-1. **Adding Custom Methods**:
-    - If your feature requires new SQL functionalities, feel free to add custom methods to the `QueryBuilder`.
-    - Always validate input (tables, columns, etc.) before appending them to the query to prevent invalid data and SQL injection.
-    
-2. **Using Subqueries**:
-    - You can add subqueries inside your `WHERE` clauses using `whereSubquery()`.
-    - Example:
-      ```java
-      QueryBuilder subQuery = new QueryBuilder();
-      subQuery.select("id").from("EVENT").where("status = ?", "active");
-      qb.whereSubquery("event_id", "IN", subQuery);
-      ```
+### **Closing the Connection**
+```java
+public void closeConnection() {
+    try {
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+            System.out.println("Connection closed.");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+```
 
 ---
 
-## Safeguards for UPDATE and DELETE Queries
+## 2. Insert Data
+Inserts a new record into a specified table.
 
-1. **Confirmation for Dangerous Queries**:
-    - Both `UPDATE` and `DELETE` queries need confirmation before running if they don't contain a `WHERE` clause.
-    - The `confirmDangerousQuery()` method ensures that the developer is prompted with a warning message.
-    
-2. **Ensure `WHERE` Clauses Are Present**:
-    - Always include a `WHERE` clause in `UPDATE` or `DELETE` queries to avoid accidental updates or deletions across the entire table.
-    - Example:
-      ```java
-      qb.update("CUSTOMER")
-        .set("status", "inactive")
-        .where("status = ?", "active");
-      ```
+```java
+public void insert(String table, Map<String, Object> values) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
 
-3. **Run Confirmation on Critical Queries**:
-    - If a query is likely to affect a large number of records (or the entire table), the user will be asked for confirmation.
-    - Example:
-      ```java
-      System.out.println("You are about to delete all records from CUSTOMER. Are you sure? (yes/no)");
-      ```
+    List<Field<?>> columns = new ArrayList<>();
+    List<Object> insertValues = new ArrayList<>();
 
----
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+        columns.add(DSL.field(DSL.name(entry.getKey()), SQLDataType.VARCHAR));
+        insertValues.add(entry.getValue());
+    }
 
-## How to Test QueryBuilder Queries
+    try {
+        create.insertInto(targetTable, columns.toArray(new Field[0]))
+                .values(insertValues.toArray())
+                .execute();
+        System.out.println("Record inserted into table: " + table);
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error inserting data into table: " + table);
+    }
+}
+```
 
-1. **Unit Testing**:
-    - Write unit tests for all database queries using mock databases (e.g., H2) to ensure queries are correct.
-    - Focus on testing edge cases, like empty results, no `WHERE` clauses in `UPDATE` or `DELETE`, and invalid table/column names.
-
-2. **Testing Safeguards**:
-    - Test the confirmation prompts for dangerous queries to ensure they are triggered correctly.
-    - Ensure no query can execute without proper validation.
-
----
-
-## Common Pitfalls and How to Avoid Them
-
-1. **Missing WHERE Clause**:
-    - Always ensure that you include a `WHERE` clause in `UPDATE` and `DELETE` queries to avoid modifying or deleting the entire table.
-
-2. **Invalid Table/Column Names**:
-    - Be mindful of the valid table and column names defined in the `QueryBuilder`. Invalid names can lead to `IllegalArgumentException`.
-
-3. **Hardcoding SQL Queries**:
-    - Do not write SQL queries manually. Always use `QueryBuilder` to ensure queries are built securely and consistently.
-
-4. **Not Handling Exceptions**:
-    - Always handle SQL exceptions properly and log them for easy troubleshooting.
+### **Usage Example:**
+```java
+Map<String, Object> insertValues = new HashMap<>();
+insertValues.put("first_name", "Farman");
+insertValues.put("last_name", "Othman");
+insertValues.put("contact_number", "07500000000");
+insertValues.put("email", "james1234@gmail.com");
+qb.insert("Customer", insertValues);
+```
 
 ---
 
-## Conclusion
+## 3. Select Data
+Retrieves data from a table based on specified columns.
 
-By following the guidelines and best practices in this document, developers will be able to interact with the `QueryBuilder` class in a safe and consistent manner. Always remember to validate inputs, use prepared statements, and avoid running risky queries without proper checks.
+```java
+public void select(String table, String... columns) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+    List<Field<?>> fieldList = new ArrayList<>();
 
-If you have any questions or need further clarification, feel free to reach out!
+    for (String column : columns) {
+        fieldList.add(DSL.field(DSL.name(column)));
+    }
+
+    try {
+        Result<Record> result = create.select(fieldList).from(targetTable).fetch();
+        for (Record record : result) {
+            System.out.println("Fetched Record: " + record);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error selecting data from table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+qb.select("Customer", "first_name", "last_name", "email");
+```
 
 ---
 
-**End of Guide**
+## 4. Update Data
+Modifies existing records in a table.
+
+```java
+public void update(String table, Map<String, Object> values, String conditionColumn, Object conditionValue) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+    UpdateSetFirstStep<?> updateQuery = create.update(targetTable);
+    UpdateSetMoreStep<?> finalQuery = null;
+
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+        if (finalQuery == null) {
+            finalQuery = updateQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+        } else {
+            finalQuery = finalQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
+        }
+    }
+
+    if (finalQuery != null) {
+        finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
+        System.out.println("Record updated in table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+Map<String, Object> updateValues = new HashMap<>();
+updateValues.put("email", "newemail@example.com");
+qb.update("Customer", updateValues, "first_name", "Farman");
+```
+
+---
+
+## 5. Delete Data
+Removes records from a table based on a condition.
+
+```java
+public void delete(String table, String conditionColumn, Object conditionValue) {
+    Table<?> targetTable = DSL.table(DSL.name(table));
+
+    try {
+        create.deleteFrom(targetTable)
+                .where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue))
+                .execute();
+        System.out.println("Record deleted from table: " + table);
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error deleting data from table: " + table);
+    }
+}
+```
+
+### **Usage Example:**
+```java
+qb.delete("Customer", "first_name", "Farman");
+```
+
+---
+
+## 6. Main Method (Testing the QueryBuilder)
+```java
+public static void main(String[] args) {
+    QueryBuilder qb = new QueryBuilder();
+
+    // Insert Example
+    qb.insert("Customer", insertValues);
+
+    // Select Example
+    qb.select("Customer", "first_name", "last_name", "email");
+
+    // Update Example
+    qb.update("Customer", updateValues, "first_name", "Farman");
+
+    // Delete Example
+    qb.delete("Customer", "first_name", "Farman");
+
+    // Close Connection
+    qb.closeConnection();
+}
+```
+
+In **jOOQ**, you can use SQL keywords like `WHERE`, `LIMIT`, `IN`, and many others by leveraging its fluent API. Below are the essential **SQL clauses** you might need when working with `QueryBuilder` in **jOOQ**.
+
+---
+
+## **1. WHERE Clause**
+The `WHERE` clause filters records based on conditions.
+
+### **Example (Simple WHERE)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").eq("james1234@gmail.com"))
+    .fetch();
+```
+
+### **Example (WHERE with Multiple Conditions)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("first_name").eq("Farman")
+        .and(DSL.field("last_name").eq("Othman")))
+    .fetch();
+```
+
+---
+
+## **2. LIMIT Clause**
+Limits the number of rows returned.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .limit(5) // Get only 5 records
+    .fetch();
+```
+
+---
+
+## **3. IN Clause**
+Filters records where a column matches any value in a given list.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").in("james1234@gmail.com", "newemail@example.com"))
+    .fetch();
+```
+
+---
+
+## **4. ORDER BY Clause**
+Sorts results in ascending (`ASC`) or descending (`DESC`) order.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .orderBy(DSL.field("first_name").asc()) // Sort by first_name in ascending order
+    .fetch();
+```
+
+---
+
+## **5. GROUP BY Clause**
+Groups results based on column values.
+
+### **Example**
+```java
+Result<Record> result = create.select(DSL.field("last_name"), DSL.count())
+    .from(DSL.table("Customer"))
+    .groupBy(DSL.field("last_name"))
+    .fetch();
+```
+
+---
+
+## **6. JOIN Clause**
+Used to combine rows from multiple tables.
+
+### **Example (INNER JOIN)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .join(DSL.table("Booking"))
+    .on(DSL.field("Customer.id").eq(DSL.field("Booking.customer_id")))
+    .fetch();
+```
+
+### **Example (LEFT JOIN)**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .leftJoin(DSL.table("Booking"))
+    .on(DSL.field("Customer.id").eq(DSL.field("Booking.customer_id")))
+    .fetch();
+```
+
+---
+
+## **7. BETWEEN Clause**
+Filters records within a range.
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Ticket"))
+    .where(DSL.field("price").between(50).and(100))
+    .fetch();
+```
+
+---
+
+## **8. EXISTS Clause**
+Checks if a subquery returns any results.
+
+### **Example**
+```java
+boolean exists = create.fetchExists(
+    create.selectOne()
+        .from(DSL.table("Customer"))
+        .where(DSL.field("email").eq("james1234@gmail.com"))
+);
+```
+
+---
+
+## **9. LIKE Clause**
+Filters records using pattern matching (`%` for any characters, `_` for a single character).
+
+### **Example**
+```java
+Result<Record> result = create.select()
+    .from(DSL.table("Customer"))
+    .where(DSL.field("email").like("%gmail.com")) // Ends with gmail.com
+    .fetch();
+```
+
+---
+
+## **10. DISTINCT Clause**
+Returns unique values.
+
+### **Example**
+```java
+Result<Record> result = create.selectDistinct(DSL.field("email"))
+    .from(DSL.table("Customer"))
+    .fetch();
+```
+
+---
+
+## **11. COUNT Function**
+Counts the number of rows.
+
+### **Example**
+```java
+int count = create.fetchCount(DSL.table("Customer"));
+```
+
+---
+
+## **12. EXISTS with Subquery**
+Check if a value exists in another table.
+
+### **Example**
+```java
+boolean exists = create.fetchExists(
+    create.selectOne()
+        .from(DSL.table("Booking"))
+        .where(DSL.field("customer_id").eq(1))
+);
+```
+
+---
+
+## **13. CASE WHEN (Conditional Querying)**
+Used for conditional expressions.
+
+### **Example**
+```java
+Result<Record> result = create.select(
+    DSL.field("first_name"),
+    DSL.when(DSL.field("age").gt(18), "Adult")
+        .otherwise("Minor").as("status")
+).from(DSL.table("Customer")).fetch();
+```
+
+---
+
+## **14. UNION and UNION ALL**
+Combines results from multiple queries.
+
+### **Example**
+```java
+Result<Record> result = create.select(DSL.field("first_name"))
+    .from(DSL.table("Customer"))
+    .union(
+        create.select(DSL.field("manager_name"))
+            .from(DSL.table("Manager"))
+    ).fetch();
+```
+
+---
+
+## **15. DELETE Query**
+Deletes rows based on a condition.
+
+### **Example**
+```java
+create.deleteFrom(DSL.table("Customer"))
+    .where(DSL.field("email").eq("james1234@gmail.com"))
+    .execute();
+```
+
+---
+
+## **16. UPDATE Query**
+Updates specific values in a row.
+
+### **Example**
+```java
+create.update(DSL.table("Customer"))
+    .set(DSL.field("email"), "newemail@example.com")
+    .where(DSL.field("first_name").eq("Farman"))
+    .execute();
+```
+
