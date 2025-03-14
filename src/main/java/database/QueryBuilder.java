@@ -121,33 +121,4 @@ public class QueryBuilder {
         }
     }
 
-    // Main method to test the functionality
-    public static void main(String[] args) {
-        QueryBuilder qb = new QueryBuilder();
-
-        // Prepare values for insertion
-        Map<String, Object> insertValues = new HashMap<>();
-        insertValues.put("first_name", "Farman");
-        insertValues.put("last_name", "Othman");
-        insertValues.put("contact_number", "07500000000");
-        insertValues.put("email", "james@gmail.com");
-
-        // Insert example
-        qb.insert("Customer", insertValues);
-
-        // Select example
-        System.out.println("Fetching customer data:");
-        qb.select("Customer", "first_name", "last_name", "email");
-
-        // Update example
-        Map<String, Object> updateValues = new HashMap<>();
-        updateValues.put("email", "newemail@example.com");
-        qb.update("Customer", updateValues, "first_name", "Farman");
-
-        // Delete example
-        qb.delete("Customer", "first_name", "Farman");
-
-        // Close the connection
-        qb.closeConnection();
-    }
 }
