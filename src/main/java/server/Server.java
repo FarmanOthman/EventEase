@@ -1,6 +1,6 @@
 package server;
 
-import backend.EventService;
+
 import ui.LoginView;
 
 public class Server {
