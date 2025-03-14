@@ -1,128 +1,75 @@
--- Create CUSTOMER table
-CREATE TABLE IF NOT EXISTS CUSTOMER (
+-- Event Table (Stores event details with fixed categories and event types)
+CREATE TABLE IF NOT EXISTS Event (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_name TEXT NOT NULL,
+    event_date TIMESTAMP NOT NULL,
+    event_description TEXT,
+    category TEXT CHECK (category IN ('Regular', 'VIP')) NOT NULL, -- Fixed event category (Regular, VIP)
+    event_type TEXT CHECK (event_type IN ('Event', 'Match')) NOT NULL, -- Event type can be Event or Match
+    team_a TEXT NOT NULL,
+    team_b TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (team_a <> team_b) -- Ensure teams are different
+);
+
+-- Customer Table (Stores customer details)
+CREATE TABLE IF NOT EXISTS Customer (
     customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    contact_number TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT email_unique UNIQUE(email)  -- Ensures email is unique
-);
-
--- Create TEAM table
-CREATE TABLE IF NOT EXISTS TEAM (
-    team_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    team_name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT team_name_unique UNIQUE(team_name) -- Ensures unique team names
-);
-
--- Create VENUE table
-CREATE TABLE IF NOT EXISTS VENUE (
-    venue_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    venue_name TEXT NOT NULL,
-    location TEXT NOT NULL,
-    capacity INTEGER NOT NULL CHECK (capacity > 0),  -- Ensure valid capacity
+    contact_number TEXT NOT NULL CHECK (length(contact_number) >= 10 AND length(contact_number) <= 15),  -- Ensuring a valid contact number length (adjust based on region)
+    email TEXT NOT NULL UNIQUE CHECK (email LIKE '%@%.%'), -- Basic email format validation (use more complex validation at the application layer)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create EVENT table
-CREATE TABLE IF NOT EXISTS EVENT (
-    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    team_a INTEGER NOT NULL,
-    team_b INTEGER NOT NULL,
-    event_date TIMESTAMP NOT NULL,
-    venue_id INTEGER NOT NULL,
-    event_status TEXT DEFAULT 'Scheduled',
+-- Ticket Table (Stores individual tickets linked to an event with fixed ticket types)
+CREATE TABLE IF NOT EXISTS Ticket (
+    ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,  
+    ticket_type TEXT CHECK (ticket_type IN ('Regular', 'VIP')) NOT NULL,
+    ticket_date TIMESTAMP NOT NULL,
+    ticket_status TEXT CHECK (ticket_status IN ('Available', 'Sold', 'Canceled')) DEFAULT 'Available',  -- Validating ticket status
+    price REAL NOT NULL CHECK (price > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (team_a) REFERENCES TEAM(team_id) ON DELETE CASCADE,
-    FOREIGN KEY (team_b) REFERENCES TEAM(team_id) ON DELETE CASCADE,
-    FOREIGN KEY (venue_id) REFERENCES VENUE(venue_id) ON DELETE CASCADE,
-    CONSTRAINT event_unique UNIQUE (team_a, team_b, event_date) -- Prevent duplicate events
+    FOREIGN KEY (event_id) REFERENCES Event(event_id) ON DELETE CASCADE,
+    CONSTRAINT ticket_unique UNIQUE (event_id, ticket_type)  -- Only one ticket for Regular events
 );
 
--- Create TICKET_CATEGORY table
-CREATE TABLE IF NOT EXISTS TICKET_CATEGORY (
-    ticket_category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    category_name TEXT NOT NULL,
-    category_price REAL NOT NULL CHECK (category_price > 0),  -- Ensure valid price
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create BOOKING table
-CREATE TABLE IF NOT EXISTS BOOKING (
-    booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_id INTEGER NOT NULL,
-    customer_id INTEGER NOT NULL,
-    ticket_category INTEGER NOT NULL,
-    price REAL NOT NULL CHECK (price > 0),  -- Ensure valid price
-    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'Pending',
-    payment_status TEXT DEFAULT 'Unpaid',
-    receipt_number TEXT UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (event_id) REFERENCES EVENT(event_id) ON DELETE CASCADE,
-    FOREIGN KEY (customer_id) REFERENCES CUSTOMER(customer_id) ON DELETE CASCADE,
-    FOREIGN KEY (ticket_category) REFERENCES TICKET_CATEGORY(ticket_category_id) ON DELETE CASCADE
-);
-
--- Create ROLE table to manage roles dynamically
-CREATE TABLE IF NOT EXISTS ROLE (
-    role_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    role_name TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create ADMIN table with hashed password for security
-CREATE TABLE IF NOT EXISTS ADMIN (
+-- Admin Table (Stores admin login details with hashed password)
+CREATE TABLE IF NOT EXISTS Admin (
     admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,  -- Store password hashes, not plain text
-    role_id INTEGER NOT NULL,
-    email TEXT UNIQUE,
+    password TEXT NOT NULL,  -- To store hashed password
+    email TEXT UNIQUE CHECK (email LIKE '%@%.%'),  -- Basic email format validation (use more complex validation at the application layer)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (role_id) REFERENCES ROLE(role_id),
-    CONSTRAINT username_unique UNIQUE(username) -- Ensure unique username
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create REPORT table
-CREATE TABLE IF NOT EXISTS REPORT (
-    report_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_id INTEGER NOT NULL,
-    report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total_revenue REAL NOT NULL CHECK (total_revenue >= 0),  -- Ensure valid revenue
-    total_tickets_sold INTEGER NOT NULL CHECK (total_tickets_sold >= 0), -- Ensure valid ticket count
+-- Manager Table (Stores manager login details with hashed password)
+CREATE TABLE IF NOT EXISTS Manager (
+    manager_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,  -- To store hashed password
+    email TEXT UNIQUE CHECK (email LIKE '%@%.%'),  -- Basic email format validation (use more complex validation at the application layer)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (event_id) REFERENCES EVENT(event_id) ON DELETE CASCADE
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create NOTIFICATION table
-CREATE TABLE IF NOT EXISTS NOTIFICATION (
-    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    booking_id INTEGER NOT NULL,
-    admin_id INTEGER NOT NULL,
-    message TEXT NOT NULL,
-    notification_type TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT 0, -- 0 for unread, 1 for read
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id) ON DELETE CASCADE,
-    FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id) ON DELETE CASCADE
-);
+-- Trigger to enforce the constraint that only one ticket can be created for an event if the event type is 'Match'
+CREATE TRIGGER IF NOT EXISTS enforce_single_ticket_for_match
+BEFORE INSERT ON Ticket
+FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Event WHERE event_id = NEW.event_id AND event_type = 'Match')
+BEGIN
+    SELECT RAISE(ABORT, 'Only one ticket can be created for an event of type Match')
+    WHERE (SELECT COUNT(*) FROM Ticket WHERE event_id = NEW.event_id) >= 1;
+END;
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_event_team_a ON EVENT(team_a);
-CREATE INDEX IF NOT EXISTS idx_event_team_b ON EVENT(team_b);
-CREATE INDEX IF NOT EXISTS idx_event_venue_id ON EVENT(venue_id);
-CREATE INDEX IF NOT EXISTS idx_booking_customer_id ON BOOKING(customer_id);
-CREATE INDEX IF NOT EXISTS idx_booking_event_id ON BOOKING(event_id);
-CREATE INDEX IF NOT EXISTS idx_notification_is_read ON NOTIFICATION(is_read);
+-- Indexes for Performance Optimization
+CREATE INDEX IF NOT EXISTS idx_event_name ON Event(event_name);
+CREATE INDEX IF NOT EXISTS idx_event_date ON Event(event_date);
+CREATE INDEX IF NOT EXISTS idx_ticket_event_id ON Ticket(event_id);
+CREATE INDEX IF NOT EXISTS idx_event_name_date ON Event(event_name, event_date);  -- Composite index for faster event name and date search

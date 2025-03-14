@@ -1,323 +1,132 @@
 package database;
 
+import org.jooq.*;
+import org.jooq.Record;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
+
 import java.sql.*;
 import java.util.*;
-import java.util.logging.*;
 
-/**
- * QueryBuilder is a utility class to construct and execute SQL queries
- * dynamically.
- * It supports INSERT, UPDATE, DELETE, and SELECT queries, including JOINs,
- * GROUP BY,
- * ORDER BY, and more.
- */
 public class QueryBuilder {
-    private static final Logger logger = Logger.getLogger(QueryBuilder.class.getName());
-    private StringBuilder query;
-    private List<Object> parameters;
-    private QueryType queryType;
 
-    // Enum for Query Types (INSERT, UPDATE, DELETE, SELECT)
-    public enum QueryType {
-        SELECT, INSERT, UPDATE, DELETE
-    }
+    private DSLContext create;
+    private Connection connection;
+    private static final String DB_URL = "jdbc:sqlite:src/main/resources/EventEase.db";
 
-    // Constructor initializes query string and parameters list
+    // Constructor initializes the database connection
     public QueryBuilder() {
-        query = new StringBuilder();
-        parameters = new ArrayList<>();
+        this.connection = connectToDatabase();
+        this.create = DSL.using(connection, SQLDialect.SQLITE);
     }
 
-    /**
-     * Begins an INSERT query for a specified table.
-     *
-     * @param table The name of the table to insert into.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder insert(String table) {
-        validateTableName(table);
-        queryType = QueryType.INSERT;
-        query.append("INSERT INTO ").append(table).append(" ");
-        return this;
-    }
-
-    /**
-     * Begins an UPDATE query for a specified table.
-     *
-     * @param table The name of the table to update.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder update(String table) {
-        validateTableName(table);
-        queryType = QueryType.UPDATE;
-        query.append("UPDATE ").append(table).append(" ");
-        return this;
-    }
-
-    /**
-     * Begins a DELETE query for a specified table.
-     *
-     * @param table The name of the table to delete from.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder delete(String table) {
-        validateTableName(table);
-        queryType = QueryType.DELETE;
-        query.append("DELETE FROM ").append(table).append(" ");
-        return this;
-    }
-
-    /**
-     * Begins a SELECT query for a specified table.
-     *
-     * @param table The name of the table to select from.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder select(String table) {
-        validateTableName(table);
-        queryType = QueryType.SELECT;
-        query.append("SELECT * FROM ").append(table).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds a SET clause for UPDATE and INSERT queries.
-     *
-     * @param setClause The SET clause (e.g., "column1 = ?, column2 = ?").
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder set(String setClause) {
-        validateClause(setClause);
-        query.append("SET ").append(setClause).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds a WHERE clause to the query.
-     *
-     * @param whereClause The WHERE clause (e.g., "column1 = ?").
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder where(String whereClause) {
-        validateClause(whereClause);
-        query.append("WHERE ").append(whereClause).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds a WHERE IN clause to the query.
-     *
-     * @param column The column to use in the IN clause.
-     * @param values The list of values for the IN clause.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder whereIn(String column, List<Object> values) {
-        query.append("WHERE ").append(column).append(" IN (");
-        for (int i = 0; i < values.size(); i++) {
-            query.append("?");
-            if (i < values.size() - 1) {
-                query.append(", ");
-            }
-        }
-        query.append(") ");
-        parameters.addAll(values);
-        return this;
-    }
-
-    /**
-     * Adds a JOIN clause to the query.
-     *
-     * @param table    The table to join with.
-     * @param onClause The ON clause for the JOIN (e.g., "a.id = b.id").
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder join(String table, String onClause) {
-        query.append("JOIN ").append(table).append(" ON ").append(onClause).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds a GROUP BY clause to the query.
-     *
-     * @param groupByClause The GROUP BY clause (e.g., "column1").
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder groupBy(String groupByClause) {
-        query.append("GROUP BY ").append(groupByClause).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds an ORDER BY clause to the query.
-     *
-     * @param orderByClause The ORDER BY clause (e.g., "column1 ASC").
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder orderBy(String orderByClause) {
-        query.append("ORDER BY ").append(orderByClause).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds a LIMIT clause to the query.
-     *
-     * @param limit The number of rows to limit the query to.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder limit(int limit) {
-        query.append("LIMIT ").append(limit).append(" ");
-        return this;
-    }
-
-    /**
-     * Adds values to the query parameters.
-     *
-     * @param params The values to add.
-     * @return The current QueryBuilder instance for method chaining.
-     */
-    public QueryBuilder addParameters(Object... params) {
-        parameters.addAll(Arrays.asList(params));
-        return this;
-    }
-
-    /**
-     * Builds the final SQL query string.
-     *
-     * @return The constructed SQL query string.
-     */
-    public String build() {
-        if (queryType == null) {
-            throw new IllegalStateException(
-                    "Query type is not set. Please specify a query type (INSERT, UPDATE, SELECT, DELETE).");
-        }
-        return query.toString().trim();
-    }
-
-    /**
-     * Executes the update query (INSERT, UPDATE, DELETE).
-     *
-     * @throws SQLException If an SQL error occurs during query execution.
-     */
-    public void executeUpdate() throws SQLException {
-        String sql = build();
-        try (Connection conn = Database.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            setParameters(pstmt);
-            pstmt.executeUpdate();
-            logger.info("✅ Query executed successfully: " + sql + " with parameters: " + parameters);
+    // Establish connection to the SQLite database
+    private Connection connectToDatabase() {
+        try {
+            return DriverManager.getConnection(DB_URL);
         } catch (SQLException e) {
-            logger.severe("❌ Query failed: " + sql + " with parameters: " + parameters);
-            throw new SQLException("Error executing query: " + sql, e);
+            e.printStackTrace();
+            throw new RuntimeException("Failed to connect to the database", e);
         }
     }
 
-    /**
-     * Executes the read query (SELECT).
-     *
-     * @return The results of the SELECT query as a list of maps (column name ->
-     *         value).
-     * @throws SQLException If an SQL error occurs during query execution.
-     */
-    public List<Map<String, Object>> executeRead() throws SQLException {
-        List<Map<String, Object>> result = new ArrayList<>();
-        String sql = build();
-        try (Connection conn = Database.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            setParameters(pstmt);
-            ResultSet rs = pstmt.executeQuery();
-            ResultSetMetaData metaData = rs.getMetaData();
-            while (rs.next()) {
+    // Close the database connection
+    public void closeConnection() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                System.out.println("Connection closed.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Insert data into a table
+    public void insert(String table, Map<String, Object> values) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+
+        List<Field<?>> columns = new ArrayList<>();
+        List<Object> insertValues = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            columns.add(DSL.field(DSL.name(entry.getKey()), SQLDataType.VARCHAR));
+            insertValues.add(entry.getValue());
+        }
+
+        try {
+            create.insertInto(targetTable, columns.toArray(new Field[0]))
+                    .values(insertValues.toArray())
+                    .execute();
+            System.out.println("Record inserted into table: " + table);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error inserting data into table: " + table);
+        }
+    }
+
+    // Select data from a table
+    public List<Map<String, Object>> select(String table, String... columns) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        List<Field<?>> fieldList = new ArrayList<>();
+
+        for (String column : columns) {
+            fieldList.add(DSL.field(DSL.name(column)));
+        }
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        try {
+            Result<Record> result = create.select(fieldList).from(targetTable).fetch();
+            for (Record record : result) {
                 Map<String, Object> row = new HashMap<>();
-                for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                    row.put(metaData.getColumnName(i), rs.getObject(i));
+                for (Field<?> field : fieldList) {
+                    row.put(field.getName(), record.get(field));
                 }
-                result.add(row);
+                resultList.add(row);
             }
-            logger.info("✅ Query executed successfully: " + sql + " with parameters: " + parameters);
-        } catch (SQLException e) {
-            logger.severe("❌ Query failed: " + sql + " with parameters: " + parameters);
-            throw new SQLException("Error executing query: " + sql, e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error selecting data from table: " + table);
         }
-        return result;
+
+        return resultList; // Return the list of maps
     }
 
-    /**
-     * Sets parameters for the PreparedStatement.
-     *
-     * @param pstmt The PreparedStatement to set parameters on.
-     * @throws SQLException If an error occurs while setting parameters.
-     */
-    private void setParameters(PreparedStatement pstmt) throws SQLException {
-        int index = 1;
-        for (Object param : parameters) {
-            if (param instanceof String) {
-                pstmt.setString(index++, (String) param);
-            } else if (param instanceof Integer) {
-                pstmt.setInt(index++, (Integer) param);
-            } else if (param instanceof Boolean) {
-                pstmt.setBoolean(index++, (Boolean) param);
-            } else if (param instanceof java.sql.Date) {
-                pstmt.setDate(index++, (java.sql.Date) param);
+    // Update data in a table
+    public void update(String table, Map<String, Object> values, String conditionColumn, Object conditionValue) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        UpdateSetFirstStep<?> updateQuery = create.update(targetTable);
+
+        UpdateSetMoreStep<?> finalQuery = null;
+
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            if (finalQuery == null) {
+                finalQuery = updateQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
             } else {
-                pstmt.setObject(index++, param);
+                finalQuery = finalQuery.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
             }
         }
-    }
 
-    /**
-     * Validates if a table name is valid (non-null and non-empty).
-     *
-     * @param table The table name to validate.
-     */
-    private void validateTableName(String table) {
-        if (table == null || table.isEmpty()) {
-            throw new IllegalArgumentException("Table name cannot be null or empty.");
+        if (finalQuery != null) {
+            finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
+            System.out.println("Record updated in table: " + table);
         }
     }
 
-    /**
-     * Validates if a SQL clause (such as WHERE, SET) is valid (non-null and
-     * non-empty).
-     *
-     * @param clause The SQL clause to validate.
-     */
-    private void validateClause(String clause) {
-        if (clause == null || clause.isEmpty()) {
-            throw new IllegalArgumentException("Clause cannot be null or empty.");
+    // Delete data from a table
+    public void delete(String table, String conditionColumn, Object conditionValue) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+
+        try {
+            create.deleteFrom(targetTable)
+                    .where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue))
+                    .execute();
+            System.out.println("Record deleted from table: " + table);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error deleting data from table: " + table);
         }
     }
 
-    // Additional helper methods can be added for more complex queries or actions.
-
-
-    
-    // Example usage of QueryBuilder class and every thing works fine
-
-    // public static void main(String[] args) {
-    //     try {
-    //         // Example: Execute an INSERT query for ADMIN
-    //         QueryBuilder insertAdminQuery = new QueryBuilder();
-    //         insertAdminQuery.insert("ADMIN")
-    //                 .addParameters(1, "admin", "admin123", "admin@example.com", new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis())).query
-    //                 .append(" (admin_id, username, password, email, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    //         insertAdminQuery.executeUpdate();
-
-    //         // Example: Execute an INSERT query
-    //         QueryBuilder insertQuery = new QueryBuilder();
-    //         insertQuery.insert("CUSTOMER")
-    //                 .addParameters(1, "John", "Doe", "123-456-7890", "H1PdI@example.com").query
-    //                 .append(" (customer_id, first_name, last_name, contact_number, email) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    //         insertQuery.executeUpdate();
-
-    //         // Example: Execute a SELECT query
-    //         QueryBuilder selectQuery = new QueryBuilder();
-    //         selectQuery.select("CUSTOMER")
-    //                 .where("customer_id = ?")
-    //                 .addParameters(1);
-    //         List<Map<String, Object>> results = selectQuery.executeRead();
-    //         System.out.println(results);
-    //     } catch (SQLException e) {
-    //         logger.severe("Error: " + e.getMessage());
-    //     }
-    // }
 }
