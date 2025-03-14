@@ -66,7 +66,7 @@ public class QueryBuilder {
     }
 
     // Select data from a table
-    public void select(String table, String... columns) {
+    public List<Map<String, Object>> select(String table, String... columns) {
         Table<?> targetTable = DSL.table(DSL.name(table));
         List<Field<?>> fieldList = new ArrayList<>();
 
@@ -74,15 +74,23 @@ public class QueryBuilder {
             fieldList.add(DSL.field(DSL.name(column)));
         }
 
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
         try {
             Result<Record> result = create.select(fieldList).from(targetTable).fetch();
             for (Record record : result) {
-                System.out.println("Fetched Record: " + record);
+                Map<String, Object> row = new HashMap<>();
+                for (Field<?> field : fieldList) {
+                    row.put(field.getName(), record.get(field));
+                }
+                resultList.add(row);
             }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Error selecting data from table: " + table);
         }
+
+        return resultList; // Return the list of maps
     }
 
     // Update data in a table
@@ -121,33 +129,4 @@ public class QueryBuilder {
         }
     }
 
-    // Main method to test the functionality
-    public static void main(String[] args) {
-        QueryBuilder qb = new QueryBuilder();
-
-        // Prepare values for insertion
-        Map<String, Object> insertValues = new HashMap<>();
-        insertValues.put("first_name", "Farman");
-        insertValues.put("last_name", "Othman");
-        insertValues.put("contact_number", "07500000000");
-        insertValues.put("email", "james@gmail.com");
-
-        // Insert example
-        qb.insert("Customer", insertValues);
-
-        // Select example
-        System.out.println("Fetching customer data:");
-        qb.select("Customer", "first_name", "last_name", "email");
-
-        // Update example
-        Map<String, Object> updateValues = new HashMap<>();
-        updateValues.put("email", "newemail@example.com");
-        qb.update("Customer", updateValues, "first_name", "Farman");
-
-        // Delete example
-        qb.delete("Customer", "first_name", "Farman");
-
-        // Close the connection
-        qb.closeConnection();
-    }
 }
