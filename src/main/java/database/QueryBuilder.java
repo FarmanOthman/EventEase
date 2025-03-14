@@ -77,7 +77,7 @@ public class QueryBuilder {
         try {
             Result<Record> result = create.select(fieldList).from(targetTable).fetch();
             for (Record record : result) {
-                System.out.println("Fetched Record: " + record);
+                System.out.println("Fetched Record: \n" + record);
             }
         } catch (Exception e) {
             e.printStackTrace();
