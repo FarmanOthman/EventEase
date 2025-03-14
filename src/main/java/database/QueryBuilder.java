@@ -66,7 +66,7 @@ public class QueryBuilder {
     }
 
     // Select data from a table
-    public void select(String table, String... columns) {
+    public List<Map<String, Object>> select(String table, String... columns) {
         Table<?> targetTable = DSL.table(DSL.name(table));
         List<Field<?>> fieldList = new ArrayList<>();
 
@@ -74,15 +74,23 @@ public class QueryBuilder {
             fieldList.add(DSL.field(DSL.name(column)));
         }
 
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
         try {
             Result<Record> result = create.select(fieldList).from(targetTable).fetch();
             for (Record record : result) {
-                System.out.println("Fetched Record: \n" + record);
+                Map<String, Object> row = new HashMap<>();
+                for (Field<?> field : fieldList) {
+                    row.put(field.getName(), record.get(field));
+                }
+                resultList.add(row);
             }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Error selecting data from table: " + table);
         }
+
+        return resultList; // Return the list of maps
     }
 
     // Update data in a table
