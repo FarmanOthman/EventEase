@@ -34,6 +34,7 @@ public class AdminDashboard {
             button.setFont(new Font("Arial", Font.BOLD, 16));
             button.setFocusPainted(false);
             button.setBorderPainted(false);
+            
             if (item.equals("Logout")) {
               button.addActionListener(e -> {
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(mainPanel);
@@ -47,7 +48,12 @@ public class AdminDashboard {
                 });
             });
             
-            }
+        }
+            if(item.equals("Manage Ticket")) {
+                button.addActionListener(e -> {
+                  SwingUtilities.invokeLater(() -> new BookingView());  
+                });
+                }
             sidebarPanel.add(button);
         }
         mainPanel.add(sidebarPanel, BorderLayout.WEST);
