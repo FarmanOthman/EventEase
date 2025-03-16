@@ -1,12 +1,13 @@
 package ui;
 
+import ui.components.Sidebar;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
 public class EventView extends JFrame {
-    private JPanel leftPanel, mainPanel, contentPanel;
+    private JPanel mainPanel, contentPanel;
     
     public EventView() {
         setTitle("Event Management");
@@ -14,48 +15,16 @@ public class EventView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // Create left panel with blue background
-        createLeftPanel();
+        // Use the separate Sidebar component
+        add(new Sidebar(), BorderLayout.WEST);
         
         // Create main panel with event form
         createMainPanel();
         
-        // Add panels to frame
-        add(leftPanel, BorderLayout.WEST);
+        // Add main panel to frame
         add(mainPanel, BorderLayout.CENTER);
         
         setVisible(true);
-    }
-    
-    private void createLeftPanel() {
-        leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(new Color(64, 133, 219)); // Blue background
-        leftPanel.setPreferredSize(new Dimension(180, 500));
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        
-        // Add menu items
-        String[] menuItems = {"Manage Ticket", "Sales Reports", "Calender", "User Management", "Logout"};
-        
-        for (String item : menuItems) {
-            JLabel menuLabel = new JLabel(item);
-            menuLabel.setForeground(Color.WHITE);
-            menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-            menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-            menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            // Add some space between main items and logout
-            if (item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalStrut(40));
-            }
-            
-            leftPanel.add(menuLabel);
-            
-            // No spacer after last item
-            if (!item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalStrut(5));
-            }
-        }
     }
     
     private void createMainPanel() {
@@ -64,7 +33,7 @@ public class EventView extends JFrame {
         
         // Create header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219)); // Same blue as left panel
+        headerPanel.setBackground(new Color(64, 133, 219)); // Same blue as sidebar
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
         headerLabel.setForeground(Color.WHITE);

@@ -1,5 +1,6 @@
 package ui;
 
+import ui.components.Sidebar; // Import your Sidebar class
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
@@ -7,7 +8,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class ReportsView extends JFrame {
-    private JPanel leftPanel, mainPanel, contentPanel;
+    private JPanel mainPanel, contentPanel;
+    private Sidebar leftPanel; // Changed from JPanel to Sidebar
     private JTable salesTable;
     
     public ReportsView() {
@@ -16,8 +18,8 @@ public class ReportsView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // Create left panel with blue background
-        createLeftPanel();
+        // Create sidebar using the Sidebar class
+        leftPanel = new Sidebar();
         
         // Create main panel with sales reporting content
         createMainPanel();
@@ -27,37 +29,6 @@ public class ReportsView extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
         
         setVisible(true);
-    }
-    
-    private void createLeftPanel() {
-        leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(new Color(64, 133, 219)); // Blue background
-        leftPanel.setPreferredSize(new Dimension(180, 500));
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        
-        // Add menu items
-        String[] menuItems = {"Tickets Management", "Sales Reports", "Calendar", "Notifications", "Logout"};
-        
-        for (String item : menuItems) {
-            JLabel menuLabel = new JLabel(item);
-            menuLabel.setForeground(Color.WHITE);
-            menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-            menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-            menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            // Add some space between main items and logout
-            if (item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalGlue()); // Push Logout to bottom
-            }
-            
-            leftPanel.add(menuLabel);
-            
-            // No spacer after last item
-            if (!item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalStrut(5));
-            }
-        }
     }
     
     private void createMainPanel() {
