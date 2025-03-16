@@ -92,8 +92,7 @@ public class LoginView {
                     // Clear the frame and set new content
                     frame.getContentPane().removeAll();
                     frame.setLayout(new BorderLayout()); // Ensure proper layout for dashboard
-                    frame.setContentPane(new AdminDashboard().getPanel());
-                    
+                    frame.setContentPane(new AdminDashboard(frame).getPanel());
                     // Refresh UI
                     frame.revalidate();
                     frame.repaint();

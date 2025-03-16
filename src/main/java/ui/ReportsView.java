@@ -11,6 +11,7 @@ public class ReportsView extends JFrame {
     private JPanel mainPanel, contentPanel;
     private Sidebar leftPanel; // Changed from JPanel to Sidebar
     private JTable salesTable;
+    private JFrame frame;
     
     public ReportsView() {
         setTitle("Sales Reporting Analytics");
@@ -19,7 +20,7 @@ public class ReportsView extends JFrame {
         setLayout(new BorderLayout());
         
         // Create sidebar using the Sidebar class
-        leftPanel = new Sidebar();
+        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
         
         // Create main panel with sales reporting content
         createMainPanel();

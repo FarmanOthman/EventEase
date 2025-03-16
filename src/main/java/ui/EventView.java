@@ -8,6 +8,7 @@ import java.awt.event.*;
 
 public class EventView extends JFrame {
     private JPanel mainPanel, contentPanel;
+    private JFrame frame;
     
     public EventView() {
         setTitle("Event Management");
@@ -16,7 +17,7 @@ public class EventView extends JFrame {
         setLayout(new BorderLayout());
         
         // Use the separate Sidebar component
-        add(new Sidebar(), BorderLayout.WEST);
+        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
         
         // Create main panel with event form
         createMainPanel();

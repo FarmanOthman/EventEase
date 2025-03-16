@@ -9,15 +9,17 @@ import java.awt.geom.RoundRectangle2D;
 
 public class BookingView extends JFrame {
     private JPanel mainPanel, contentPanel;
+    private JFrame frame;
     
     public BookingView() {
+        
         setTitle("Ticket Management");
         setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
         // Use the Sidebar component
-        add(new Sidebar(), BorderLayout.WEST);
+        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
         
         // Create main panel with ticket booking form
         createMainPanel();

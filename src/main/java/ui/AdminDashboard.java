@@ -5,8 +5,11 @@ import java.awt.*;
 
 public class AdminDashboard {
     private JPanel mainPanel;
+    private JFrame frame;
 
-    public AdminDashboard() {
+    public AdminDashboard(JFrame frame) {
+        this.frame = frame;
+
         // Create main panel with BorderLayout
         mainPanel = new JPanel(new BorderLayout());
 
@@ -20,8 +23,8 @@ public class AdminDashboard {
         headerPanel.add(titleLabel);
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Create sidebar panel (without a border)
-        mainPanel.add(new Sidebar(), BorderLayout.WEST);
+        // Create sidebar panel (Fixed: Pass `frame` instead of `mainPanel`)
+        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
 
         // Create main content panel
         JPanel contentPanel = new JPanel(new GridLayout(3, 3, 30, 30));
@@ -46,7 +49,6 @@ public class AdminDashboard {
 
     // Method to get the panel
     public JPanel getPanel() {
-        
         return mainPanel;
     }
 }
