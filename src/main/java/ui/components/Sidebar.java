@@ -11,6 +11,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+
+import ui.BookingView;
 import ui.LoginView;
 
 public class Sidebar extends JPanel {
@@ -49,34 +51,39 @@ public class Sidebar extends JPanel {
             menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
             menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            // Add logout functionality
-            if (menuItem.equals("Logout")) {
-                this.add(Box.createVerticalStrut(40));
-
-                menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        int confirm = JOptionPane.showConfirmDialog(
-                            Sidebar.this,
-                            "Are you sure you want to logout?",
-                            "Logout Confirmation",
-                            JOptionPane.YES_NO_OPTION
-                        );
-
-                        if (confirm == JOptionPane.YES_OPTION) {
-                            parentFrame.dispose(); // Close the current frame
-                            new LoginView().show(); // Show the login screen again
-                        }
-                    }
-
+            menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
                     public void mouseEntered(java.awt.event.MouseEvent e) {
-                        menuLabel.setForeground(Color.YELLOW);
-                    }
+                        menuLabel.setForeground(Color.WHITE);
+                        menuLabel.setOpaque(true);
+                        menuLabel.setBackground(new Color(64, 155, 219)); // Change to your desired color
+                    }       
 
                     @Override
                     public void mouseExited(java.awt.event.MouseEvent e) {
                         menuLabel.setForeground(Color.WHITE);
+                        menuLabel.setBackground(null); // Reset to default
+                    }
+
+                });
+
+            // Add logout functionality
+            if (menuItem.equals("Logout")) {
+                menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                        parentFrame.dispose(); // Close the current frame
+                        new LoginView().show(); // Show the login screen again
+                    }
+                });
+            }
+
+            if (menuItem.equals("Manage Ticket")) {
+                menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                        parentFrame.dispose(); // Close the current frame
+                        new BookingView(); // Show the login screen again
                     }
                 });
             }

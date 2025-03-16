@@ -12,24 +12,26 @@ public class BookingView extends JFrame {
     private JFrame frame;
     
     public BookingView() {
-        
         setTitle("Ticket Management");
         setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        
-        // Use the Sidebar component
-        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
+
+        // Initialize mainPanel
+        mainPanel = new JPanel(new BorderLayout()); 
         
         // Create main panel with ticket booking form
         createMainPanel();
-        
-        // Add main panel to frame
+
+        // Add Sidebar to the west of the main panel (no need for frame parameter here)
+         mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
+
+        // Add the completed mainPanel to the frame
         add(mainPanel, BorderLayout.CENTER);
-        
+
         setVisible(true);
     }
-    
+
     // Custom rounded panel class
     private class RoundedPanel extends JPanel {
         private int cornerRadius = 15;
@@ -49,14 +51,13 @@ public class BookingView extends JFrame {
             g2.dispose();
         }
     }
-    
+
     private void createMainPanel() {
-        mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(240, 240, 240)); // Light gray background
         
         // Create header panel with rounded corners
         JPanel headerPanel = new RoundedPanel(new FlowLayout(FlowLayout.CENTER), 15);
-        headerPanel.setBackground(new Color(64, 143, 224)); // Same blue as left panel
+        headerPanel.setBackground(new Color(64, 143, 224)); // Blue
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Ticket Management");
         headerLabel.setForeground(new Color(240, 240, 255)); // Lighter text color
@@ -103,7 +104,7 @@ public class BookingView extends JFrame {
         JLabel bookTicketLabel = new JLabel("Book a Ticket");
         bookTicketLabel.setFont(new Font("Arial", Font.BOLD, 16));
         bookTicketLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        bookTicketLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center text in the label
+        bookTicketLabel.setHorizontalAlignment(SwingConstants.CENTER);
         bookTicketLabel.setForeground(new Color(90, 90, 90)); // Lighter text color
         formPanel.add(bookTicketLabel);
         formPanel.add(Box.createVerticalStrut(20));
@@ -112,8 +113,8 @@ public class BookingView extends JFrame {
         JTextField nameField = new JTextField("Enter name for ticket...");
         nameField.setMaximumSize(new Dimension(800, 35));
         nameField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        nameField.setHorizontalAlignment(JTextField.CENTER); // Center text in the field
-        nameField.setForeground(new Color(150, 150, 150)); // Lighter text color
+        nameField.setHorizontalAlignment(JTextField.CENTER); 
+        nameField.setForeground(new Color(150, 150, 150)); 
         formPanel.add(nameField);
         formPanel.add(Box.createVerticalStrut(10));
         
@@ -121,8 +122,8 @@ public class BookingView extends JFrame {
         JTextField eventIdField = new JTextField("Enter Id of Event");
         eventIdField.setMaximumSize(new Dimension(800, 35));
         eventIdField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        eventIdField.setHorizontalAlignment(JTextField.CENTER); // Center text in the field
-        eventIdField.setForeground(new Color(150, 150, 150)); // Lighter text color
+        eventIdField.setHorizontalAlignment(JTextField.CENTER); 
+        eventIdField.setForeground(new Color(150, 150, 150)); 
         formPanel.add(eventIdField);
         formPanel.add(Box.createVerticalStrut(10));
         
@@ -130,22 +131,22 @@ public class BookingView extends JFrame {
         JTextField priceField = new JTextField("Enter Price");
         priceField.setMaximumSize(new Dimension(800, 35));
         priceField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        priceField.setHorizontalAlignment(JTextField.CENTER); // Center text in the field
-        priceField.setForeground(new Color(150, 150, 150)); // Lighter text color
+        priceField.setHorizontalAlignment(JTextField.CENTER); 
+        priceField.setForeground(new Color(150, 150, 150)); 
         formPanel.add(priceField);
         formPanel.add(Box.createVerticalStrut(20));
         
         // Type label
         JLabel typeLabel = new JLabel("Type");
-        typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // Keep original left alignment
-        typeLabel.setForeground(new Color(90, 90, 90)); // Lighter text color
+        typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT); 
+        typeLabel.setForeground(new Color(90, 90, 90)); 
         formPanel.add(typeLabel);
         formPanel.add(Box.createVerticalStrut(5));
         
-        // Type dropdown - keep original alignment and text format
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"chosse"});
+        // Type dropdown
+        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"Choose"});
         typeCombo.setMaximumSize(new Dimension(800, 35));
-        typeCombo.setAlignmentX(Component.LEFT_ALIGNMENT); // Keep original left alignment
+        typeCombo.setAlignmentX(Component.LEFT_ALIGNMENT); 
         formPanel.add(typeCombo);
         formPanel.add(Box.createVerticalStrut(30));
         
@@ -155,7 +156,7 @@ public class BookingView extends JFrame {
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         buttonPanel.setMaximumSize(new Dimension(800, 50));
         
-        // Create a custom rounded button that matches the image
+        // Book Now button
         JButton bookNowButton = new JButton("Book Now") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -173,13 +174,25 @@ public class BookingView extends JFrame {
             }
         };
         
-        bookNowButton.setBackground(new Color(66, 133, 244)); // Blue color from the image
-        bookNowButton.setForeground(Color.WHITE); // White text as in the image
+        bookNowButton.setBackground(new Color(66, 133, 244)); 
+        bookNowButton.setForeground(Color.WHITE);
         bookNowButton.setFocusPainted(false);
         bookNowButton.setBorderPainted(false);
         bookNowButton.setContentAreaFilled(false);
         bookNowButton.setPreferredSize(new Dimension(120, 35));
         bookNowButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        // Action Listener for booking button
+        bookNowButton.addActionListener(e -> {
+            // Placeholder action for booking a ticket
+            String name = nameField.getText();
+            String eventId = eventIdField.getText();
+            String price = priceField.getText();
+            String type = (String) typeCombo.getSelectedItem();
+            
+            // Print out the information (replace this with your actual logic)
+            System.out.println("Booking Info: " + name + ", " + eventId + ", " + price + ", " + type);
+        });
         
         buttonPanel.add(bookNowButton);
         
@@ -189,15 +202,5 @@ public class BookingView extends JFrame {
         contentPanel.add(bookingHeaderPanel);
         contentPanel.add(formPanel);
     }
-    
-    public static void main(String[] args) {
-        try {
-            // Set system look and feel
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        SwingUtilities.invokeLater(() -> new BookingView());
-    }
+   
 }
