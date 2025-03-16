@@ -1,5 +1,6 @@
 package ui;
 
+import ui.components.Sidebar;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -7,7 +8,7 @@ import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class BookingView extends JFrame {
-    private JPanel leftPanel, mainPanel, contentPanel;
+    private JPanel mainPanel, contentPanel;
     
     public BookingView() {
         setTitle("Ticket Management");
@@ -15,14 +16,13 @@ public class BookingView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // Create left panel with blue background
-        createLeftPanel();
+        // Use the Sidebar component
+        add(new Sidebar(), BorderLayout.WEST);
         
         // Create main panel with ticket booking form
         createMainPanel();
         
-        // Add panels to frame
-        add(leftPanel, BorderLayout.WEST);
+        // Add main panel to frame
         add(mainPanel, BorderLayout.CENTER);
         
         setVisible(true);
@@ -45,38 +45,6 @@ public class BookingView extends JFrame {
             g2.setColor(getBackground());
             g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius));
             g2.dispose();
-        }
-    }
-    
-    private void createLeftPanel() {
-        leftPanel = new RoundedPanel(new BoxLayout(new JPanel(), BoxLayout.Y_AXIS), 15);
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(new Color(64, 143, 224)); // Blue background
-        leftPanel.setPreferredSize(new Dimension(165, 500));
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        
-        // Add menu items
-        String[] menuItems = {"Tickets Management", "Sales Reports", "Calendar", "Notifications", "Logout"};
-        
-        for (String item : menuItems) {
-            JLabel menuLabel = new JLabel(item);
-            menuLabel.setForeground(new Color(240, 240, 255)); // Lighter text color
-            menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-            menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-            menuLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center alignment
-            menuLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center text in the label
-            
-            // Add some space between main items and logout
-            if (item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalStrut(120)); // Extra space before logout
-            }
-            
-            leftPanel.add(menuLabel);
-            
-            // Add spacer after each item except the last one
-            if (!item.equals("Logout")) {
-                leftPanel.add(Box.createVerticalStrut(10));
-            }
         }
     }
     

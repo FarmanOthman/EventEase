@@ -1,5 +1,5 @@
 package ui;
-
+import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
 
@@ -21,42 +21,7 @@ public class AdminDashboard {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Create sidebar panel (without a border)
-        JPanel sidebarPanel = new JPanel();
-        sidebarPanel.setLayout(new GridLayout(5, 1, 15, 15));
-        sidebarPanel.setBackground(new Color(70, 130, 200));
-        sidebarPanel.setPreferredSize(new Dimension(200, 600));
-
-        String[] menuItems = { "Manage Ticket", "Sales Reports", "Calendar", "User Management", "Logout" };
-        for (String item : menuItems) {
-            JButton button = new JButton(item);
-            button.setForeground(Color.WHITE);
-            button.setBackground(new Color(70, 130, 200));
-            button.setFont(new Font("Arial", Font.BOLD, 16));
-            button.setFocusPainted(false);
-            button.setBorderPainted(false);
-            
-            if (item.equals("Logout")) {
-              button.addActionListener(e -> {
-                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(mainPanel);
-                
-                // Dispose the current window
-                topFrame.dispose(); 
-            
-                // Open a new login window
-                SwingUtilities.invokeLater(() -> {
-                    new LoginView().show(); // Ensures LoginView is properly recreated
-                });
-            });
-            
-        }
-            if(item.equals("Manage Ticket")) {
-                button.addActionListener(e -> {
-                  SwingUtilities.invokeLater(() -> new BookingView());  
-                });
-                }
-            sidebarPanel.add(button);
-        }
-        mainPanel.add(sidebarPanel, BorderLayout.WEST);
+        mainPanel.add(new Sidebar(), BorderLayout.WEST);
 
         // Create main content panel
         JPanel contentPanel = new JPanel(new GridLayout(3, 3, 30, 30));
@@ -81,6 +46,7 @@ public class AdminDashboard {
 
     // Method to get the panel
     public JPanel getPanel() {
+        
         return mainPanel;
     }
 }
