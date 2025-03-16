@@ -16,6 +16,9 @@ public class EventView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
+        // Initialize main panel
+        mainPanel = new JPanel(new BorderLayout());
+        
         // Use the separate Sidebar component
         mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
         
@@ -29,7 +32,6 @@ public class EventView extends JFrame {
     }
     
     private void createMainPanel() {
-        mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         
         // Create header panel
@@ -111,14 +113,14 @@ public class EventView extends JFrame {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"chosse"});
+        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"choose"});
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
         
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"chosse"});
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"choose"});
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
         
