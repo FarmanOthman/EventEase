@@ -3,12 +3,21 @@ package ui.pages;
 import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
+import server.EventService;
 
 public class EventView extends JPanel {
-    private JPanel mainPanel, contentPanel;
+    private JPanel mainPanel;
+    private JPanel contentPanel;
+    private JPanel headerPanel;
+    private EventService eventService;
+    private JComboBox<String> typeCombo;
+    private JComboBox<String> categoryCombo;
 
     public EventView() {
         setLayout(new BorderLayout());
+
+        // Initialize EventService
+        eventService = new EventService();
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
@@ -25,7 +34,7 @@ public class EventView extends JPanel {
         mainPanel.setBackground(Color.WHITE);
 
         // Create header panel
-        JPanel headerPanel = new JPanel();
+        headerPanel = new JPanel();
         headerPanel.setBackground(new Color(64, 143, 224));
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
@@ -103,14 +112,14 @@ public class EventView extends JPanel {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-        JComboBox<String> typeCombo = new JComboBox<>(new String[] { "choose" });
+        typeCombo = new JComboBox<>(new String[] { "choose" });
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[] { "choose" });
+        categoryCombo = new JComboBox<>(new String[] { "choose" });
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -169,6 +178,34 @@ public class EventView extends JPanel {
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Add ActionListener to the button to handle click event
+        addButton.addActionListener(e -> {
+            // Get data from the form fields
+            String eventName = eventNameField.getText();
+            String team1 = team1Field.getText();
+            String team2 = team2Field.getText();
+            String eventDate = dateField.getText();
+            String eventType = (String) typeCombo.getSelectedItem();
+            String eventCategory = (String) categoryCombo.getSelectedItem();
+            String eventDetails = detailsArea.getText();
+
+            // Save event using EventService
+            eventService.saveEvent(eventName, team1, team2, eventDate, eventCategory, eventType, eventDetails);
+
+            // Show confirmation dialog
+            JOptionPane.showMessageDialog(EventView.this,
+                    "Event Added Successfully!\n" +
+                            "Event Name: " + eventName + "\n" +
+                            "Team 1: " + team1 + "\n" +
+                            "Team 2: " + team2 + "\n" +
+                            "Date: " + eventDate + "\n" +
+                            "Type: " + eventType + "\n" +
+                            "Category: " + eventCategory + "\n" +
+                            "Details: " + eventDetails,
+                    "Confirmation",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+
         buttonPanel.add(addButton);
 
         // Add components to content panel
@@ -183,5 +220,20 @@ public class EventView extends JPanel {
         contentPanel.add(detailsPanel);
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
+
+        // Populate category combo with options
+        categoryCombo.addActionListener(e -> {
+            String selectedCategory = (String) categoryCombo.getSelectedItem();
+            // Fetch event types based on category
+            typeCombo.removeAllItems();
+            for (String type : eventService.getEventTypes(selectedCategory)) {
+                typeCombo.addItem(type);
+            }
+        });
+
+        // Initial population of category combo
+        for (String category : eventService.getEventCategories()) {
+            categoryCombo.addItem(category);
+        }
     }
 }
