@@ -1,4 +1,4 @@
-package server; // You need to add package 
+package server; 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.sql.Timestamp;
 import org.mindrot.jbcrypt.BCrypt;
-
 
 import database.Database;
 
@@ -24,15 +23,17 @@ public class AuthenticationService {
             if (resultSet.next()) {
                 String hashedPassword = resultSet.getString("password"); // Get hashed password from DB
                 
-                // Compare entered password with hashed password
-                return BCrypt.checkpw(password, hashedPassword);
+                // Ensure valid bcrypt hash before checking
+                if (hashedPassword != null && hashedPassword.startsWith("$2a$")) {
+                    return BCrypt.checkpw(password, hashedPassword);
+                }
+                return false; // Return false if the hash is invalid
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
-
 
     public static boolean register(String username, String password, int roleId, String email) {
         String query = "INSERT INTO ADMIN (username, password, role_id, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
@@ -61,5 +62,4 @@ public class AuthenticationService {
     private static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt(12)); // 12 rounds for security
     }
-
 }

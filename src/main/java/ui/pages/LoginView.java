@@ -116,6 +116,7 @@ public class LoginView extends JPanel {
         JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
+      
       Router.showPage("AdminDashboard"); // Switch to AdminDashboard
     });
 
