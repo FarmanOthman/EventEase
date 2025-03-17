@@ -5,10 +5,17 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import database.QueryBuilder; // Import QueryBuilder
 
 public class EventView extends JFrame {
     private JPanel mainPanel, contentPanel;
     private JFrame frame;
+
+    // Create QueryBuilder instance to interact with the database
+    private QueryBuilder queryBuilder;
 
     public EventView() {
         setTitle("Event Management");
@@ -24,6 +31,9 @@ public class EventView extends JFrame {
 
         // Create main panel with event form
         createMainPanel();
+
+        // Initialize QueryBuilder (connect to database)
+        queryBuilder = new QueryBuilder();
 
         // Add main panel to frame
         add(mainPanel, BorderLayout.CENTER);
@@ -192,17 +202,29 @@ public class EventView extends JFrame {
                 String eventCategory = (String) categoryCombo.getSelectedItem();
                 String eventDetails = detailsArea.getText();
 
-                // Here you can handle saving the data or other logic
-                // For demonstration, let's just show a confirmation dialog with the data
+                // Create a map for the values to insert into the database
+                Map<String, Object> values = new HashMap<>();
+                values.put("event_name", eventName);
+                values.put("team1", team1);
+                values.put("team2", team2);
+                values.put("event_date", eventDate);
+                values.put("event_type", eventType);
+                values.put("event_category", eventCategory);
+                values.put("event_details", eventDetails);
+
+                // Insert data into database using QueryBuilder
+                queryBuilder.insert("events", values); // "events" is the name of the table
+
+                // Show confirmation dialog
                 JOptionPane.showMessageDialog(EventView.this,
                         "Event Added Successfully!\n" +
-                        "Event Name: " + eventName + "\n" +
-                        "Team 1: " + team1 + "\n" +
-                        "Team 2: " + team2 + "\n" +
-                        "Date: " + eventDate + "\n" +
-                        "Type: " + eventType + "\n" +
-                        "Category: " + eventCategory + "\n" +
-                        "Details: " + eventDetails,
+                                "Event Name: " + eventName + "\n" +
+                                "Team 1: " + team1 + "\n" +
+                                "Team 2: " + team2 + "\n" +
+                                "Date: " + eventDate + "\n" +
+                                "Type: " + eventType + "\n" +
+                                "Category: " + eventCategory + "\n" +
+                                "Details: " + eventDetails,
                         "Confirmation",
                         JOptionPane.INFORMATION_MESSAGE);
             }
