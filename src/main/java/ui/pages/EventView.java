@@ -1,28 +1,23 @@
-package ui;
+package ui.pages;
 
 import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
 
-public class EventView extends JFrame {
+public class EventView extends JPanel {
     private JPanel mainPanel, contentPanel;
 
     public EventView() {
-        setTitle("Event Management");
-        setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Use the separate Sidebar component
+        // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
         // Create main panel with event form
         createMainPanel();
 
-        // Add main panel to frame
+        // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
-
-        setVisible(true);
     }
 
     private void createMainPanel() {
@@ -31,7 +26,7 @@ public class EventView extends JFrame {
 
         // Create header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219)); // Same blue as sidebar
+        headerPanel.setBackground(new Color(64, 133, 219));
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
         headerLabel.setForeground(Color.WHITE);
@@ -108,14 +103,14 @@ public class EventView extends JFrame {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-        JComboBox<String> typeCombo = new JComboBox<>(new String[] { "chosse" });
+        JComboBox<String> typeCombo = new JComboBox<>(new String[] { "choose" });
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[] { "chosse" });
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[] { "choose" });
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -146,7 +141,7 @@ public class EventView extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 // Paint the rounded background
-                g2.setColor(new Color(28, 184, 96)); // Bright green color matching the image
+                g2.setColor(new Color(28, 184, 96));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
 
                 // Paint the text
@@ -188,16 +183,5 @@ public class EventView extends JFrame {
         contentPanel.add(detailsPanel);
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
-    }
-
-    public static void main(String[] args) {
-        try {
-            // Set system look and feel
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> new EventView());
     }
 }

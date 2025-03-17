@@ -1,32 +1,25 @@
-package ui;
+package ui.pages;
 
-import ui.components.Sidebar; // Import your Sidebar class
+import ui.components.Sidebar;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 
-public class ReportsView extends JFrame {
+public class ReportsView extends JPanel {
     private JPanel mainPanel, contentPanel;
-    private Sidebar leftPanel; // Changed from JPanel to Sidebar
     private JTable salesTable;
 
     public ReportsView() {
-        setTitle("Sales Reporting Analytics");
-        setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Create sidebar using the Sidebar class
-        leftPanel = new Sidebar();
+        // Add the Sidebar component
+        add(new Sidebar(), BorderLayout.WEST);
 
         // Create main panel with sales reporting content
         createMainPanel();
 
-        // Add panels to frame
-        add(leftPanel, BorderLayout.WEST);
+        // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
-
-        setVisible(true);
     }
 
     private void createMainPanel() {
@@ -35,9 +28,9 @@ public class ReportsView extends JFrame {
 
         // Create header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219)); // Same blue as left panel
+        headerPanel.setBackground(new Color(64, 133, 219));
         headerPanel.setPreferredSize(new Dimension(600, 50));
-        JLabel headerLabel = new JLabel("Reports"); // Keeping the typo from the image
+        JLabel headerLabel = new JLabel("Reports");
         headerLabel.setForeground(Color.WHITE);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         headerPanel.add(headerLabel);
@@ -59,7 +52,7 @@ public class ReportsView extends JFrame {
     private void createSalesReportingComponents() {
         // Sales Reporting Analytics title panel
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(64, 133, 219)); // Blue background
+        titlePanel.setBackground(new Color(64, 133, 219));
         titlePanel.setMaximumSize(new Dimension(800, 40));
         titlePanel.setPreferredSize(new Dimension(800, 40));
         titlePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -215,16 +208,5 @@ public class ReportsView extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
-    }
-
-    public static void main(String[] args) {
-        try {
-            // Set system look and feel
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> new ReportsView());
     }
 }
