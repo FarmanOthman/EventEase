@@ -1,9 +1,77 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.Router;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * TODO: Event Management System Architecture
+ * 1. Create the following structure:
+ * services/
+ * ├── event/
+ * │ ├── EventService.java # Core event functionality
+ * │ ├── VenueManager.java # Venue management
+ * │ ├── TicketingService.java # Ticket management
+ * │ └── SchedulingService.java # Event scheduling
+ * └── management/
+ * ├── ResourceManager.java # Resource allocation
+ * └── StaffingService.java # Staff management
+ *
+ * 2. Event Features:
+ * - Event creation/editing
+ * - Venue allocation
+ * - Capacity management
+ * - Resource planning
+ *
+ * 3. Integration Points:
+ * - Booking system
+ * - Calendar system
+ * - Staff scheduling
+ * - Resource management
+ *
+ * 4. Event Creation Features:
+ * - Dynamic form validation
+ * - Image upload for event
+ * - Rich text description
+ * - Custom field support
+ *
+ * 5. Venue Management:
+ * - Venue availability check
+ * - Seating layout designer
+ * - Capacity calculator
+ * - Facility requirements
+ *
+ * 6. Pricing Management:
+ * - Multiple ticket tiers
+ * - Dynamic pricing
+ * - Discount codes
+ * - Package deals
+ *
+ * 7. Event Operations:
+ * - Staff assignment
+ * - Equipment tracking
+ * - Setup checklist
+ * - Post-event reporting
+ *
+ * 8. Marketing Features:
+ * - Social media integration
+ * - Email campaign tools
+ * - Promotional materials
+ * - Analytics tracking
+ *
+ * 9. Attendee Management:
+ * - Registration tracking
+ * - Check-in system
+ * - Attendee communications
+ * - Feedback collection
+ *
+ * 10. Reporting Tools:
+ * - Sales analytics
+ * - Attendance tracking
+ * - Revenue forecasting
+ * - Performance metrics
+ */
 public class EventView extends JPanel {
     private JPanel mainPanel, contentPanel;
 
@@ -168,6 +236,11 @@ public class EventView extends JPanel {
         addButton.setBorderPainted(false);
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Add ActionListener to the button to handle click event
+        addButton.addActionListener(e -> {
+            Router.showPage("CustomerPage");
+        });
 
         buttonPanel.add(addButton);
 
