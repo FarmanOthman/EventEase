@@ -3,62 +3,30 @@ package ui.pages;
 import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-import java.awt.event.*;
-import java.util.HashMap;
-import java.util.Map;
-
-import database.QueryBuilder; // Import QueryBuilder
-=======
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
 public class EventView extends JPanel {
     private JPanel mainPanel, contentPanel;
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-    private JFrame frame;
-
-    // Create QueryBuilder instance to interact with the database
-    private QueryBuilder queryBuilder;
-=======
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
     public EventView() {
         setLayout(new BorderLayout());
 
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-        // Initialize main panel
-        mainPanel = new JPanel(new BorderLayout());
-
-        // Use the separate Sidebar component
-        mainPanel.add(new Sidebar(this), BorderLayout.WEST);
-=======
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
         // Create main panel with event form
         createMainPanel();
 
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-        // Initialize QueryBuilder (connect to database)
-        queryBuilder = new QueryBuilder();
-
-        // Add main panel to frame
-        add(mainPanel, BorderLayout.CENTER);
-
-        setVisible(true);
-=======
         // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
     }
 
     private void createMainPanel() {
+        mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
 
         // Create header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219));
+        headerPanel.setBackground(new Color(64, 143, 224));
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
         headerLabel.setForeground(Color.WHITE);
@@ -135,22 +103,14 @@ public class EventView extends JPanel {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"choose"});
-=======
         JComboBox<String> typeCombo = new JComboBox<>(new String[] { "choose" });
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"choose"});
-=======
         JComboBox<String> categoryCombo = new JComboBox<>(new String[] { "choose" });
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -209,50 +169,6 @@ public class EventView extends JPanel {
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-        // Add ActionListener to the button to handle click event
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Get data from the form fields
-                String eventName = eventNameField.getText();
-                String team1 = team1Field.getText();
-                String team2 = team2Field.getText();
-                String eventDate = dateField.getText();
-                String eventType = (String) typeCombo.getSelectedItem();
-                String eventCategory = (String) categoryCombo.getSelectedItem();
-                String eventDetails = detailsArea.getText();
-
-                // Create a map for the values to insert into the database
-                Map<String, Object> values = new HashMap<>();
-                values.put("event_name", eventName);
-                values.put("team1", team1);
-                values.put("team2", team2);
-                values.put("event_date", eventDate);
-                values.put("event_type", eventType);
-                values.put("event_category", eventCategory);
-                values.put("event_details", eventDetails);
-
-                // Insert data into database using QueryBuilder
-                queryBuilder.insert("events", values); // "events" is the name of the table
-
-                // Show confirmation dialog
-                JOptionPane.showMessageDialog(EventView.this,
-                        "Event Added Successfully!\n" +
-                                "Event Name: " + eventName + "\n" +
-                                "Team 1: " + team1 + "\n" +
-                                "Team 2: " + team2 + "\n" +
-                                "Date: " + eventDate + "\n" +
-                                "Type: " + eventType + "\n" +
-                                "Category: " + eventCategory + "\n" +
-                                "Details: " + eventDetails,
-                        "Confirmation",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
-=======
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         buttonPanel.add(addButton);
 
         // Add components to content panel
@@ -268,19 +184,4 @@ public class EventView extends JPanel {
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
     }
-<<<<<<< HEAD:src/main/java/ui/EventView.java
-
-    public static void main(String[] args) {
-        try {
-            // Set system look and feel
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> new EventView());
-    }
 }
-=======
-}
->>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java

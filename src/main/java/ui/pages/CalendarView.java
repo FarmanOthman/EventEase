@@ -10,7 +10,7 @@ public class CalendarView extends JPanel {
   public CalendarView() {
     setLayout(new BorderLayout());
 
-    // Use the Sidebar component
+    // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);
 
     // Create main panel

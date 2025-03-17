@@ -10,7 +10,7 @@ public class DataPersistenceView extends JPanel {
   public DataPersistenceView() {
     setLayout(new BorderLayout());
 
-    // Use the Sidebar component
+    // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);
 
     // Create main panel

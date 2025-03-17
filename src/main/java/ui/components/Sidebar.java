@@ -11,27 +11,11 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-<<<<<<< HEAD
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
-import ui.BookingView;
-import ui.LoginView;
-
-public class Sidebar extends JPanel {
-
-    // private JFrame parentFrame;
-
-    public Sidebar(JFrame parentFrame) {
-        // this.parentFrame = parentFrame;
-
-=======
 import ui.Router;
 
 public class Sidebar extends JPanel {
 
     public Sidebar() {
->>>>>>> GUI-implementation
         // Set layout to vertical BoxLayout
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -44,92 +28,48 @@ public class Sidebar extends JPanel {
         // Add padding around the sidebar
         this.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-<<<<<<< HEAD
-        // Menu items
-        String[] menuItems = new String[]{
-            "Manage Ticket", 
-            "Sales Reports", 
-            "Calender", 
-            "User Management", 
-            "Logout"
-        };
-
-        // Add menu items to the sidebar
-        for (String menuItem : menuItems) {
-            JLabel menuLabel = new JLabel(menuItem);
-=======
         // Menu items with their corresponding route names
         String[][] menuItems = new String[][] {
                 { "Dashboard", "AdminDashboard" },
                 { "Manage Ticket", "BookingView" },
                 { "Sales Reports", "ReportsView" },
-                { "Calender", "CalendarView" },
+                { "Calendar", "CalendarView" },
+                { "Notification", "NotificationView" },
+                { "Data Persistence", "DataPersistenceView" },
                 { "User Management", "UserManagementView" },
                 { "Logout", "LoginView" }
         };
 
         // Add menu items to the sidebar
-        for (int i = 0; i < menuItems.length; i++) {
-            String menuText = menuItems[i][0];
-            String routeName = menuItems[i][1];
+        for (String[] item : menuItems) {
+            String menuText = item[0];
+            String routeName = item[1];
 
             // Create label for menu item
             JLabel menuLabel = new JLabel(menuText);
->>>>>>> GUI-implementation
             menuLabel.setForeground(Color.WHITE);
             menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
             menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
             menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-<<<<<<< HEAD
-            menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseEntered(java.awt.event.MouseEvent e) {
-                        menuLabel.setForeground(Color.WHITE);
-                        menuLabel.setOpaque(true);
-                        menuLabel.setBackground(new Color(64, 155, 219)); // Change to your desired color
-                    }       
-
-                    @Override
-                    public void mouseExited(java.awt.event.MouseEvent e) {
-                        menuLabel.setForeground(Color.WHITE);
-                        menuLabel.setBackground(null); // Reset to default
-                    }
-
-                });
-
-            // Add logout functionality
-            if (menuItem.equals("Logout")) {
-                menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        parentFrame.dispose(); // Close the current frame
-                        new LoginView().show(); // Show the login screen again
-                    }
-                });
-            }
-
-            if (menuItem.equals("Manage Ticket")) {
-                menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        parentFrame.dispose(); // Close the current frame
-                        new BookingView(); // Show the login screen again
-                    }
-                });
-            }
-
-=======
-            // Add mouse listener for routing
+            // Add hover effect
             menuLabel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    Router.showPage(routeName);
-                }
-
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     menuLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                    menuLabel.setOpaque(true);
+                    menuLabel.setBackground(new Color(64, 155, 219));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    menuLabel.setOpaque(false);
+                    menuLabel.setBackground(null);
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    Router.showPage(routeName);
                 }
             });
 
@@ -139,7 +79,6 @@ public class Sidebar extends JPanel {
             }
 
             // Add the menu item
->>>>>>> GUI-implementation
             this.add(menuLabel);
 
             // Add small spacing between menu items (except after Logout)

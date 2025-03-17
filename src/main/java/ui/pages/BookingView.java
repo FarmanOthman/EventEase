@@ -11,7 +11,7 @@ public class BookingView extends JPanel {
     public BookingView() {
         setLayout(new BorderLayout());
 
-        // Use the Sidebar component
+        // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
         // Create main panel

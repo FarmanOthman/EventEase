@@ -8,25 +8,14 @@ import java.awt.*;
 public class ReportsView extends JPanel {
     private JPanel mainPanel, contentPanel;
     private JTable salesTable;
-<<<<<<< HEAD:src/main/java/ui/ReportsView.java
-    private JFrame frame;
-    
-=======
 
->>>>>>> GUI-implementation:src/main/java/ui/pages/ReportsView.java
     public ReportsView() {
         setLayout(new BorderLayout());
-<<<<<<< HEAD:src/main/java/ui/ReportsView.java
-        
-        // Create sidebar using the Sidebar class
-        mainPanel.add(new Sidebar(frame), BorderLayout.WEST);
-        
-=======
+        mainPanel = new JPanel(new BorderLayout());
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
->>>>>>> GUI-implementation:src/main/java/ui/pages/ReportsView.java
         // Create main panel with sales reporting content
         createMainPanel();
 
@@ -35,7 +24,6 @@ public class ReportsView extends JPanel {
     }
 
     private void createMainPanel() {
-        mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
 
         // Create header panel
