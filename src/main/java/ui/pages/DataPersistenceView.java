@@ -4,10 +4,10 @@ import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
 
-public class NotificationView extends JPanel {
+public class DataPersistenceView extends JPanel {
   private JPanel mainPanel;
 
-  public NotificationView() {
+  public DataPersistenceView() {
     setLayout(new BorderLayout());
 
     // Use the Sidebar component
@@ -30,7 +30,7 @@ public class NotificationView extends JPanel {
     headerPanel.setBackground(new Color(64, 143, 224));
     headerPanel.setPreferredSize(new Dimension(600, 50));
 
-    JLabel headerLabel = new JLabel("Notifications");
+    JLabel headerLabel = new JLabel("Data Persistence Import/Export");
     headerLabel.setForeground(new Color(240, 240, 255));
     headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
     headerPanel.add(headerLabel);
@@ -41,7 +41,7 @@ public class NotificationView extends JPanel {
     contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
     // Add "Coming Soon" label
-    JLabel comingSoonLabel = new JLabel("Notification System - Coming Soon");
+    JLabel comingSoonLabel = new JLabel("Data Persistence Import/Export - Coming Soon");
     comingSoonLabel.setFont(new Font("Arial", Font.BOLD, 16));
     comingSoonLabel.setForeground(new Color(90, 90, 90));
     contentPanel.add(comingSoonLabel);
