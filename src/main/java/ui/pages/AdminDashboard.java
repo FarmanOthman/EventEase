@@ -5,6 +5,31 @@ import java.awt.*;
 import ui.Router;
 import ui.components.Sidebar;
 
+/**
+ * TODO: Dashboard System Architecture
+ * 1. Create the following structure:
+ * services/
+ * ├── dashboard/
+ * │ ├── DashboardService.java # Core dashboard functionality
+ * │ ├── AnalyticsService.java # Real-time analytics
+ * │ ├── MetricsService.java # KPI tracking
+ * │ └── NotificationService.java # Alert system
+ * └── monitoring/
+ * ├── SystemMonitor.java # System health
+ * └── PerformanceTracker.java # Performance metrics
+ *
+ * 2. Dashboard Features:
+ * - Real-time analytics display
+ * - System health monitoring
+ * - User activity tracking
+ * - Performance metrics
+ *
+ * 3. Integration Points:
+ * - Analytics engine
+ * - Monitoring system
+ * - Alert mechanism
+ * - Reporting system
+ */
 public class AdminDashboard extends JPanel {
   public AdminDashboard() {
     setLayout(new BorderLayout());
@@ -32,7 +57,7 @@ public class AdminDashboard extends JPanel {
     contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding
 
     String[] cardItems = { "Manage Events", "Manage Ticket", "Sales Reports", "Calendar", "Notification",
-        "Data Persistence Import/Export", "" };
+        "Data Persistence Import/Export", "Upcoming Events", "" };
     for (String item : cardItems) {
       if (!item.isEmpty()) {
         JButton card = new JButton(item);
@@ -64,6 +89,10 @@ public class AdminDashboard extends JPanel {
         // Add action listener for the Notification button
         else if (item.equals("Notification")) {
           card.addActionListener(e -> Router.showPage("NotificationView"));
+        }
+        // Add action listener for the Upcoming Events button
+        else if (item.equals("Upcoming Events")) {
+          card.addActionListener(e -> Router.showPage("UpcomingEvent"));
         }
 
         contentPanel.add(card);
