@@ -57,6 +57,14 @@ public class AdminDashboard extends JPanel {
         else if (item.equals("Calendar")) {
           card.addActionListener(e -> Router.showPage("CalendarView"));
         }
+        // Add action listener for the Data Persistence button
+        else if (item.equals("Data Persistence Import/Export")) {
+          card.addActionListener(e -> Router.showPage("DataPersistenceView"));
+        }
+        // Add action listener for the Notification button
+        else if (item.equals("Notification")) {
+          card.addActionListener(e -> Router.showPage("NotificationView"));
+        }
 
         contentPanel.add(card);
       } else {

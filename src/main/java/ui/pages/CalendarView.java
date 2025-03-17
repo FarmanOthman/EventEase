@@ -3,7 +3,6 @@ package ui.pages;
 import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 
 public class CalendarView extends JPanel {
   private JPanel mainPanel;
@@ -25,17 +24,8 @@ public class CalendarView extends JPanel {
     mainPanel = new JPanel(new BorderLayout());
     mainPanel.setBackground(new Color(240, 240, 240));
 
-    // Create header panel with rounded corners
-    JPanel headerPanel = new JPanel() {
-      @Override
-      protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(getBackground());
-        g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-        g2.dispose();
-      }
-    };
+    // Create header panel
+    JPanel headerPanel = new JPanel();
     headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
     headerPanel.setBackground(new Color(64, 143, 224));
     headerPanel.setPreferredSize(new Dimension(600, 50));

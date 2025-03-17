@@ -9,6 +9,8 @@ import ui.pages.ReportsView;
 import ui.pages.BookingView;
 import ui.pages.CalendarView;
 import ui.pages.UserManagementView;
+import ui.pages.DataPersistenceView;
+import ui.pages.NotificationView;
 
 public class MainFrame extends JFrame {
   private JPanel cardPanel;
@@ -31,6 +33,8 @@ public class MainFrame extends JFrame {
     cardPanel.add(new BookingView(), "BookingView");
     cardPanel.add(new CalendarView(), "CalendarView");
     cardPanel.add(new UserManagementView(), "UserManagementView");
+    cardPanel.add(new DataPersistenceView(), "DataPersistenceView");
+    cardPanel.add(new NotificationView(), "NotificationView");
 
     add(cardPanel);
 

@@ -14,14 +14,14 @@ public class BookingView extends JPanel {
         // Use the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
-        // Create main panel with ticket booking form
+        // Create main panel
         createMainPanel();
 
         // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
     }
 
-    // Custom rounded panel class
+    // Custom rounded panel class (for the form panel only)
     private class RoundedPanel extends JPanel {
         private int cornerRadius = 15;
 
@@ -43,24 +43,26 @@ public class BookingView extends JPanel {
 
     private void createMainPanel() {
         mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(240, 240, 240)); // Light gray background
+        mainPanel.setBackground(new Color(240, 240, 240));
 
-        // Create header panel with rounded corners
-        JPanel headerPanel = new RoundedPanel(new FlowLayout(FlowLayout.CENTER), 15);
-        headerPanel.setBackground(new Color(64, 143, 224)); // Same blue as left panel
+        // Create header panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setBackground(new Color(64, 143, 224));
         headerPanel.setPreferredSize(new Dimension(600, 50));
+
         JLabel headerLabel = new JLabel("Ticket Management");
-        headerLabel.setForeground(new Color(240, 240, 255)); // Lighter text color
+        headerLabel.setForeground(new Color(240, 240, 255));
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         headerPanel.add(headerLabel);
 
-        // Create content panel for the booking system
+        // Create content panel
         contentPanel = new JPanel();
-        contentPanel.setBackground(new Color(240, 240, 240)); // Light gray
+        contentPanel.setBackground(new Color(240, 240, 240));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-        // Create the booking system panel
+        // Create the booking system
         createBookingSystem();
 
         // Add panels to main panel
@@ -69,7 +71,6 @@ public class BookingView extends JPanel {
     }
 
     private void createBookingSystem() {
-
         // Booking form panel with rounded corners
         JPanel formPanel = new RoundedPanel(null, 15);
         formPanel.setBackground(Color.WHITE);
@@ -82,8 +83,8 @@ public class BookingView extends JPanel {
         JLabel bookTicketLabel = new JLabel("Book a Ticket");
         bookTicketLabel.setFont(new Font("Arial", Font.BOLD, 16));
         bookTicketLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        bookTicketLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center text in the label
-        bookTicketLabel.setForeground(new Color(90, 90, 90)); // Lighter text color
+        bookTicketLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        bookTicketLabel.setForeground(new Color(90, 90, 90));
         formPanel.add(bookTicketLabel);
         formPanel.add(Box.createVerticalStrut(20));
 
@@ -153,8 +154,8 @@ public class BookingView extends JPanel {
             }
         };
 
-        bookNowButton.setBackground(new Color(66, 133, 244)); // Blue color from the image
-        bookNowButton.setForeground(Color.WHITE); // White text as in the image
+        bookNowButton.setBackground(new Color(66, 133, 244));
+        bookNowButton.setForeground(Color.WHITE);
         bookNowButton.setFocusPainted(false);
         bookNowButton.setBorderPainted(false);
         bookNowButton.setContentAreaFilled(false);
@@ -162,7 +163,6 @@ public class BookingView extends JPanel {
         bookNowButton.setFont(new Font("Arial", Font.PLAIN, 14));
 
         buttonPanel.add(bookNowButton);
-
         formPanel.add(buttonPanel);
 
         // Add components to content panel
