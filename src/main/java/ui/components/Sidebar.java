@@ -16,59 +16,53 @@ import ui.Router;
 public class Sidebar extends JPanel {
 
     public Sidebar() {
-        // Set layout to vertical BoxLayout
+        // Set up the layout for the sidebar
+        initSidebarLayout();
+
+        // Set sidebar properties like background color and dimensions
+        customizeSidebarAppearance();
+
+        // Initialize the sidebar menu
+        initSidebarMenu();
+    }
+
+    // Method to initialize sidebar layout
+    private void initSidebarLayout() {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-        // Set blue background color
-        this.setBackground(new Color(64, 133, 219));
-
-        // Set preferred size for the sidebar
         this.setPreferredSize(new Dimension(180, 500));
-
-        // Add padding around the sidebar
         this.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+    }
 
-        // Menu items with their corresponding route names
-        String[][] menuItems = new String[][] {
-                { "Dashboard", "AdminDashboard" },
-                { "Manage Ticket", "BookingView" },
-                { "Sales Reports", "ReportsView" },
-                { "Calender", "CalendarView" },
-                { "User Management", "UserManagementView" },
-                { "Logout", "LoginView" }
+    // Method to customize sidebar appearance
+    private void customizeSidebarAppearance() {
+        this.setBackground(new Color(64, 133, 219));  // Set sidebar background to blue
+    }
+
+    // Method to initialize sidebar menu items and routing
+    private void initSidebarMenu() {
+        String[][] menuItems = {
+            { "Dashboard", "AdminDashboard" },
+            { "Manage Ticket", "BookingView" },
+            { "Sales Reports", "ReportsView" },
+            { "Calender", "CalendarView" },
+            { "User Management", "UserManagementView" },
+            { "Logout", "LoginView" }
         };
 
-        // Add menu items to the sidebar
-        for (int i = 0; i < menuItems.length; i++) {
-            String menuText = menuItems[i][0];
-            String routeName = menuItems[i][1];
+        // Loop through the menu items and create labels for them
+        for (String[] menuItem : menuItems) {
+            String menuText = menuItem[0];
+            String routeName = menuItem[1];
 
-            // Create label for menu item
-            JLabel menuLabel = new JLabel(menuText);
-            menuLabel.setForeground(Color.WHITE);
-            menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-            menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-            menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            // Create a new label for each menu item
+            JLabel menuLabel = createMenuLabel(menuText, routeName);
 
-            // Add mouse listener for routing
-            menuLabel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    Router.showPage(routeName);
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    menuLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                }
-            });
-
-            // Add extra space before Logout
+            // Add spacing before "Logout" menu item
             if (menuText.equals("Logout")) {
                 this.add(Box.createVerticalStrut(40));
             }
 
-            // Add the menu item
+            // Add the label to the sidebar
             this.add(menuLabel);
 
             // Add small spacing between menu items (except after Logout)
@@ -76,5 +70,29 @@ public class Sidebar extends JPanel {
                 this.add(Box.createVerticalStrut(5));
             }
         }
+    }
+
+    // Method to create a label for a menu item with proper formatting and mouse listener
+    private JLabel createMenuLabel(String menuText, String routeName) {
+        JLabel menuLabel = new JLabel(menuText);
+        menuLabel.setForeground(Color.WHITE);
+        menuLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
+        menuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Add mouse listener for routing
+        menuLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Router.showPage(routeName);  // Navigate to the corresponding route
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                menuLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));  // Change cursor on hover
+            }
+        });
+
+        return menuLabel;
     }
 }
