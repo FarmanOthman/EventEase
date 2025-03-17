@@ -7,6 +7,66 @@ import ui.components.RoundedTextField;
 import ui.components.RoundedPasswordField;
 import ui.Router;
 
+/**
+ * TODO: Authentication System Architecture
+ * 1. Create the following structure:
+ * services/
+ * ├── auth/
+ * │ ├── AuthService.java # Core authentication logic
+ * │ ├── SessionManager.java # Session handling
+ * │ ├── TokenManager.java # JWT/Token management
+ * │ └── PasswordService.java # Password hashing/validation
+ * └── security/
+ * ├── SecurityConfig.java # Security settings
+ * └── RoleManager.java # Role-based access control
+ *
+ * 2. Security Features to Implement:
+ * - Password hashing with salt
+ * - Rate limiting for login attempts
+ * - Session timeout management
+ * - Two-factor authentication
+ *
+ * 3. Database Integration:
+ * - User table with encrypted passwords
+ * - Session tracking table
+ * - Login history for auditing
+ *
+ * 4. Authentication Features:
+ * - OAuth integration
+ * - SSO support
+ * - Remember me functionality
+ * - Password reset flow
+ *
+ * 5. Security Measures:
+ * - CAPTCHA integration
+ * - IP-based blocking
+ * - Device fingerprinting
+ * - Suspicious activity detection
+ *
+ * 6. User Experience:
+ * - Form validation
+ * - Error messaging
+ * - Loading indicators
+ * - Auto-complete support
+ *
+ * 7. Session Management:
+ * - Token-based auth
+ * - Session persistence
+ * - Multi-device handling
+ * - Secure logout
+ *
+ * 8. Account Recovery:
+ * - Security questions
+ * - Email verification
+ * - Phone verification
+ * - Account unlock process
+ *
+ * 9. Audit Features:
+ * - Login attempts logging
+ * - Activity tracking
+ * - Security alerts
+ * - Compliance reporting
+ */
 public class LoginView extends JPanel {
   public LoginView() {
     setLayout(new BorderLayout());
@@ -47,7 +107,7 @@ public class LoginView extends JPanel {
     loginBox.add(loginButton);
 
     loginButton.addActionListener(e -> {
-      Router.showPage("AdminDashboard"); // Navigate to AdminDashboard on successful login
+      Router.showPage("AdminDashboard"); // Switch to AdminDashboard
     });
 
     JPanel wrapperPanel = new JPanel(new GridBagLayout());

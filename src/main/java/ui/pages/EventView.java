@@ -1,10 +1,78 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.Router;
+import services.event.EventService;
 import javax.swing.*;
 import java.awt.*;
-import server.EventService;
 
+/**
+ * TODO: Event Management System Architecture
+ * 1. Create the following structure:
+ * services/
+ * ├── event/
+ * │ ├── EventService.java # Core event functionality
+ * │ ├── VenueManager.java # Venue management
+ * │ ├── TicketingService.java # Ticket management
+ * │ └── SchedulingService.java # Event scheduling
+ * └── management/
+ * ├── ResourceManager.java # Resource allocation
+ * └── StaffingService.java # Staff management
+ *
+ * 2. Event Features:
+ * - Event creation/editing
+ * - Venue allocation
+ * - Capacity management
+ * - Resource planning
+ *
+ * 3. Integration Points:
+ * - Booking system
+ * - Calendar system
+ * - Staff scheduling
+ * - Resource management
+ *
+ * 4. Event Creation Features:
+ * - Dynamic form validation
+ * - Image upload for event
+ * - Rich text description
+ * - Custom field support
+ *
+ * 5. Venue Management:
+ * - Venue availability check
+ * - Seating layout designer
+ * - Capacity calculator
+ * - Facility requirements
+ *
+ * 6. Pricing Management:
+ * - Multiple ticket tiers
+ * - Dynamic pricing
+ * - Discount codes
+ * - Package deals
+ *
+ * 7. Event Operations:
+ * - Staff assignment
+ * - Equipment tracking
+ * - Setup checklist
+ * - Post-event reporting
+ *
+ * 8. Marketing Features:
+ * - Social media integration
+ * - Email campaign tools
+ * - Promotional materials
+ * - Analytics tracking
+ *
+ * 9. Attendee Management:
+ * - Registration tracking
+ * - Check-in system
+ * - Attendee communications
+ * - Feedback collection
+ *
+ * 10. Reporting Tools:
+ * - Sales analytics
+ * - Attendance tracking
+ * - Revenue forecasting
+ * - Performance metrics
+ */
 public class EventView extends JPanel {
     private JPanel mainPanel;
     private JPanel contentPanel;
@@ -180,30 +248,7 @@ public class EventView extends JPanel {
 
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(e -> {
-            // Get data from the form fields
-            String eventName = eventNameField.getText();
-            String team1 = team1Field.getText();
-            String team2 = team2Field.getText();
-            String eventDate = dateField.getText();
-            String eventType = (String) typeCombo.getSelectedItem();
-            String eventCategory = (String) categoryCombo.getSelectedItem();
-            String eventDetails = detailsArea.getText();
-
-            // Save event using EventService
-            eventService.saveEvent(eventName, team1, team2, eventDate, eventCategory, eventType, eventDetails);
-
-            // Show confirmation dialog
-            JOptionPane.showMessageDialog(EventView.this,
-                    "Event Added Successfully!\n" +
-                            "Event Name: " + eventName + "\n" +
-                            "Team 1: " + team1 + "\n" +
-                            "Team 2: " + team2 + "\n" +
-                            "Date: " + eventDate + "\n" +
-                            "Type: " + eventType + "\n" +
-                            "Category: " + eventCategory + "\n" +
-                            "Details: " + eventDetails,
-                    "Confirmation",
-                    JOptionPane.INFORMATION_MESSAGE);
+            Router.showPage("CustomerPage");
         });
 
         buttonPanel.add(addButton);
