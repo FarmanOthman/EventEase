@@ -1,6 +1,7 @@
 package server;
 
 import database.QueryBuilder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,11 @@ import java.util.logging.Logger;
 public class EventService {
     private static final Logger logger = Logger.getLogger(EventService.class.getName());
     private QueryBuilder queryBuilder;
+
+    // Define predefined categories and types
+    private static final List<String> EVENT_CATEGORIES = Arrays.asList("Sports", "Concert", "Conference", "Festival", "Stadium");
+    private static final List<String> EVENT_TYPES_SPORTS = Arrays.asList("Tournament", "Friendly", "League", "One-Time");
+    private static final List<String> EVENT_TYPES_STADIUM = Arrays.asList("Football", "Concert", "Rally", "Exhibition");
 
     public EventService() {
         // Initialize QueryBuilder (QueryBuilder handles its own connection internally)
@@ -62,6 +68,21 @@ public class EventService {
         } catch (Exception e) {
             logger.severe("❌ Error deleting event: " + e.getMessage());
         }
+    }
+
+    // Getter for predefined categories
+    public List<String> getEventCategories() {
+        return EVENT_CATEGORIES;
+    }
+
+    // Getter for predefined event types based on category
+    public List<String> getEventTypes(String category) {
+        if ("Stadium".equalsIgnoreCase(category)) {
+            return EVENT_TYPES_STADIUM;
+        } else if ("Sports".equalsIgnoreCase(category)) {
+            return EVENT_TYPES_SPORTS;
+        }
+        return Arrays.asList("choose");
     }
 
     // Close the connection when no longer needed

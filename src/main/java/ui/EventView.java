@@ -8,20 +8,24 @@ import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import database.QueryBuilder; // Import QueryBuilder
+import server.EventService; // Import EventService
 
 public class EventView extends JFrame {
     private JPanel mainPanel, contentPanel;
     private JFrame frame;
 
-    // Create QueryBuilder instance to interact with the database
-    private QueryBuilder queryBuilder;
+    private EventService eventService; // Instance of EventService to interact with backend
+    private JComboBox<String> typeCombo;
+    private JComboBox<String> categoryCombo;
 
     public EventView() {
         setTitle("Event Management");
         setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
+        // Initialize EventService (to fetch categories and types)
+        eventService = new EventService();
 
         // Initialize main panel
         mainPanel = new JPanel(new BorderLayout());
@@ -31,9 +35,6 @@ public class EventView extends JFrame {
 
         // Create main panel with event form
         createMainPanel();
-
-        // Initialize QueryBuilder (connect to database)
-        queryBuilder = new QueryBuilder();
 
         // Add main panel to frame
         add(mainPanel, BorderLayout.CENTER);
@@ -123,14 +124,14 @@ public class EventView extends JFrame {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"choose"});
+        typeCombo = new JComboBox<>(new String[]{"choose"});
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"choose"});
+        categoryCombo = new JComboBox<>(new String[]{"choose"});
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -213,7 +214,7 @@ public class EventView extends JFrame {
                 values.put("event_details", eventDetails);
 
                 // Insert data into database using QueryBuilder
-                queryBuilder.insert("events", values); // "events" is the name of the table
+                eventService.saveEvent(eventName, team1, team2, eventDate, eventCategory, eventType, eventDetails); 
 
                 // Show confirmation dialog
                 JOptionPane.showMessageDialog(EventView.this,
@@ -244,6 +245,24 @@ public class EventView extends JFrame {
         contentPanel.add(detailsPanel);
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
+
+        // Populate category combo with options
+        categoryCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedCategory = (String) categoryCombo.getSelectedItem();
+                // Fetch event types based on category
+                typeCombo.removeAllItems();
+                for (String type : eventService.getEventTypes(selectedCategory)) {
+                    typeCombo.addItem(type);
+                }
+            }
+        });
+
+        // Initial population of category combo
+        for (String category : eventService.getEventCategories()) {
+            categoryCombo.addItem(category);
+        }
     }
 
     public static void main(String[] args) {
