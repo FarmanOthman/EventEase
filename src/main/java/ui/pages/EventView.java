@@ -1,37 +1,45 @@
-package ui;
+package ui.pages;
 
 import ui.components.Sidebar;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
+<<<<<<< HEAD:src/main/java/ui/EventView.java
 import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
 import database.QueryBuilder; // Import QueryBuilder
+=======
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
-public class EventView extends JFrame {
+public class EventView extends JPanel {
     private JPanel mainPanel, contentPanel;
+<<<<<<< HEAD:src/main/java/ui/EventView.java
     private JFrame frame;
 
     // Create QueryBuilder instance to interact with the database
     private QueryBuilder queryBuilder;
+=======
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
     public EventView() {
-        setTitle("Event Management");
-        setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+<<<<<<< HEAD:src/main/java/ui/EventView.java
         // Initialize main panel
         mainPanel = new JPanel(new BorderLayout());
 
         // Use the separate Sidebar component
         mainPanel.add(new Sidebar(this), BorderLayout.WEST);
+=======
+        // Add the Sidebar component
+        add(new Sidebar(), BorderLayout.WEST);
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
 
         // Create main panel with event form
         createMainPanel();
 
+<<<<<<< HEAD:src/main/java/ui/EventView.java
         // Initialize QueryBuilder (connect to database)
         queryBuilder = new QueryBuilder();
 
@@ -39,6 +47,10 @@ public class EventView extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         setVisible(true);
+=======
+        // Add main panel to this panel
+        add(mainPanel, BorderLayout.CENTER);
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
     }
 
     private void createMainPanel() {
@@ -46,7 +58,7 @@ public class EventView extends JFrame {
 
         // Create header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219)); // Same blue as sidebar
+        headerPanel.setBackground(new Color(64, 133, 219));
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
         headerLabel.setForeground(Color.WHITE);
@@ -123,14 +135,22 @@ public class EventView extends JFrame {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
+<<<<<<< HEAD:src/main/java/ui/EventView.java
         JComboBox<String> typeCombo = new JComboBox<>(new String[]{"choose"});
+=======
+        JComboBox<String> typeCombo = new JComboBox<>(new String[] { "choose" });
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
+<<<<<<< HEAD:src/main/java/ui/EventView.java
         JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"choose"});
+=======
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[] { "choose" });
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -161,7 +181,7 @@ public class EventView extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 // Paint the rounded background
-                g2.setColor(new Color(28, 184, 96)); // Bright green color matching the image
+                g2.setColor(new Color(28, 184, 96));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
 
                 // Paint the text
@@ -189,6 +209,7 @@ public class EventView extends JFrame {
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+<<<<<<< HEAD:src/main/java/ui/EventView.java
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -230,6 +251,8 @@ public class EventView extends JFrame {
             }
         });
 
+=======
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
         buttonPanel.add(addButton);
 
         // Add components to content panel
@@ -245,6 +268,7 @@ public class EventView extends JFrame {
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
     }
+<<<<<<< HEAD:src/main/java/ui/EventView.java
 
     public static void main(String[] args) {
         try {
@@ -257,3 +281,6 @@ public class EventView extends JFrame {
         SwingUtilities.invokeLater(() -> new EventView());
     }
 }
+=======
+}
+>>>>>>> GUI-implementation:src/main/java/ui/pages/EventView.java
