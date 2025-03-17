@@ -7,6 +7,8 @@ import ui.pages.AdminDashboard;
 import ui.pages.EventView;
 import ui.pages.ReportsView;
 import ui.pages.BookingView;
+import ui.pages.CalendarView;
+import ui.pages.UserManagementView;
 
 public class MainFrame extends JFrame {
   private JPanel cardPanel;
@@ -27,8 +29,13 @@ public class MainFrame extends JFrame {
     cardPanel.add(new EventView(), "EventView");
     cardPanel.add(new ReportsView(), "ReportsView");
     cardPanel.add(new BookingView(), "BookingView");
+    cardPanel.add(new CalendarView(), "CalendarView");
+    cardPanel.add(new UserManagementView(), "UserManagementView");
 
     add(cardPanel);
+
+    // Set up the Router with this frame
+    Router.setMainFrame(this);
   }
 
   public void showPage(String pageName) {
@@ -38,7 +45,6 @@ public class MainFrame extends JFrame {
   public static void main(String[] args) {
     SwingUtilities.invokeLater(() -> {
       MainFrame mainFrame = new MainFrame();
-      Router.setMainFrame(mainFrame);
       mainFrame.setVisible(true);
     });
   }
