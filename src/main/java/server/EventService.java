@@ -11,10 +11,10 @@ public class EventService {
     private static final Logger logger = Logger.getLogger(EventService.class.getName());
     private QueryBuilder queryBuilder;
 
-    // Define predefined categories and types
+    // Define predefined categories and types for stadium management
     private static final List<String> EVENT_CATEGORIES = Arrays.asList("Sports", "Concert", "Conference", "Festival", "Stadium");
     private static final List<String> EVENT_TYPES_SPORTS = Arrays.asList("Tournament", "Friendly", "League", "One-Time");
-    private static final List<String> EVENT_TYPES_STADIUM = Arrays.asList("Football", "Concert", "Rally", "Exhibition");
+    private static final List<String> EVENT_TYPES_STADIUM = Arrays.asList("Football Match", "Concert", "Exhibition", "Rally", "Corporate Event");
 
     public EventService() {
         // Initialize QueryBuilder (QueryBuilder handles its own connection internally)
