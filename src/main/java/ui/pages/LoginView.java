@@ -2,6 +2,7 @@ package ui.pages;
 
 import javax.swing.*;
 import java.awt.*;
+import server.AuthenticationService;
 import ui.components.RoundedButton;
 import ui.components.RoundedTextField;
 import ui.components.RoundedPasswordField;
@@ -107,6 +108,14 @@ public class LoginView extends JPanel {
     loginBox.add(loginButton);
 
     loginButton.addActionListener(e -> {
+      String password = new String(passField.getPassword());
+      String username = userField.getText();
+      boolean isAuthenticated = AuthenticationService.authenticate(username, password);
+
+      if (!isAuthenticated) {
+        JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
       Router.showPage("AdminDashboard"); // Switch to AdminDashboard
     });
 
