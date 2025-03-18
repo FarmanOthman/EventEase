@@ -1,6 +1,7 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.Router;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
@@ -194,14 +195,14 @@ public class BookingView extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-                g2.setColor(getForeground());
+                g2.setColor(new Color(46, 204, 113));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 14));
                 FontMetrics fm = g2.getFontMetrics();
-                int textWidth = fm.stringWidth(getText());
-                int textHeight = fm.getHeight();
-                g2.drawString(getText(), (getWidth() - textWidth) / 2,
-                        (getHeight() - textHeight) / 2 + fm.getAscent());
+                int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                g2.drawString(getText(), x, y);
                 g2.dispose();
             }
         };
@@ -219,6 +220,11 @@ public class BookingView extends JPanel {
 
         // Add components to content panel
         contentPanel.add(formPanel);
+
+        // Add Book Now button
+        bookNowButton.addActionListener(e -> {
+            Router.showPage("CustomerPage");
+        });
     }
 
     // TODO: Additional Features
