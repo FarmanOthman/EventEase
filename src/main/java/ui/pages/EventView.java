@@ -1,8 +1,8 @@
 package ui.pages;
-
+import server.EventService;
 import ui.components.Sidebar;
 import ui.Router;
-import services.event.EventService;
+import services.event.EventServiceSer;
 import javax.swing.*;
 import java.awt.*;
 
@@ -13,15 +13,15 @@ public class EventView extends JPanel {
     private JPanel mainPanel;
     private JPanel contentPanel;
     private JPanel headerPanel;
-    private EventService eventService;
+    private EventServiceSer eventServiceSer;
     private JComboBox<String> typeCombo;
     private JComboBox<String> categoryCombo;
 
     public EventView() {
         setLayout(new BorderLayout());
 
-        // Initialize EventService
-        eventService = new EventService();
+        // Initialize EventServiceSer
+        eventServiceSer = new EventServiceSer();
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
@@ -184,7 +184,13 @@ public class EventView extends JPanel {
 
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(e -> {
-            Router.showPage("CustomerPage");
+        EventService eventManager = new EventService();
+        
+        // Example of adding an event
+        eventManager.addEvent(1, "Team Test", "Team B", "2025-03-18 15:00:00", 1, "Scheduled");
+        
+        Router.showPage("CustomerPage");
+        
         });
 
         buttonPanel.add(addButton);
@@ -207,13 +213,13 @@ public class EventView extends JPanel {
             String selectedCategory = (String) categoryCombo.getSelectedItem();
             // Fetch event types based on category
             typeCombo.removeAllItems();
-            for (String type : eventService.getEventTypes(selectedCategory)) {
+            for (String type : eventServiceSer.getEventTypes(selectedCategory)) {
                 typeCombo.addItem(type);
             }
         });
 
         // Initial population of category combo
-        for (String category : eventService.getEventCategories()) {
+        for (String category : eventServiceSer.getEventCategories()) {
             categoryCombo.addItem(category);
         }
     }

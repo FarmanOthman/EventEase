@@ -34,13 +34,5 @@ public class EventService {
     }
 
     // Main method to test adding an event
-    public static void main(String[] args) {
-        EventService eventManager = new EventService();
-        
-        // Example of adding an event
-        eventManager.addEvent(1, "Team A", "Team B", "2025-03-18 15:00:00", 1, "Scheduled");
-        
-        // After adding the event, close the connection to the database
-        eventManager.queryBuilder.closeConnection();
-    }
+   
 }

@@ -3,7 +3,7 @@ package services.event;
 import java.util.Arrays;
 import java.util.List;
 
-public class EventService {
+public class EventServiceSer {
   public List<String> getEventTypes(String category) {
     // TODO: Replace with database query
     return Arrays.asList("Regular", "VIP", "Special");
