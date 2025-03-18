@@ -36,7 +36,7 @@ public class AuthenticationService {
     }
 
     public static boolean register(String username, String password, int roleId, String email) {
-        String query = "INSERT INTO ADMIN (username, password, role_id, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO ADMIN (username, password, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
 
         // Hash the password using BCrypt
         String hashedPassword = hashPassword(password);
@@ -46,10 +46,9 @@ public class AuthenticationService {
 
             statement.setString(1, username);
             statement.setString(2, hashedPassword); // Store the hashed password
-            statement.setInt(3, roleId);
-            statement.setString(4, email);
-            statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // created_at
-            statement.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now())); // updated_at
+            statement.setString(3, email);
+            statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now())); // created_at
+            statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // updated_at
 
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {

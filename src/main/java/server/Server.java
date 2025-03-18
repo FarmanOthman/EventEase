@@ -5,9 +5,10 @@ import javax.swing.SwingUtilities;;
 
 public class Server {
     public static void main(String[] args) {
-        SalesAnalysis salesAnalysis = new SalesAnalysis();
+        // SalesAnalysis salesAnalysis = new SalesAnalysis();
         
-        System.out.println(salesAnalysis.getSalesReportData());
+        // System.out.println(salesAnalysis.getSalesReportData());
+        AuthenticationService.register("admin", "admin", 1, "admin@gmail.com");
 
         SwingUtilities.invokeLater(() -> {
             MainFrame mainFrame = new MainFrame();
