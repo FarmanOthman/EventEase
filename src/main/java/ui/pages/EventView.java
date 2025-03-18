@@ -248,7 +248,35 @@ public class EventView extends JPanel {
 
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(e -> {
-            Router.showPage("CustomerPage");
+            // TODO: Validate form fields
+            String eventName = eventNameField.getText();
+            String team1 = team1Field.getText();
+            String team2 = team2Field.getText();
+            String date = dateField.getText();
+            String type = (String) typeCombo.getSelectedItem();
+            String category = (String) categoryCombo.getSelectedItem();
+            String details = detailsArea.getText();
+
+            try {
+                // Save event to database
+                boolean success = eventService.createEvent(eventName, team1, team2, date, type, category, details);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Event created successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    // Clear form fields after successful creation
+                    eventNameField.setText("");
+                    team1Field.setText("");
+                    team2Field.setText("");
+                    dateField.setText("");
+                    typeCombo.setSelectedIndex(0);
+                    categoryCombo.setSelectedIndex(0);
+                    detailsArea.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to create event", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         buttonPanel.add(addButton);

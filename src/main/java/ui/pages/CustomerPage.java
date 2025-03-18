@@ -58,7 +58,9 @@ public class CustomerPage extends JPanel {
 
     // Add back button
     JButton backButton = createStyledButton("← Back", new Color(64, 133, 219));
-    backButton.addActionListener(e -> Router.showPage("EventView"));
+    backButton.addActionListener(e -> {
+      Router.showPage("BookingView");
+    });
     JPanel backButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     backButtonPanel.setBackground(new Color(64, 133, 219));
     backButtonPanel.add(backButton);
