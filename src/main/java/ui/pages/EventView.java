@@ -184,12 +184,21 @@ public class EventView extends JPanel {
 
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(e -> {
-        EventService eventManager = new EventService();
+            EventService eventManager = new EventService();
         
         // Example of adding an event
-        eventManager.addEvent(1, "Team Test", "Team B", "2025-03-18 15:00:00", 1, "Scheduled");
-        
-        Router.showPage("CustomerPage");
+            String eventName = eventNameField.getText();
+            String team1 = team1Field.getText();
+            String team2 = team2Field.getText();
+            String date = dateField.getText();
+            String type = (String) typeCombo.getSelectedItem();
+            String category = (String) categoryCombo.getSelectedItem();
+            String details = detailsArea.getText();
+            System.out.println("Selected category: " + category);
+
+            eventManager.addEvent(eventName, date, team1, team2, details, category, type);
+
+            Router.showPage("CustomerPage");
         
         });
 
