@@ -1,91 +1,28 @@
 package ui.pages;
 
+import server.EventService;
 import ui.components.Sidebar;
 import ui.Router;
-import services.event.EventService;
+import services.event.EventServiceSer;
 import javax.swing.*;
 import java.awt.*;
 
 /**
- * TODO: Event Management System Architecture
- * 1. Create the following structure:
- * services/
- * ├── event/
- * │ ├── EventService.java # Core event functionality
- * │ ├── VenueManager.java # Venue management
- * │ ├── TicketingService.java # Ticket management
- * │ └── SchedulingService.java # Event scheduling
- * └── management/
- * ├── ResourceManager.java # Resource allocation
- * └── StaffingService.java # Staff management
- *
- * 2. Event Features:
- * - Event creation/editing
- * - Venue allocation
- * - Capacity management
- * - Resource planning
- *
- * 3. Integration Points:
- * - Booking system
- * - Calendar system
- * - Staff scheduling
- * - Resource management
- *
- * 4. Event Creation Features:
- * - Dynamic form validation
- * - Image upload for event
- * - Rich text description
- * - Custom field support
- *
- * 5. Venue Management:
- * - Venue availability check
- * - Seating layout designer
- * - Capacity calculator
- * - Facility requirements
- *
- * 6. Pricing Management:
- * - Multiple ticket tiers
- * - Dynamic pricing
- * - Discount codes
- * - Package deals
- *
- * 7. Event Operations:
- * - Staff assignment
- * - Equipment tracking
- * - Setup checklist
- * - Post-event reporting
- *
- * 8. Marketing Features:
- * - Social media integration
- * - Email campaign tools
- * - Promotional materials
- * - Analytics tracking
- *
- * 9. Attendee Management:
- * - Registration tracking
- * - Check-in system
- * - Attendee communications
- * - Feedback collection
- *
- * 10. Reporting Tools:
- * - Sales analytics
- * - Attendance tracking
- * - Revenue forecasting
- * - Performance metrics
+ * Event Management System - Stadium Management
  */
 public class EventView extends JPanel {
     private JPanel mainPanel;
     private JPanel contentPanel;
     private JPanel headerPanel;
-    private EventService eventService;
+    private EventServiceSer eventServiceSer;
     private JComboBox<String> typeCombo;
     private JComboBox<String> categoryCombo;
 
     public EventView() {
         setLayout(new BorderLayout());
 
-        // Initialize EventService
-        eventService = new EventService();
+        // Initialize EventServiceSer
+        eventServiceSer = new EventServiceSer();
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
@@ -248,7 +185,9 @@ public class EventView extends JPanel {
 
         // Add ActionListener to the button to handle click event
         addButton.addActionListener(e -> {
-            // TODO: Validate form fields
+            EventService eventManager = new EventService();
+
+            // Example of adding an event
             String eventName = eventNameField.getText();
             String team1 = team1Field.getText();
             String team2 = team2Field.getText();
@@ -256,27 +195,12 @@ public class EventView extends JPanel {
             String type = (String) typeCombo.getSelectedItem();
             String category = (String) categoryCombo.getSelectedItem();
             String details = detailsArea.getText();
+            System.out.println("Selected category: " + category);
 
-            try {
-                // Save event to database
-                boolean success = eventService.createEvent(eventName, team1, team2, date, type, category, details);
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Event created successfully!", "Success",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    // Clear form fields after successful creation
-                    eventNameField.setText("");
-                    team1Field.setText("");
-                    team2Field.setText("");
-                    dateField.setText("");
-                    typeCombo.setSelectedIndex(0);
-                    categoryCombo.setSelectedIndex(0);
-                    detailsArea.setText("");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Failed to create event", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            eventManager.addEvent(eventName, date, team1, team2, details, category, type);
+
+            Router.showPage("CustomerPage");
+
         });
 
         buttonPanel.add(addButton);
@@ -299,13 +223,13 @@ public class EventView extends JPanel {
             String selectedCategory = (String) categoryCombo.getSelectedItem();
             // Fetch event types based on category
             typeCombo.removeAllItems();
-            for (String type : eventService.getEventTypes(selectedCategory)) {
+            for (String type : eventServiceSer.getEventTypes(selectedCategory)) {
                 typeCombo.addItem(type);
             }
         });
 
         // Initial population of category combo
-        for (String category : eventService.getEventCategories()) {
+        for (String category : eventServiceSer.getEventCategories()) {
             categoryCombo.addItem(category);
         }
     }
