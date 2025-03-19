@@ -1,14 +1,16 @@
 package ui;
 
+
 import javax.swing.*;
 import java.awt.*;
 import ui.pages.LoginView;
+import ui.pages.ManagerDashboard;
 import ui.pages.AdminDashboard;
 import ui.pages.EventView;
 import ui.pages.ReportsView;
 import ui.pages.BookingView;
 import ui.pages.CalendarView;
-import ui.pages.UserManagementView;
+import ui.pages.AdminManagementView;
 import ui.pages.DataPersistenceView;
 import ui.pages.NotificationView;
 import ui.pages.CustomerPage;
@@ -63,10 +65,12 @@ public class MainFrame extends JFrame {
     cardPanel.add(new ReportsView(), "ReportsView");
     cardPanel.add(new BookingView(), "BookingView");
     cardPanel.add(new CalendarView(), "CalendarView");
-    cardPanel.add(new UserManagementView(), "UserManagementView");
+    cardPanel.add(new ManagerDashboard(), "UserManagementView");
     cardPanel.add(new DataPersistenceView(), "DataPersistenceView");
     cardPanel.add(new NotificationView(), "NotificationView");
     cardPanel.add(new UpcomingEvent(), "UpcomingEvent");
+    cardPanel.add(new AdminManagementView(), "AdminManagementView");
+
 
     add(cardPanel);
 

@@ -30,8 +30,8 @@ import ui.components.Sidebar;
  * - Alert mechanism
  * - Reporting system
  */
-public class UserManagementView extends JPanel {
-  public UserManagementView() {
+public class ManagerDashboard extends JPanel {
+  public ManagerDashboard() {
     setLayout(new BorderLayout());
 
     // Add the Sidebar component
@@ -57,7 +57,7 @@ public class UserManagementView extends JPanel {
     contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding
 
     String[] cardItems = { "Manage Events", "Manage Ticket", "Sales Reports", "Calendar", "Notification",
-        "Data Persistence Import/Export", "Upcoming Events", "Admin Dashboard","" };
+        "Data Persistence Import/Export", "Upcoming Events", "User Manager","" };
     for (String item : cardItems) {
       if (!item.isEmpty()) {
         JButton card = new JButton(item);
@@ -94,8 +94,8 @@ public class UserManagementView extends JPanel {
         else if (item.equals("Upcoming Events")) {
           card.addActionListener(e -> Router.showPage("UpcomingEvent"));
         }
-        else if (item.equals("Admin Dashboard")) {
-          card.addActionListener(e -> Router.showPage("AdminDashboard"));
+        else if (item.equals("User Manager")) {
+          card.addActionListener(e -> Router.showPage("AdminManagementView"));
       }
       
 
