@@ -1,120 +1,109 @@
 package ui.pages;
 
-import ui.components.Sidebar;
 import javax.swing.*;
 import java.awt.*;
+import ui.Router;
+import ui.components.Sidebar;
 
 /**
- * TODO: User Management System Architecture
+ * TODO: Dashboard System Architecture
  * 1. Create the following structure:
  * services/
- * ├── user/
- * │ ├── UserService.java # Core user functionality
- * │ ├── RoleManager.java # Role management
- * │ ├── PermissionService.java # Access control
- * │ └── UserActivityService.java # Activity tracking
- * └── security/
- * ├── AuthenticationManager.java # Authentication
- * └── AccessControlService.java # Authorization
+ * ├── dashboard/
+ * │ ├── DashboardService.java # Core dashboard functionality
+ * │ ├── AnalyticsService.java # Real-time analytics
+ * │ ├── MetricsService.java # KPI tracking
+ * │ └── NotificationService.java # Alert system
+ * └── monitoring/
+ * ├── SystemMonitor.java # System health
+ * └── PerformanceTracker.java # Performance metrics
  *
- * 2. User Management Features:
- * - User CRUD operations
- * - Role management
- * - Permission control
- * - Activity logging
+ * 2. Dashboard Features:
+ * - Real-time analytics display
+ * - System health monitoring
+ * - User activity tracking
+ * - Performance metrics
  *
  * 3. Integration Points:
- * - Authentication system
- * - Audit logging
- * - Email service
- * - Security system
- *
- * 4. User Administration:
- * - Bulk user operations
- * - User import/export
- * - Password policies
- * - Account lockout
- *
- * 5. Role Management:
- * - Role hierarchy
- * - Custom roles
- * - Permission templates
- * - Role assignments
- *
- * 6. Access Control:
- * - Feature permissions
- * - Data permissions
- * - IP restrictions
- * - Time-based access
- *
- * 7. User Profiles:
- * - Profile customization
- * - Avatar management
- * - Contact details
- * - Preferences
- *
- * 8. Communication:
- * - Email notifications
- * - System messages
- * - Announcements
- * - Feedback system
- *
- * 9. Compliance:
- * - GDPR compliance
- * - Data retention
- * - Privacy settings
- * - Consent management
- *
- * 10. Reporting:
- * - User statistics
- * - Access reports
- * - Activity logs
- * - Audit trails
+ * - Analytics engine
+ * - Monitoring system
+ * - Alert mechanism
+ * - Reporting system
  */
 public class UserManagementView extends JPanel {
-  private JPanel mainPanel;
-
   public UserManagementView() {
     setLayout(new BorderLayout());
 
-    // Use the Sidebar component
+    // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);
 
-    // Create main panel
-    createMainPanel();
-
-    // Add main panel to this panel
+    // Create main panel with BorderLayout
+    JPanel mainPanel = new JPanel(new BorderLayout());
     add(mainPanel, BorderLayout.CENTER);
-  }
 
-  private void createMainPanel() {
-    mainPanel = new JPanel(new BorderLayout());
-    mainPanel.setBackground(new Color(240, 240, 240));
-
-    // Create header panel
+    // Create top header panel
     JPanel headerPanel = new JPanel();
-    headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    headerPanel.setBackground(new Color(64, 143, 224));
-    headerPanel.setPreferredSize(new Dimension(600, 50));
-
-    JLabel headerLabel = new JLabel("User Management");
-    headerLabel.setForeground(new Color(240, 240, 255));
-    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-    headerPanel.add(headerLabel);
-
-    // Create content panel
-    JPanel contentPanel = new JPanel();
-    contentPanel.setBackground(new Color(240, 240, 240));
-    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-
-    // Add "Coming Soon" label
-    JLabel comingSoonLabel = new JLabel("User Management View - Coming Soon");
-    comingSoonLabel.setFont(new Font("Arial", Font.BOLD, 16));
-    comingSoonLabel.setForeground(new Color(90, 90, 90));
-    contentPanel.add(comingSoonLabel);
-
-    // Add panels to main panel
+    headerPanel.setBackground(new Color(70, 130, 200));
+    headerPanel.setPreferredSize(new Dimension(800, 50));
+    JLabel titleLabel = new JLabel("Manager Dashboard", SwingConstants.CENTER);
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    headerPanel.add(titleLabel);
     mainPanel.add(headerPanel, BorderLayout.NORTH);
+
+    // Create main content panel with better spacing
+    JPanel contentPanel = new JPanel(new GridLayout(3, 3, 30, 30)); // Increased spacing
+    contentPanel.setBackground(Color.WHITE);
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding
+
+    String[] cardItems = { "Manage Events", "Manage Ticket", "Sales Reports", "Calendar", "Notification",
+        "Data Persistence Import/Export", "Upcoming Events", "Admin Dashboard","" };
+    for (String item : cardItems) {
+      if (!item.isEmpty()) {
+        JButton card = new JButton(item);
+        card.setFont(new Font("Arial", Font.PLAIN, 14));
+        card.setFocusPainted(false);
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1)); // Subtle border for cards
+
+        // Add action listener for the Manage Events button
+        if (item.equals("Manage Events")) {
+          card.addActionListener(e -> Router.showPage("EventView"));
+        }
+        // Add action listener for the Sales Reports button
+        else if (item.equals("Sales Reports")) {
+          card.addActionListener(e -> Router.showPage("ReportsView"));
+        }
+        // Add action listener for the Manage Ticket button
+        else if (item.equals("Manage Ticket")) {
+          card.addActionListener(e -> Router.showPage("BookingView"));
+        }
+        // Add action listener for the Calendar button
+        else if (item.equals("Calendar")) {
+          card.addActionListener(e -> Router.showPage("CalendarView"));
+        }
+        // Add action listener for the Data Persistence button
+        else if (item.equals("Data Persistence Import/Export")) {
+          card.addActionListener(e -> Router.showPage("DataPersistenceView"));
+        }
+        // Add action listener for the Notification button
+        else if (item.equals("Notification")) {
+          card.addActionListener(e -> Router.showPage("NotificationView"));
+        }
+        // Add action listener for the Upcoming Events button
+        else if (item.equals("Upcoming Events")) {
+          card.addActionListener(e -> Router.showPage("UpcomingEvent"));
+        }
+        else if (item.equals("Admin Dashboard")) {
+          card.addActionListener(e -> Router.showPage("AdminDashboard"));
+      }
+      
+
+        contentPanel.add(card);
+      } else {
+        contentPanel.add(new JLabel("")); // Empty space
+      }
+    }
     mainPanel.add(contentPanel, BorderLayout.CENTER);
   }
 }
