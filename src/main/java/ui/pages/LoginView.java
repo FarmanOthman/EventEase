@@ -5,6 +5,7 @@ import java.awt.*;
 import server.AuthenticationService;
 import ui.components.RoundedButton;
 import ui.components.RoundedTextField;
+import ui.components.Sidebar;
 import ui.components.RoundedPasswordField;
 import ui.Router;
 
@@ -28,7 +29,7 @@ public class LoginView extends JPanel {
     loginBox.add(userLabel);
 
     RoundedTextField userField = new RoundedTextField(25);
-    userField.setText("admin"); // @OnlyForDevlopment
+    userField.setText("admin"); // @OnlyForDevelopment
     userField.setBounds(50, 80, 300, 40);
     userField.setBackground(Color.lightGray);
     loginBox.add(userField);
@@ -38,7 +39,7 @@ public class LoginView extends JPanel {
     loginBox.add(passLabel);
 
     RoundedPasswordField passField = new RoundedPasswordField(25);
-    passField.setText("admin"); // @OnlyForDevlopment
+    passField.setText("admin"); // @OnlyForDevelopment
     passField.setBounds(50, 170, 300, 40);
     passField.setBackground(Color.lightGray);
     loginBox.add(passField);
@@ -58,8 +59,18 @@ public class LoginView extends JPanel {
         JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
-      
-      Router.showPage("AdminDashboard"); // Switch to AdminDashboard
+
+      // Get the existing Sidebar instance from MyApp (NOT a new one)
+      Sidebar s = new Sidebar();
+      s.updateSidebar();
+
+      if (username.equals("admin")) {
+        s.setDashboardChoice("ManagerDashboard");
+        Router.showPage("ManagerDashboard"); // Navigate to Manager Dashboard
+      } else {
+        s.setDashboardChoice("AdminDashboard");
+        Router.showPage("AdminDashboard"); // Navigate to Admin Dashboard
+      }
     });
 
     JPanel wrapperPanel = new JPanel(new GridBagLayout());

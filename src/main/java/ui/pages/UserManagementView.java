@@ -40,11 +40,11 @@ public class UserManagementView extends JPanel {
     contentPanel.setBackground(new Color(240, 240, 240));
     contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-    // Add "Coming Soon" label
-    JLabel comingSoonLabel = new JLabel("User Management View - Coming Soon");
-    comingSoonLabel.setFont(new Font("Arial", Font.BOLD, 16));
-    comingSoonLabel.setForeground(new Color(90, 90, 90));
-    contentPanel.add(comingSoonLabel);
+    // // Add "Coming Soon" label
+    // JLabel comingSoonLabel = new JLabel("User Management View - Coming Soon");
+    // comingSoonLabel.setFont(new Font("Arial", Font.BOLD, 16));
+    // comingSoonLabel.setForeground(new Color(90, 90, 90));
+    // contentPanel.add(comingSoonLabel);
 
     // Add panels to main panel
     mainPanel.add(headerPanel, BorderLayout.NORTH);

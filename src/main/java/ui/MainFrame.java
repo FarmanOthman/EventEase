@@ -37,7 +37,7 @@ public class MainFrame extends JFrame {
     cardPanel.add(new ReportsView(), "ReportsView");
     cardPanel.add(new BookingView(), "BookingView");
     cardPanel.add(new CalendarView(), "CalendarView");
-    cardPanel.add(new ManagerDashboard(), "UserManagementView");
+    cardPanel.add(new ManagerDashboard(), "ManagerDashboard");
     cardPanel.add(new DataPersistenceView(), "DataPersistenceView");
     cardPanel.add(new NotificationView(), "NotificationView");
     cardPanel.add(new UpcomingEvent(), "UpcomingEvent");
