@@ -2,7 +2,6 @@ package ui.pages;
 
 import server.EventService;
 import ui.components.Sidebar;
-import ui.Router;
 import services.event.EventServiceSer;
 import javax.swing.*;
 import java.awt.*;
