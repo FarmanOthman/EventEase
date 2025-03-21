@@ -15,10 +15,16 @@ public class EventService {
     }
 
     // Method to add an event to the database
-    public void addEvent(String eventName, String eventDate, String teamA, String teamB, String eventDescription, String eventCategory, String eventType) {
+    public void addEvent(String eventName, String eventDate, String teamA, String teamB, 
+                         String eventDescription, String eventCategory, String eventType) throws Exception {
+        
+        // Validate that team_a and team_b are not the same before inserting
+        if (teamA.equals(teamB)) {
+            throw new IllegalArgumentException("Error: Team A and Team B cannot be the same!");
+        }
+
         // Prepare the data to be inserted
         Map<String, Object> eventValues = new HashMap<>();
-
         eventValues.put("event_name", eventName);
         eventValues.put("event_date", eventDate);  // Assuming event_date is a string format: "YYYY-MM-DD HH:MM:SS"
         eventValues.put("event_description", eventDescription);
@@ -45,10 +51,9 @@ public class EventService {
         }
 
         // Method to add a customer's information to the database
-        public void addCustomer(String firstName, String lastName, String contactNumber, String email) {
+        public void addCustomer(String firstName, String lastName, String contactNumber, String email) throws Exception {
             // Prepare the data to be inserted
             Map<String, Object> customerValues = new HashMap<>();
-
             customerValues.put("first_name", firstName);
             customerValues.put("last_name", lastName);
             customerValues.put("contact_number", contactNumber);

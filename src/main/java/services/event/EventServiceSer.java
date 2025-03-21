@@ -6,7 +6,7 @@ import java.util.List;
 public class EventServiceSer {
   public List<String> getEventTypes(String category) {
     // TODO: Replace with database query
-    return Arrays.asList("Math", "Event");
+    return Arrays.asList("Match", "Event");
   }
 
   public List<String> getEventCategories() {
