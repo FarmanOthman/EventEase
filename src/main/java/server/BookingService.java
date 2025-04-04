@@ -23,14 +23,14 @@ public class BookingService {
         double price = getPriceFromCategory(selectedPriceCategory);
 
         // Set ticket details
-        ticketValues.put("customer-id", customerId); // customer ID
-        ticketValues.put("event-id", eventId); // event ID
-        ticketValues.put("ticket-type", ticketType); // ticket type
-        ticketValues.put("ticket-date", new Timestamp(System.currentTimeMillis()));  // Current date for ticket date
-        ticketValues.put("ticket-status", "Booked"); // status set as "Booked"
+        ticketValues.put("customer_id", customerId); // customer ID
+        ticketValues.put("event_id", eventId); // event ID
+        ticketValues.put("ticket_type", ticketType); // ticket type
+        ticketValues.put("ticket_date", new Timestamp(System.currentTimeMillis()));  // Current date for ticket date
+        ticketValues.put("ticket_status", "Booked"); // status set as "Booked"
         ticketValues.put("price", price);  // Price based on selected category
-        ticketValues.put("created-at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for created_at
-        ticketValues.put("updated-at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for updated_at
+        ticketValues.put("created_at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for created_at
+        ticketValues.put("updated_at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for updated_at
 
         // Debugging: Print ticket details before insertion
         System.out.println("Inserting booking with data: " + ticketValues);
