@@ -6,17 +6,17 @@ import javax.swing.table.*;
 import java.awt.*;
 
 /**
- * TODO: Reporting System Architecture
- * 1. Create the following structure:
+ * TODO: Reporting System Design
+ * 1. Define the following structure:
  * services/
  * ├── reporting/
- * │ ├── ReportService.java # Core reporting functionality
- * │ ├── AnalyticsService.java # Data analytics
- * │ ├── ChartGenerator.java # Visualization
- * │ └── ExportService.java # Report export
+ * │ ├── ReportService.java # Core reporting logic
+ * │ ├── AnalyticsService.java # Handles data analytics
+ * │ ├── ChartGenerator.java # Generates visualizations
+ * │ └── ExportService.java # Manages report export functionalities
  * └── data/
- * ├── DataAggregator.java # Data collection
- * └── MetricsCalculator.java # KPI calculations
+ * ├── DataAggregator.java # Collects and aggregates data
+ * └── MetricsCalculator.java # Computes key performance indicators (KPIs)
  *
  * 2. Database Integration:
  * - Sales transactions table
@@ -25,11 +25,12 @@ import java.awt.*;
  * - User preferences table
  *
  * 3. External Integration:
- * - Excel export
- * - PDF generation
- * - Email scheduling
- * - Data visualization tools
+ * - Excel export functionality
+ * - PDF report generation
+ * - Email scheduling for reports
+ * - Integration with data visualization tools
  */
+
 public class ReportsView extends JPanel {
     private JPanel mainPanel, contentPanel;
     private JTable salesTable;

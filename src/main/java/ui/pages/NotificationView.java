@@ -7,27 +7,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO: Notification System Architecture
- * 1. Create the following structure:
+ * TODO: Notification System Design
+ * 1. Define the following structure:
  * services/
  * ├── notification/
- * │ ├── NotificationService.java # Core notification handling
- * │ ├── NotificationManager.java # Notification lifecycle management
- * │ ├── NotificationRepository.java # Database operations
- * │ └── listeners/ # Event listeners
+ * │ ├── NotificationService.java # Handles core notification logic
+ * │ ├── NotificationManager.java # Manages notification lifecycle
+ * │ ├── NotificationRepository.java # Manages database interactions for notifications
+ * │ └── listeners/ # Contains event listeners for notification triggers
  * └── websocket/
- * └── WebSocketService.java # Real-time updates
+ * └── WebSocketService.java # Manages real-time updates via WebSocket
  *
- * 2. Implement Observer pattern for real-time updates:
- * - Create NotificationObserver interface
+ * 2. Implement the Observer design pattern for real-time updates:
+ * - Create a NotificationObserver interface
  * - Register views as observers
- * - Broadcast notifications to all observers
+ * - Broadcast notifications to all registered observers
  *
  * 3. Add notification persistence:
- * - Store notifications in database
- * - Implement read/unread status
- * - Add notification history
+ * - Store notifications in the database
+ * - Implement read/unread status management
+ * - Maintain a history of notifications
  */
+
 public class NotificationView extends JPanel {
   private JPanel mainPanel;
   private JPanel notificationsPanel;

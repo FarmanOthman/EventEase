@@ -20,25 +20,26 @@ import ui.pages.UpcomingEvent;
  * TODO: Application Architecture Overview
  * 1. Project Structure:
  * - src/main/java/
- * ├── ui/ # UI components and routing
- * ├── models/ # Data models and business logic
- * ├── services/ # Business services and API integration
- * ├── utils/ # Utility classes and helpers
- * └── database/ # Database connection and queries
+ * ├── ui/ # Contains UI components and routing logic
+ * ├── models/ # Holds data models and business logic
+ * ├── services/ # Contains business services and API integration
+ * ├── utils/ # Includes utility classes and helper functions
+ * └── database/ # Manages database connection and queries
  * 
  * 2. Design Patterns to Implement:
- * - MVC Pattern: Separate views (ui/), models (models/), and controllers
- * (services/)
- * - Observer Pattern: For real-time updates (notifications, data changes)
- * - Singleton: For database connection and session management
- * - Factory: For creating different types of views/components
+ * - MVC (Model-View-Controller) Pattern: Segregates views (ui/), models (models/), and controllers (services/)
+ * - Observer Pattern: Used for real-time updates (e.g., notifications, data changes)
+ * - Singleton Pattern: For managing database connection and session handling
+ * - Factory Pattern: To dynamically create different views/components
  * 
  * 3. Future Enhancements:
- * - Implement dependency injection for better testing
- * - Add logging framework for debugging
- * - Create configuration management system
- * - Implement caching for better performance
+ * - Implement dependency injection to facilitate easier testing
+ * - Integrate a logging framework to aid in debugging and error tracking
+ * - Develop a configuration management system for environment settings
+ * - Introduce caching mechanisms to improve application performance
  */
+
+
 public class MainFrame extends JFrame {
   private JPanel cardPanel;
   private CardLayout cardLayout;

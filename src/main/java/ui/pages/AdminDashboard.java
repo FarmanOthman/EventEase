@@ -6,30 +6,34 @@ import ui.Router;
 import ui.components.Sidebar;
 
 /**
- * TODO: Dashboard System Architecture
- * 1. Create the following structure:
+ * TODO: Dashboard System Design
+ * 1. Define the following architecture:
  * services/
  * ├── dashboard/
- * │ ├── DashboardService.java # Core dashboard functionality
- * │ ├── AnalyticsService.java # Real-time analytics
- * │ ├── MetricsService.java # KPI tracking
- * │ └── NotificationService.java # Alert system
+ * │ ├── DashboardService.java # Main functionality of the dashboard
+ * │ ├── AnalyticsService.java # Provides real-time data analytics
+ * │ ├── MetricsService.java # Tracks key performance indicators (KPIs)
+ * │ └── NotificationService.java # Manages alert system
  * └── monitoring/
- * ├── SystemMonitor.java # System health
- * └── PerformanceTracker.java # Performance metrics
+ * ├── SystemMonitor.java # Monitors system health
+ * └── PerformanceTracker.java # Tracks system performance metrics
  *
- * 2. Dashboard Features:
- * - Real-time analytics display
- * - System health monitoring
- * - User activity tracking
- * - Performance metrics
+ * 2. Key Features of the Dashboard:
+ * - Real-time display of analytics
+ * - Health monitoring of the system
+ * - User activity monitoring
+ * - Performance metric tracking
  *
  * 3. Integration Points:
- * - Analytics engine
- * - Monitoring system
- * - Alert mechanism
- * - Reporting system
+ * - Data analytics engine
+ * - System health monitoring framework
+ * - Notification and alert system
+ * - Reporting mechanism
  */
+
+
+
+
 public class AdminDashboard extends JPanel {
   public AdminDashboard() {
     setLayout(new BorderLayout());

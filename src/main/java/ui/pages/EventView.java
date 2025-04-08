@@ -6,72 +6,77 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * TODO: Event Management System Architecture
- * 1. Create the following structure:
+ * TODO: Event Management System Design
+ * 1. Define the following structure:
  * services/
  * ├── event/
- * │ ├── EventService.java # Core event functionality
- * │ ├── VenueManager.java # Venue management
- * │ ├── TicketingService.java # Ticket management
- * │ └── SchedulingService.java # Event scheduling
+ * │ ├── EventService.java # Core functionalities for event management
+ * │ ├── VenueManager.java # Venue allocation and management
+ * │ ├── TicketingService.java # Manage event tickets
+ * │ └── SchedulingService.java # Manage event scheduling
  * └── management/
- * ├── ResourceManager.java # Resource allocation
- * └── StaffingService.java # Staff management
+ * ├── ResourceManager.java # Allocation of resources for events
+ * └── StaffingService.java # Staff management for events
  *
- * 2. Event Features:
- * - Event creation/editing
- * - Venue allocation
- * - Capacity management
- * - Resource planning
+ * 2. Core Event Features:
+ * - Event creation and editing
+ * - Venue allocation and management
+ * - Capacity planning and management
+ * - Resource allocation and planning
  *
  * 3. Integration Points:
- * - Booking system
- * - Calendar system
- * - Staff scheduling
- * - Resource management
+ * - Integration with booking system
+ * - Sync with calendar system
+ * - Staff scheduling integration
+ * - Resource management integration
  *
  * 4. Event Creation Features:
- * - Dynamic form validation
- * - Image upload for event
- * - Rich text description
- * - Custom field support
+ * - Validation for dynamic event forms
+ * - Support for image uploads
+ * - Rich text support for event descriptions
+ * - Custom field creation for specific event data
  *
  * 5. Venue Management:
- * - Venue availability check
- * - Seating layout designer
- * - Capacity calculator
- * - Facility requirements
+ * - Check venue availability
+ * - Design seating layouts
+ * - Calculate venue capacity
+ * - Manage venue facility requirements
  *
  * 6. Pricing Management:
- * - Multiple ticket tiers
- * - Dynamic pricing
- * - Discount codes
- * - Package deals
+ * - Create multiple ticket tiers
+ * - Implement dynamic pricing
+ * - Integrate discount codes
+ * - Offer package deals for events
  *
  * 7. Event Operations:
- * - Staff assignment
- * - Equipment tracking
- * - Setup checklist
- * - Post-event reporting
+ * - Assign staff members to events
+ * - Track event equipment
+ * - Maintain a setup checklist for events
+ * - Generate post-event reports
  *
  * 8. Marketing Features:
- * - Social media integration
- * - Email campaign tools
- * - Promotional materials
- * - Analytics tracking
+ * - Integrate with social media platforms
+ * - Provide email campaign tools
+ * - Design promotional materials
+ * - Track marketing analytics
  *
  * 9. Attendee Management:
- * - Registration tracking
- * - Check-in system
- * - Attendee communications
- * - Feedback collection
+ * - Track event registrations
+ * - Implement check-in system
+ * - Manage attendee communications
+ * - Collect event feedback
  *
  * 10. Reporting Tools:
- * - Sales analytics
- * - Attendance tracking
- * - Revenue forecasting
- * - Performance metrics
+ * - Analyze sales data
+ * - Track event attendance
+ * - Forecast event revenue
+ * - Measure event performance metrics
  */
+
+
+
+
+
 public class EventView extends JPanel {
     private JPanel mainPanel, contentPanel;
 

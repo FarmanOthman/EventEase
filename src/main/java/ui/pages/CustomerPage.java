@@ -5,30 +5,31 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * TODO: Customer Management System Architecture
- * 1. Create the following structure:
+ * TODO: Customer Management System Design
+ * 1. Define the following structure:
  * services/
  * ├── customer/
- * │ ├── CustomerService.java # Core customer functionality
- * │ ├── ProfileManager.java # Profile management
- * │ ├── PreferenceService.java # Customer preferences
- * │ └── LoyaltyService.java # Loyalty program
+ * │ ├── CustomerService.java # Core functionality for managing customers
+ * │ ├── ProfileManager.java # Handle customer profile data
+ * │ ├── PreferenceService.java # Manage customer preferences
+ * │ └── LoyaltyService.java # Handle customer loyalty programs
  * └── communication/
- * ├── NotificationManager.java # Customer notifications
- * └── FeedbackService.java # Customer feedback
+ * ├── NotificationManager.java # Manage customer notifications
+ * └── FeedbackService.java # Collect and manage customer feedback
  *
- * 2. Customer Features:
- * - Profile management
- * - Purchase history
- * - Loyalty points
- * - Preferences tracking
+ * 2. Key Customer Features:
+ * - Manage customer profiles
+ * - Track purchase history
+ * - Implement loyalty points system
+ * - Monitor and update customer preferences
  *
  * 3. Integration Points:
- * - Booking system
- * - Payment system
- * - Email service
- * - Analytics system
+ * - Connect with booking system
+ * - Integrate with payment system
+ * - Utilize email service for notifications
+ * - Link with analytics system for customer insights
  */
+
 public class CustomerPage extends JPanel {
   private JPanel mainPanel;
   private JPanel contentPanel;

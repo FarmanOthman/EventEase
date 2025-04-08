@@ -6,29 +6,33 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 /**
- * TODO: Booking System Architecture
- * 1. Create the following structure:
+ * TODO: Architecture for Booking System
+ * 1. Establish the following directory structure:
  * services/
  * ├── booking/
- * │ ├── BookingService.java # Core booking functionality
- * │ ├── TicketManager.java # Ticket management
- * │ ├── PricingService.java # Dynamic pricing
- * │ └── InventoryManager.java # Seat/ticket inventory
+ * │ ├── BookingService.java # Manages core booking operations
+ * │ ├── TicketManager.java # Handles ticket inventory and booking
+ * │ ├── PricingService.java # Dynamic pricing management
+ * │ └── InventoryManager.java # Manages seat and ticket inventory
  * └── payment/
- * ├── PaymentProcessor.java # Payment processing
- * └── RefundManager.java # Refund handling
+ * ├── PaymentProcessor.java # Handles payment transactions
+ * └── RefundManager.java # Manages refund requests
  *
- * 2. Database Integration:
+ * 2. Database Setup:
  * - Bookings table
  * - Tickets table
  * - Pricing table
- * - Payment transactions table
+ * - Transactions table for payments
  *
- * 3. External Integration:
- * - Payment gateway
- * - Email notifications
- * - SMS confirmations
+ * 3. External Integrations:
+ * - Payment gateway API
+ * - Email notification system
+ * - SMS confirmation system
  */
+
+
+
+
 public class BookingView extends JPanel {
     private JPanel mainPanel, contentPanel;
 
@@ -38,18 +42,22 @@ public class BookingView extends JPanel {
         // Use the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
-        // TODO: Booking System Initialization
-        // 1. Load configuration:
-        // - Pricing rules
-        // - Booking policies
-        // - Payment settings
-        // - Notification preferences
-        //
-        // 2. Initialize services:
-        // - Connect to payment gateway
-        // - Set up notification system
-        // - Initialize inventory tracking
-        // - Set up logging system
+        // TODO: Initialize Booking System
+    // 1. Load configuration settings:
+    // - Pricing configurations
+    // - Booking policies and rules
+    // - Payment gateway settings
+    // - Notification preferences and configurations
+    //
+    // 2. Initialize necessary services:
+    // - Establish connection to payment gateway
+    // - Set up the notification system
+    // - Initialize ticket and inventory tracking
+    // - Configure logging and monitoring system
+
+
+
+        
         createMainPanel();
 
         // Add main panel to this panel

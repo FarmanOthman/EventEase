@@ -8,65 +8,67 @@ import ui.components.RoundedPasswordField;
 import ui.Router;
 
 /**
- * TODO: Authentication System Architecture
- * 1. Create the following structure:
+ * TODO: Authentication System Design
+ * 1. Define the following structure:
  * services/
  * ├── auth/
- * │ ├── AuthService.java # Core authentication logic
- * │ ├── SessionManager.java # Session handling
- * │ ├── TokenManager.java # JWT/Token management
- * │ └── PasswordService.java # Password hashing/validation
+ * │ ├── AuthService.java # Core logic for authentication
+ * │ ├── SessionManager.java # Manages user sessions
+ * │ ├── TokenManager.java # Handles JWT/Token management
+ * │ └── PasswordService.java # Handles password hashing and validation
  * └── security/
- * ├── SecurityConfig.java # Security settings
- * └── RoleManager.java # Role-based access control
+ * ├── SecurityConfig.java # Configures security settings
+ * └── RoleManager.java # Manages role-based access control
  *
- * 2. Security Features to Implement:
- * - Password hashing with salt
- * - Rate limiting for login attempts
+ * 2. Security Features:
+ * - Salted password hashing
+ * - Limit login attempts (Rate limiting)
  * - Session timeout management
- * - Two-factor authentication
+ * - Two-factor authentication (2FA)
  *
  * 3. Database Integration:
- * - User table with encrypted passwords
- * - Session tracking table
- * - Login history for auditing
+ * - Store encrypted passwords in the user table
+ * - Track sessions in a session table
+ * - Log login history for audit purposes
  *
  * 4. Authentication Features:
- * - OAuth integration
- * - SSO support
- * - Remember me functionality
- * - Password reset flow
+ * - OAuth integration for external logins
+ * - Single Sign-On (SSO) support
+ * - "Remember me" functionality for persistent login
+ * - Password reset process
  *
  * 5. Security Measures:
- * - CAPTCHA integration
- * - IP-based blocking
- * - Device fingerprinting
- * - Suspicious activity detection
+ * - CAPTCHA to prevent bot logins
+ * - IP-based blocking for suspicious activities
+ * - Device fingerprinting for additional security
+ * - Detect and handle suspicious activities
  *
  * 6. User Experience:
- * - Form validation
- * - Error messaging
- * - Loading indicators
- * - Auto-complete support
+ * - Form validation during login/signup
+ * - Clear error messages for failed attempts
+ * - Loading indicators during authentication
+ * - Auto-complete for login fields
  *
  * 7. Session Management:
- * - Token-based auth
- * - Session persistence
- * - Multi-device handling
- * - Secure logout
+ * - Use token-based authentication
+ * - Persist sessions across devices
+ * - Ensure secure logout functionality
  *
  * 8. Account Recovery:
- * - Security questions
- * - Email verification
- * - Phone verification
- * - Account unlock process
+ * - Security questions for account recovery
+ * - Email verification process
+ * - Phone verification for additional security
+ * - Unlock process for locked accounts
  *
- * 9. Audit Features:
- * - Login attempts logging
- * - Activity tracking
- * - Security alerts
- * - Compliance reporting
+ * 9. Audit and Monitoring:
+ * - Track login attempts for auditing
+ * - Monitor user activity for security
+ * - Send security alerts for suspicious activities
+ * - Compliance reporting for security audits
  */
+
+
+
 public class LoginView extends JPanel {
   public LoginView() {
     setLayout(new BorderLayout());

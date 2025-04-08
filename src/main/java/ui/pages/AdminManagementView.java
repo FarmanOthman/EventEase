@@ -4,12 +4,15 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+
+import ui.MainFrame;
 import ui.Router; // Import the Router class for navigation
 
 public class AdminManagementView extends JPanel {
     private JPanel mainPanel, contentPanel;
     private JTable adminTable;
     private DefaultTableModel tableModel;
+
     
     public AdminManagementView() {
         setLayout(new BorderLayout());
@@ -92,42 +95,50 @@ public class AdminManagementView extends JPanel {
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
     
-    private void createHeader() {
-        JPanel headerPanel = new JPanel();
-        headerPanel.setLayout(new BorderLayout());
-        headerPanel.setBackground(new Color(66, 133, 244));
-        headerPanel.setPreferredSize(new Dimension(600, 50));
+   // In your AdminManagementView class, modify the createHeader() method:
 
-        // Create back button
-        RoundedButton backButton = new RoundedButton("Back", new Color(41, 98, 255));
-        backButton.setPreferredSize(new Dimension(70, 30));
-        backButton.addActionListener(e -> {
-            // Close the current window
-            SwingUtilities.getWindowAncestor(this).dispose();
+   private void createHeader() {
+    JPanel headerPanel = new JPanel();
+    headerPanel.setLayout(new BorderLayout());
+    headerPanel.setBackground(new Color(66, 133, 244));
+    headerPanel.setPreferredSize(new Dimension(600, 50));
 
-            // Navigate back to LoginView using the Router's goTo method
-            Router.goTo("LoginView");
-        });
+    // Create back button
+   // In the createHeader() method of AdminManagementView:
+RoundedButton backButton = new RoundedButton("Back", new Color(41, 98, 255));
+backButton.setPreferredSize(new Dimension(70, 30));
+backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Create panel for back button with padding
-        JPanel backButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        backButtonPanel.setBackground(new Color(66, 133, 244));
-        backButtonPanel.add(backButton);
 
-        // Create panel for the title with center alignment
-        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        titlePanel.setBackground(new Color(66, 133, 244));
-        JLabel headerLabel = new JLabel("Admin Management");
-        headerLabel.setForeground(Color.WHITE);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titlePanel.add(headerLabel);
+// Action listener for back button
+backButton.addActionListener(e -> {
+    Router.showPage("AdminDashboard");
+});
+    
 
-        // Add components to header panel
-        headerPanel.add(backButtonPanel, BorderLayout.WEST);
-        headerPanel.add(titlePanel, BorderLayout.CENTER);
+    // ... rest of the header creation code ...
 
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-    }
+
+    // Create panel for back button with padding
+    JPanel backButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    backButtonPanel.setBackground(new Color(66, 133, 244));
+    backButtonPanel.add(backButton);
+
+    // Create panel for the title with center alignment
+    JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    titlePanel.setBackground(new Color(66, 133, 244));
+    JLabel headerLabel = new JLabel("Admin Management");
+    headerLabel.setForeground(Color.WHITE);
+    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+    titlePanel.add(headerLabel);
+
+    // Add components to header panel
+    headerPanel.add(backButtonPanel, BorderLayout.WEST);
+    headerPanel.add(titlePanel, BorderLayout.CENTER);
+
+    mainPanel.add(headerPanel, BorderLayout.NORTH);
+}
+
     
     private void createAdminList() {
         // Create the outer panel with rounded corners
@@ -284,12 +295,6 @@ public class AdminManagementView extends JPanel {
     }
     
     public static void main(String[] args) {
-        // Create and display the form
-        JFrame frame = new JFrame("Admin Management");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 500);
-        frame.add(new AdminManagementView());
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        MainFrame.main(args);
     }
 }

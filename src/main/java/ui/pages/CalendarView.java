@@ -10,66 +10,67 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TODO: Calendar System Architecture
- * 1. Create the following structure:
+ * TODO: Calendar System Design
+ * 1. Define the following structure:
  * services/
  * ├── calendar/
- * │ ├── CalendarService.java # Core calendar functionality
- * │ ├── EventManager.java # Event handling
- * │ ├── ReminderService.java # Reminders and alerts
- * │ └── SyncService.java # Calendar synchronization
+ * │ ├── CalendarService.java # Main calendar operations
+ * │ ├── EventManager.java # Manage events
+ * │ ├── ReminderService.java # Handle reminders and notifications
+ * │ └── SyncService.java # Synchronize calendars across platforms
  * └── scheduling/
- * ├── ScheduleManager.java # Schedule management
- * └── ConflictResolver.java # Event conflict handling
+ * ├── ScheduleManager.java # Handle scheduling tasks
+ * └── ConflictResolver.java # Manage event conflicts
  *
  * 2. Calendar Features:
- * - Event creation and management
- * - Recurring events support
- * - Multi-calendar view
- * - Event categorization
+ * - Create and manage events
+ * - Support for recurring events
+ * - Multiple calendar views
+ * - Categorization of events
  *
  * 3. Integration Points:
- * - External calendar sync
- * - Notification system
- * - Event booking system
- * - User preferences
+ * - Sync with external calendars
+ * - Notification service integration
+ * - Event booking system link
+ * - User preference integration
  *
- * 4. Calendar View Features:
- * - Day/Week/Month view toggle
- * - Event drag and drop
- * - Event duration visualization
- * - Time zone support
+ * 4. Calendar View Options:
+ * - Toggle between Day/Week/Month views
+ * - Drag-and-drop event arrangement
+ * - Visual representation of event duration
+ * - Support for time zone differences
  *
- * 5. Event Management:
- * - Click to create new event
- * - Event details popup
- * - Event editing and deletion
- * - Event color coding
+ * 5. Event Management Features:
+ * - Click to create a new event
+ * - Popup for event details
+ * - Edit and delete event functionality
+ * - Color-coded events for categorization
  *
- * 6. Data Persistence:
- * - Local storage of events
- * - Cloud sync capability
- * - Offline mode support
- * - Data backup/restore
+ * 6. Data Storage:
+ * - Store events locally
+ * - Enable cloud synchronization
+ * - Offline functionality
+ * - Backup and restore event data
  *
- * 7. User Interface:
- * - Keyboard navigation
- * - Touch screen support
- * - Accessibility features
- * - Print calendar view
+ * 7. User Interface Requirements:
+ * - Support for keyboard navigation
+ * - Touchscreen compatibility
+ * - Accessibility features for diverse users
+ * - Option to print the calendar view
  *
- * 8. Event Features:
- * - Recurring event patterns
- * - Event reminders/alerts
- * - Event categories/tags
- * - Event sharing
+ * 8. Event Capabilities:
+ * - Define recurring event patterns
+ * - Set event reminders and alerts
+ * - Categorize and tag events
+ * - Event sharing functionality
  *
- * 9. Search and Filter:
- * - Event search
- * - Category filtering
- * - Date range filtering
- * - Advanced search options
+ * 9. Search and Filtering Options:
+ * - Search for events
+ * - Filter by category
+ * - Filter by date range
+ * - Advanced search filters
  */
+
 public class CalendarView extends JPanel {
   private JPanel mainPanel;
   private JPanel calendarPanel;

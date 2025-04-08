@@ -4,74 +4,76 @@ import ui.components.Sidebar;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
-
 /**
- * TODO: Upcoming Events System Architecture
- * 1. Create the following structure:
+ * TODO: Upcoming Events System Design
+ * 1. Define the following structure:
  * services/
  * ├── events/
- * │ ├── EventListingService.java # Event listing management
- * │ ├── EventFilterService.java # Search and filtering
- * │ ├── EventDetailsService.java # Event information
- * │ └── EventPromotionService.java # Featured events
+ * │ ├── EventListingService.java # Manages event listings
+ * │ ├── EventFilterService.java # Handles search and filtering
+ * │ ├── EventDetailsService.java # Provides event information
+ * │ └── EventPromotionService.java # Manages featured events
  * └── display/
- * ├── ListingManager.java # Display management
- * └── SortingService.java # Custom sorting
+ * ├── ListingManager.java # Controls display settings
+ * └── SortingService.java # Custom sorting functionality
  *
  * 2. Event Features:
- * - Advanced filtering
- * - Smart sorting
- * - Event previews
- * - Quick booking
+ * - Advanced filtering options
+ * - Smart sorting capabilities
+ * - Event previews for quick insights
+ * - Quick booking functionality
  *
  * 3. Integration Points:
- * - Event database
- * - Booking system
- * - Calendar system
- * - Notification system
+ * - Event database integration
+ * - Booking system integration
+ * - Calendar system integration
+ * - Notification system integration
  *
  * 4. Listing Features:
- * - Infinite scroll
- * - Dynamic loading
- * - List/Grid view toggle
- * - Custom view options
+ * - Infinite scrolling for event lists
+ * - Dynamic content loading
+ * - Toggle between list and grid views
+ * - Customizable view options
  *
  * 5. Search Capabilities:
- * - Full-text search
- * - Advanced filters
- * - Saved searches
- * - Search history
+ * - Full-text search functionality
+ * - Advanced search filters
+ * - Ability to save searches
+ * - Search history management
  *
  * 6. Event Details:
- * - Rich event preview
- * - Quick actions
- * - Share functionality
- * - Save/Bookmark
+ * - Rich previews for events
+ * - Quick action options
+ * - Event sharing options
+ * - Save or bookmark events
  *
  * 7. Notification Features:
  * - Event reminders
- * - Price alerts
- * - Availability alerts
- * - Custom notifications
+ * - Price change alerts
+ * - Availability notifications
+ * - Custom notification preferences
  *
  * 8. User Preferences:
- * - Favorite categories
- * - Location settings
- * - Price range filters
- * - Display preferences
+ * - Favorite event categories
+ * - Location-based settings
+ * - Price range filtering
+ * - Custom display preferences
  *
- * 9. Performance Features:
- * - Data caching
- * - Lazy loading
- * - Image optimization
- * - Response compression
+ * 9. Performance Enhancements:
+ * - Caching for faster data retrieval
+ * - Lazy loading for better performance
+ * - Image optimization for faster loading times
+ * - Compression of responses to reduce latency
  *
  * 10. Analytics Integration:
- * - View tracking
- * - Click analysis
- * - Search patterns
- * - User behavior
+ * - Event view tracking
+ * - Click-through analysis
+ * - Search pattern tracking
+ * - Monitoring of user behavior
  */
+
+
+
 public class UpcomingEvent extends JPanel {
   private JPanel mainPanel;
   private JPanel contentPanel;
