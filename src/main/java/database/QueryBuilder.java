@@ -5,8 +5,10 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Function;
 
 public class QueryBuilder {
 
@@ -61,7 +63,7 @@ public class QueryBuilder {
             System.out.println("Record inserted into table: " + table);
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error inserting data into table: " + table);
+            System.err.println("Error inserting data into table: " + table + " with values: " + values);
         }
     }
 
@@ -87,7 +89,8 @@ public class QueryBuilder {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error selecting data from table: " + table);
+            System.err.println(
+                    "Error selecting data from table: " + table + " with columns: " + Arrays.toString(columns));
         }
 
         return resultList; // Return the list of maps
@@ -109,8 +112,14 @@ public class QueryBuilder {
         }
 
         if (finalQuery != null) {
-            finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
-            System.out.println("Record updated in table: " + table);
+            try {
+                finalQuery.where(DSL.field(DSL.name(conditionColumn)).eq(conditionValue)).execute();
+                System.out.println("Record updated in table: " + table);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error updating data in table: " + table + " with condition: " +
+                        conditionColumn + " = " + conditionValue);
+            }
         }
     }
 
@@ -125,8 +134,309 @@ public class QueryBuilder {
             System.out.println("Record deleted from table: " + table);
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error deleting data from table: " + table);
+            System.err.println("Error deleting data from table: " + table + " with condition: " +
+                    conditionColumn + " = " + conditionValue);
         }
     }
 
+    // Select data with filtering
+    public List<Map<String, Object>> selectWithFilters(String table, Map<String, Object> filters, String[] columns) {
+        return selectWithFilterAndSort(table, filters, null, true, columns, null, null);
+    }
+
+    // Select data with filtering and sorting
+    public List<Map<String, Object>> selectWithFilterAndSort(String table, Map<String, Object> filters,
+            String sortColumn, boolean ascending, String[] columns) {
+        return selectWithFilterAndSort(table, filters, sortColumn, ascending, columns, null, null);
+    }
+
+    // Select data with filtering, sorting and pagination
+    public List<Map<String, Object>> selectWithFilterAndSort(String table, Map<String, Object> filters,
+            String sortColumn, boolean ascending,
+            String[] columns, Integer limit, Integer offset) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        List<Field<?>> fieldList = buildFieldList(columns);
+
+        SortField<?> sortField = null;
+        if (sortColumn != null) {
+            Field<?> field = DSL.field(DSL.name(sortColumn));
+            sortField = ascending ? field.asc() : field.desc();
+        }
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        try {
+            Result<?> result = executeQuery(targetTable, fieldList, filters, null, sortField, limit, offset);
+
+            for (Record record : result) {
+                Map<String, Object> row = extractRecordData(record, fieldList, columns);
+                resultList.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error selecting data from table: " + table + " with filters: " + filters);
+        }
+
+        return resultList;
+    }
+
+    // Select with complex conditions (AND + OR)
+    public List<Map<String, Object>> selectWithComplexFilters(String table, Map<String, Object> andFilters,
+            Map<String, Object> orFilters, String[] columns, String sortColumn, boolean ascending,
+            Integer limit, Integer offset) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        List<Field<?>> fieldList = buildFieldList(columns);
+
+        SortField<?> sortField = null;
+        if (sortColumn != null) {
+            Field<?> field = DSL.field(DSL.name(sortColumn));
+            sortField = ascending ? field.asc() : field.desc();
+        }
+
+        // Build combined condition
+        Condition finalCondition = buildComplexCondition(andFilters, orFilters);
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        try {
+            Result<?> result = executeQuery(targetTable, fieldList, null, finalCondition, sortField, limit, offset);
+
+            for (Record record : result) {
+                Map<String, Object> row = extractRecordData(record, fieldList, columns);
+                resultList.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error executing complex query on table: " + table +
+                    " with AND filters: " + andFilters + " OR filters: " + orFilters);
+        }
+
+        return resultList;
+    }
+
+    // Aggregate functions enum
+    public enum AggregateFunction {
+        COUNT(field -> DSL.count(field)),
+        SUM(field -> {
+            if (field.getDataType().isNumeric()) {
+                return DSL.sum((Field<? extends Number>) field);
+            }
+            return DSL.field("SUM({0})", field.getDataType(), field);
+        }),
+        AVG(field -> {
+            if (field.getDataType().isNumeric()) {
+                return DSL.avg((Field<? extends Number>) field);
+            }
+            return DSL.field("AVG({0})", field.getDataType(), field);
+        }),
+        MAX(field -> DSL.max(field)),
+        MIN(field -> DSL.min(field));
+
+        private final Function<Field<?>, Field<?>> function;
+
+        AggregateFunction(Function<Field<?>, Field<?>> function) {
+            this.function = function;
+        }
+
+        public Field<?> apply(Field<?> field) {
+            return function.apply(field);
+        }
+    }
+
+    // Get aggregate value (count, sum, avg, etc.)
+    public Object getAggregateValue(String table, String column, AggregateFunction function,
+            Map<String, Object> filters) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        Field<?> field = DSL.field(DSL.name(column));
+        Field<?> aggregateField = function.apply(field);
+
+        try {
+            SelectJoinStep<?> baseQuery = create.select(aggregateField).from(targetTable);
+
+            if (filters != null && !filters.isEmpty()) {
+                Condition condition = buildAndCondition(filters);
+                return baseQuery.where(condition).fetchOne(0);
+            } else {
+                return baseQuery.fetchOne(0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error executing aggregate query on table: " + table +
+                    " with function: " + function + " and column: " + column);
+        }
+
+        return null;
+    }
+
+    // Helper method to build field list
+    private List<Field<?>> buildFieldList(String[] columns) {
+        List<Field<?>> fieldList = new ArrayList<>();
+
+        if (columns != null && columns.length > 0) {
+            for (String column : columns) {
+                fieldList.add(DSL.field(DSL.name(column)));
+            }
+        } else {
+            fieldList.add(DSL.field("*"));
+        }
+
+        return fieldList;
+    }
+
+    // Helper method to extract data from a record
+    private Map<String, Object> extractRecordData(Record record, List<Field<?>> fieldList, String[] columns) {
+        Map<String, Object> row = new HashMap<>();
+
+        if (columns != null && columns.length > 0) {
+            for (Field<?> f : fieldList) {
+                row.put(f.getName(), record.get(f));
+            }
+        } else {
+            for (Field<?> f : record.fields()) {
+                row.put(f.getName(), record.get(f));
+            }
+        }
+
+        return row;
+    }
+
+    // Helper method to build AND condition
+    private Condition buildAndCondition(Map<String, Object> filters) {
+        Condition condition = null;
+
+        if (filters != null && !filters.isEmpty()) {
+            for (Map.Entry<String, Object> entry : filters.entrySet()) {
+                if (condition == null) {
+                    condition = DSL.field(DSL.name(entry.getKey())).eq(entry.getValue());
+                } else {
+                    condition = condition.and(DSL.field(DSL.name(entry.getKey())).eq(entry.getValue()));
+                }
+            }
+        }
+
+        return condition;
+    }
+
+    // Helper method to build complex condition (AND + OR)
+    private Condition buildComplexCondition(Map<String, Object> andFilters, Map<String, Object> orFilters) {
+        // Build AND conditions
+        Condition andCondition = buildAndCondition(andFilters);
+
+        // Build OR conditions
+        Condition orCondition = null;
+        if (orFilters != null && !orFilters.isEmpty()) {
+            for (Map.Entry<String, Object> entry : orFilters.entrySet()) {
+                if (orCondition == null) {
+                    orCondition = DSL.field(DSL.name(entry.getKey())).eq(entry.getValue());
+                } else {
+                    orCondition = orCondition.or(DSL.field(DSL.name(entry.getKey())).eq(entry.getValue()));
+                }
+            }
+        }
+
+        // Combine AND and OR conditions
+        Condition finalCondition = null;
+        if (andCondition != null && orCondition != null) {
+            finalCondition = andCondition.and(orCondition);
+        } else if (andCondition != null) {
+            finalCondition = andCondition;
+        } else if (orCondition != null) {
+            finalCondition = orCondition;
+        }
+
+        return finalCondition;
+    }
+
+    // Helper method to execute query with filters, sorting and pagination
+    private Result<?> executeQuery(Table<?> targetTable, List<Field<?>> fieldList,
+            Map<String, Object> filters, Condition customCondition,
+            SortField<?> sortField, Integer limit, Integer offset) {
+        try {
+            // Start with building the select part
+            SelectSelectStep<?> select = create.select(fieldList);
+
+            // Add the from part
+            SelectJoinStep<?> fromStep = select.from(targetTable);
+
+            // Build the condition if needed
+            Condition condition = null;
+            if (customCondition != null) {
+                condition = customCondition;
+            } else if (filters != null && !filters.isEmpty()) {
+                condition = buildAndCondition(filters);
+            }
+
+            // Build and execute the final query
+            if (condition != null) {
+                // With where condition
+                if (sortField != null) {
+                    // With sorting
+                    if (limit != null) {
+                        // With limit
+                        if (offset != null) {
+                            // With offset
+                            return fromStep.where(condition).orderBy(sortField).limit(limit).offset(offset).fetch();
+                        } else {
+                            // Without offset
+                            return fromStep.where(condition).orderBy(sortField).limit(limit).fetch();
+                        }
+                    } else {
+                        // Without limit
+                        return fromStep.where(condition).orderBy(sortField).fetch();
+                    }
+                } else {
+                    // Without sorting
+                    if (limit != null) {
+                        // With limit
+                        if (offset != null) {
+                            // With offset
+                            return fromStep.where(condition).limit(limit).offset(offset).fetch();
+                        } else {
+                            // Without offset
+                            return fromStep.where(condition).limit(limit).fetch();
+                        }
+                    } else {
+                        // Without limit
+                        return fromStep.where(condition).fetch();
+                    }
+                }
+            } else {
+                // Without where condition
+                if (sortField != null) {
+                    // With sorting
+                    if (limit != null) {
+                        // With limit
+                        if (offset != null) {
+                            // With offset
+                            return fromStep.orderBy(sortField).limit(limit).offset(offset).fetch();
+                        } else {
+                            // Without offset
+                            return fromStep.orderBy(sortField).limit(limit).fetch();
+                        }
+                    } else {
+                        // Without limit
+                        return fromStep.orderBy(sortField).fetch();
+                    }
+                } else {
+                    // Without sorting
+                    if (limit != null) {
+                        // With limit
+                        if (offset != null) {
+                            // With offset
+                            return fromStep.limit(limit).offset(offset).fetch();
+                        } else {
+                            // Without offset
+                            return fromStep.limit(limit).fetch();
+                        }
+                    } else {
+                        // Without limit
+                        return fromStep.fetch();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error executing query", e);
+        }
+    }
 }
