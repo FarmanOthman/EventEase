@@ -14,7 +14,24 @@ import javax.swing.JPanel;
 import ui.Router;
 
 public class Sidebar extends JPanel {
+    private String dashboardChoice = "Dashboard";
 
+    public void setDashboardChoice(String dashboardChoice) {
+        this.dashboardChoice = dashboardChoice;
+        updateSidebar();
+    }
+
+    public String getDashboardChoice() {
+        return dashboardChoice;
+    }
+
+    public void updateSidebar() {
+        this.removeAll(); // Remove old components
+        initSidebarMenu(); // Rebuild the menu
+        this.revalidate(); // Refresh UI
+        this.repaint(); // Redraw UI
+    }
+    
     public Sidebar() {
         // Set up the layout for the sidebar
         initSidebarLayout();
@@ -41,10 +58,10 @@ public class Sidebar extends JPanel {
     // Method to initialize sidebar menu items and routing
     private void initSidebarMenu() {
         String[][] menuItems = {
-            { "Dashboard", "AdminDashboard" },
+            { "Dashboard", getDashboardChoice() },
             { "Manage Ticket", "BookingView" },
             { "Sales Reports", "ReportsView" },
-            { "Calender", "CalendarView" },
+            { "Calendar", "CalendarView" },
             { "User Management", "UserManagementView" },
             { "Logout", "LoginView" }
         };
