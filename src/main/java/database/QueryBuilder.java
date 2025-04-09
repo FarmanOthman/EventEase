@@ -5,7 +5,6 @@ import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Function;
@@ -219,13 +218,17 @@ public class QueryBuilder {
         COUNT(field -> DSL.count(field)),
         SUM(field -> {
             if (field.getDataType().isNumeric()) {
-                return DSL.sum((Field<? extends Number>) field);
+                @SuppressWarnings("unchecked")
+                Field<? extends Number> numField = (Field<? extends Number>) field;
+                return DSL.sum(numField);
             }
             return DSL.field("SUM({0})", field.getDataType(), field);
         }),
         AVG(field -> {
             if (field.getDataType().isNumeric()) {
-                return DSL.avg((Field<? extends Number>) field);
+                @SuppressWarnings("unchecked")
+                Field<? extends Number> numField = (Field<? extends Number>) field;
+                return DSL.avg(numField);
             }
             return DSL.field("AVG({0})", field.getDataType(), field);
         }),
