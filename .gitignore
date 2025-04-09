@@ -1,2 +1,9 @@
 .vscode/
 target/
+*.log
+*.txt
+*.csv
+*.json
+*.xml
+*.yml
+*.yaml
