@@ -1,10 +1,12 @@
 package ui.pages;
 
-import server.EventService;
 import ui.components.Sidebar;
 import services.event.EventServiceSer;
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Calendar;
 
 /**
  * Event Management System - Stadium Management
@@ -103,10 +105,29 @@ public class EventView extends JPanel {
         JPanel datePanel = new JPanel(new BorderLayout());
         datePanel.setBackground(Color.WHITE);
         datePanel.setMaximumSize(new Dimension(600, 60));
-        JLabel dateLabel = new JLabel("Date:");
-        JTextField dateField = new JTextField();
+        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD HH:MM:SS):");
+
+        // Create date and time fields in the correct format for the database
+        JPanel dateTimePanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        dateTimePanel.setBackground(Color.WHITE);
+
+        // Date picker using spinner
+        JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
+        dateSpinner.setEditor(dateEditor);
+        dateSpinner.setValue(new Date()); // Set current date as default
+
+        // Time picker using spinner
+        JSpinner timeSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm:ss");
+        timeSpinner.setEditor(timeEditor);
+        timeSpinner.setValue(new Date()); // Set current time as default
+
+        dateTimePanel.add(dateSpinner);
+        dateTimePanel.add(timeSpinner);
+
         datePanel.add(dateLabel, BorderLayout.NORTH);
-        datePanel.add(dateField, BorderLayout.CENTER);
+        datePanel.add(dateTimePanel, BorderLayout.CENTER);
 
         // Type and Category panels
         JPanel typeCategoryPanel = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -116,14 +137,14 @@ public class EventView extends JPanel {
         JPanel typePanel = new JPanel(new BorderLayout());
         typePanel.setBackground(Color.WHITE);
         JLabel typeLabel = new JLabel("Type:");
-        typeCombo = new JComboBox<>(new String[] { "choose" });
+        typeCombo = new JComboBox<>(new String[] { "Match", "Event" });
         typePanel.add(typeLabel, BorderLayout.NORTH);
         typePanel.add(typeCombo, BorderLayout.CENTER);
 
         JPanel categoryPanel = new JPanel(new BorderLayout());
         categoryPanel.setBackground(Color.WHITE);
         JLabel categoryLabel = new JLabel("Category:");
-        categoryCombo = new JComboBox<>(new String[] { "choose" });
+        categoryCombo = new JComboBox<>(new String[] { "Regular", "VIP" });
         categoryPanel.add(categoryLabel, BorderLayout.NORTH);
         categoryPanel.add(categoryCombo, BorderLayout.CENTER);
 
@@ -182,38 +203,86 @@ public class EventView extends JPanel {
         addButton.setFocusPainted(false);
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Add ActionListener to the button to handle click event
+        // Update addButton.addActionListener to correctly format date and time
         addButton.addActionListener(e -> {
-            EventService eventManager = new EventService();
-
             // Example of adding an event
             String eventName = eventNameField.getText();
             String team1 = team1Field.getText();
             String team2 = team2Field.getText();
-            String date = dateField.getText();
+
+            // Format the date and time correctly for database
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date dateValue = (Date) dateSpinner.getValue();
+            Date timeValue = (Date) timeSpinner.getValue();
+
+            // Combine date and time values
+            Calendar dateCal = Calendar.getInstance();
+            dateCal.setTime(dateValue);
+
+            Calendar timeCal = Calendar.getInstance();
+            timeCal.setTime(timeValue);
+
+            dateCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
+            dateCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
+            dateCal.set(Calendar.SECOND, timeCal.get(Calendar.SECOND));
+
+            String date = dateFormat.format(dateCal.getTime());
+
             String type = (String) typeCombo.getSelectedItem();
             String category = (String) categoryCombo.getSelectedItem();
             String details = detailsArea.getText();
-            System.out.println("Selected category: " + category);
-            
-            try {
-                eventManager.addEvent(eventName, date, team1, team2, details, category, type);
-                JOptionPane.showMessageDialog(null, "Event Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-                // Clear the form fields
-                eventNameField.setText("");
-                team1Field.setText("");
-                team2Field.setText("");
-                dateField.setText("");
-                typeCombo.setSelectedIndex(0);
-                categoryCombo.setSelectedIndex(0);
-                detailsArea.setText("");
-            } catch (IllegalArgumentException error) {
-                JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            // Validate inputs
+            if (eventName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Event name cannot be empty", "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (team1.trim().isEmpty() || team2.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Team names cannot be empty", "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (team1.equals(team2)) {
+                JOptionPane.showMessageDialog(this, "Team A and Team B cannot be the same", "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (category == null || !(category.equals("Regular") || category.equals("VIP"))) {
+                JOptionPane.showMessageDialog(this, "Please select a valid category (Regular or VIP)",
+                        "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            System.out.println("Selected category: " + category);
+            System.out.println("Formatted date: " + date);
+
+            try {
+                // Use the service layer instead of directly accessing the server layer
+                boolean success = eventServiceSer.addEvent(eventName, date, team1, team2, details, category, type);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(null, "Event Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    // Clear the form fields
+                    eventNameField.setText("");
+                    team1Field.setText("");
+                    team2Field.setText("");
+                    dateSpinner.setValue(new Date());
+                    timeSpinner.setValue(new Date());
+                    typeCombo.setSelectedIndex(0);
+                    categoryCombo.setSelectedIndex(0);
+                    detailsArea.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to add event: " + eventServiceSer.getLastErrorMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (Exception error) {
                 JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-
         });
 
         buttonPanel.add(addButton);
@@ -231,19 +300,7 @@ public class EventView extends JPanel {
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
 
-        // Populate category combo with options
-        categoryCombo.addActionListener(e -> {
-            String selectedCategory = (String) categoryCombo.getSelectedItem();
-            // Fetch event types based on category
-            typeCombo.removeAllItems();
-            for (String type : eventServiceSer.getEventTypes(selectedCategory)) {
-                typeCombo.addItem(type);
-            }
-        });
-
-        // Initial population of category combo
-        for (String category : eventServiceSer.getEventCategories()) {
-            categoryCombo.addItem(category);
-        }
+        // No need for category population from service since we're hardcoding
+        // the only two valid values from the schema
     }
 }
