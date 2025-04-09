@@ -1,60 +1,75 @@
-package server; 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+package server;
+
 import java.time.LocalDateTime;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
-import database.Database;
+import database.QueryBuilder;
 
 public class AuthenticationService {
 
     public static boolean authenticate(String username, String password) {
-        String query = "SELECT password FROM ADMIN WHERE username = ?";
+        // Validate inputs
+        if (!InputValidator.isValidString(username) || !InputValidator.isValidString(password)) {
+            return false;
+        }
 
-        try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+        QueryBuilder queryBuilder = new QueryBuilder();
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("username", username);
 
-            statement.setString(1, username);
-            ResultSet resultSet = statement.executeQuery();
+        try {
+            List<Map<String, Object>> results = queryBuilder.selectWithFilters("ADMIN", filters,
+                    new String[] { "password" });
 
-            if (resultSet.next()) {
-                String hashedPassword = resultSet.getString("password"); // Get hashed password from DB
-                
+            if (!results.isEmpty()) {
+                String hashedPassword = (String) results.get(0).get("password"); // Get hashed password from DB
+
                 // Ensure valid bcrypt hash before checking
                 if (hashedPassword != null && hashedPassword.startsWith("$2a$")) {
                     return BCrypt.checkpw(password, hashedPassword);
                 }
                 return false; // Return false if the hash is invalid
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            queryBuilder.closeConnection();
         }
         return false;
     }
 
     public static boolean register(String username, String password, int roleId, String email) {
-        String query = "INSERT INTO ADMIN (username, password, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
+        // Validate all inputs
+        if (!InputValidator.isValidString(username) ||
+                !InputValidator.isStrongPassword(password) ||
+                !InputValidator.isValidEmail(email)) {
+            return false;
+        }
 
         // Hash the password using BCrypt
         String hashedPassword = hashPassword(password);
-        
-        try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
 
-            statement.setString(1, username);
-            statement.setString(2, hashedPassword); // Store the hashed password
-            statement.setString(3, email);
-            statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now())); // created_at
-            statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // updated_at
+        QueryBuilder queryBuilder = new QueryBuilder();
+        Map<String, Object> values = new HashMap<>();
+        values.put("username", username);
+        values.put("password", hashedPassword);
+        values.put("email", email);
+        values.put("created_at", Timestamp.valueOf(LocalDateTime.now()));
+        values.put("updated_at", Timestamp.valueOf(LocalDateTime.now()));
 
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
+        try {
+            queryBuilder.insert("ADMIN", values);
+            return true;
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
+        } finally {
+            queryBuilder.closeConnection();
         }
-        return false;
     }
 
     // Helper method to hash a password using BCrypt
