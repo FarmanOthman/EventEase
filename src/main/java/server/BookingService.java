@@ -15,30 +15,78 @@ public class BookingService {
     }
 
     // Method to add a customer booking event to the database
-    public void addBooking(String customerName, String selectedEvent, String selectedPriceCategory, int customerId, int eventId, String ticketType) {
+    public boolean addBooking(String customerName, String selectedEvent, String selectedPriceCategory, int customerId,
+            int eventId, String ticketType) {
+        // Validate all inputs
+        if (!validateBookingInputs(customerName, selectedEvent, selectedPriceCategory, customerId, eventId,
+                ticketType)) {
+            System.out.println("Invalid booking inputs detected");
+            return false;
+        }
+
         // Prepare the data to be inserted
-        Map<String, Object> ticketValues = new HashMap<>();  // Use ticketValues map
-        
+        Map<String, Object> ticketValues = new HashMap<>();
+
         // Assuming the price category corresponds to a price value
         double price = getPriceFromCategory(selectedPriceCategory);
 
-        // Set ticket details
-        ticketValues.put("customer-id", customerId); // customer ID
-        ticketValues.put("event-id", eventId); // event ID
-        ticketValues.put("ticket-type", ticketType); // ticket type
-        ticketValues.put("ticket-date", new Timestamp(System.currentTimeMillis()));  // Current date for ticket date
-        ticketValues.put("ticket-status", "Booked"); // status set as "Booked"
-        ticketValues.put("price", price);  // Price based on selected category
-        ticketValues.put("created-at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for created_at
-        ticketValues.put("updated-at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for updated_at
+        // Set ticket details - use the actual column names from the database schema
+        ticketValues.put("event_id", eventId);
+        ticketValues.put("customer_id", customerId);
+        ticketValues.put("ticket_type", ticketType);
+        ticketValues.put("ticket_date", new Timestamp(System.currentTimeMillis()));
+        ticketValues.put("ticket_status", "Sold"); // Using the correct value "Sold" from schema CHECK constraint
+        ticketValues.put("price", price);
+
+        // Note: created_at and updated_at have DEFAULT CURRENT_TIMESTAMP in the
+        // database
+        // so we don't need to explicitly set them
 
         // Debugging: Print ticket details before insertion
         System.out.println("Inserting booking with data: " + ticketValues);
 
-        // Call the QueryBuilder to insert the booking into the Ticket table
-        queryBuilder.insert("Ticket", ticketValues);  // Insert using ticketValues
+        try {
+            // Call the QueryBuilder to insert the booking into the Ticket table
+            queryBuilder.insert("Ticket", ticketValues);
+            System.out.println("Booking added to the database successfully!");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Failed to add booking to the database: " + e.getMessage());
+            return false;
+        }
+    }
 
-        System.out.println("Booking added to the database successfully!");
+    /**
+     * Validates all booking input parameters
+     */
+    private boolean validateBookingInputs(String customerName, String selectedEvent, String selectedPriceCategory,
+            int customerId, int eventId, String ticketType) {
+        // Check if strings are valid
+        if (!InputValidator.isValidString(customerName) ||
+                !InputValidator.isValidString(selectedEvent) ||
+                !InputValidator.isValidString(ticketType)) {
+            return false;
+        }
+
+        // Validate price category
+        if (!InputValidator.isValidPriceCategory(selectedPriceCategory)) {
+            return false;
+        }
+
+        // Validate customer and event IDs
+        if (!InputValidator.isPositiveInteger(customerId) ||
+                !InputValidator.isPositiveInteger(eventId)) {
+            return false;
+        }
+
+        // Validate ticket type - make sure it matches the schema constraints (Regular
+        // or VIP)
+        if (!ticketType.equals("Regular") && !ticketType.equals("VIP")) {
+            System.out.println("Invalid ticket type: " + ticketType + ". Must be 'Regular' or 'VIP'");
+            return false;
+        }
+
+        return true;
     }
 
     // Helper method to determine the price based on the price category
@@ -51,7 +99,7 @@ public class BookingService {
             case "Standard - $50":
                 return 50.0;
             default:
-                return 0.0;  // Default case in case of invalid category
+                return 0.0; // Default case in case of invalid category
         }
     }
 }
