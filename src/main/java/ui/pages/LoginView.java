@@ -5,69 +5,10 @@ import java.awt.*;
 import server.AuthenticationService;
 import ui.components.RoundedButton;
 import ui.components.RoundedTextField;
+import ui.components.Sidebar;
 import ui.components.RoundedPasswordField;
 import ui.Router;
 
-/**
- * TODO: Authentication System Architecture
- * 1. Create the following structure:
- * services/
- * ├── auth/
- * │ ├── AuthService.java # Core authentication logic
- * │ ├── SessionManager.java # Session handling
- * │ ├── TokenManager.java # JWT/Token management
- * │ └── PasswordService.java # Password hashing/validation
- * └── security/
- * ├── SecurityConfig.java # Security settings
- * └── RoleManager.java # Role-based access control
- *
- * 2. Security Features to Implement:
- * - Password hashing with salt
- * - Rate limiting for login attempts
- * - Session timeout management
- * - Two-factor authentication
- *
- * 3. Database Integration:
- * - User table with encrypted passwords
- * - Session tracking table
- * - Login history for auditing
- *
- * 4. Authentication Features:
- * - OAuth integration
- * - SSO support
- * - Remember me functionality
- * - Password reset flow
- *
- * 5. Security Measures:
- * - CAPTCHA integration
- * - IP-based blocking
- * - Device fingerprinting
- * - Suspicious activity detection
- *
- * 6. User Experience:
- * - Form validation
- * - Error messaging
- * - Loading indicators
- * - Auto-complete support
- *
- * 7. Session Management:
- * - Token-based auth
- * - Session persistence
- * - Multi-device handling
- * - Secure logout
- *
- * 8. Account Recovery:
- * - Security questions
- * - Email verification
- * - Phone verification
- * - Account unlock process
- *
- * 9. Audit Features:
- * - Login attempts logging
- * - Activity tracking
- * - Security alerts
- * - Compliance reporting
- */
 public class LoginView extends JPanel {
   public LoginView() {
     setLayout(new BorderLayout());
@@ -88,6 +29,7 @@ public class LoginView extends JPanel {
     loginBox.add(userLabel);
 
     RoundedTextField userField = new RoundedTextField(25);
+    userField.setText("admin"); // @OnlyForDevelopment
     userField.setBounds(50, 80, 300, 40);
     userField.setBackground(Color.lightGray);
     loginBox.add(userField);
@@ -97,6 +39,7 @@ public class LoginView extends JPanel {
     loginBox.add(passLabel);
 
     RoundedPasswordField passField = new RoundedPasswordField(25);
+    passField.setText("admin"); // @OnlyForDevelopment
     passField.setBounds(50, 170, 300, 40);
     passField.setBackground(Color.lightGray);
     loginBox.add(passField);
@@ -116,8 +59,18 @@ public class LoginView extends JPanel {
         JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
-      
-      Router.showPage("AdminDashboard"); // Switch to AdminDashboard
+
+      // Get the existing Sidebar instance from MyApp (NOT a new one)
+      Sidebar s = new Sidebar();
+      s.updateSidebar();
+
+      if (username.equals("admin")) {
+        s.setDashboardChoice("ManagerDashboard");
+        Router.showPage("ManagerDashboard"); // Navigate to Manager Dashboard
+      } else {
+        s.setDashboardChoice("AdminDashboard");
+        Router.showPage("AdminDashboard"); // Navigate to Admin Dashboard
+      }
     });
 
     JPanel wrapperPanel = new JPanel(new GridBagLayout());

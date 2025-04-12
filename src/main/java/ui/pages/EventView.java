@@ -2,7 +2,6 @@ package ui.pages;
 
 import server.EventService;
 import ui.components.Sidebar;
-import ui.Router;
 import services.event.EventServiceSer;
 import javax.swing.*;
 import java.awt.*;
@@ -196,10 +195,24 @@ public class EventView extends JPanel {
             String category = (String) categoryCombo.getSelectedItem();
             String details = detailsArea.getText();
             System.out.println("Selected category: " + category);
+            
+            try {
+                eventManager.addEvent(eventName, date, team1, team2, details, category, type);
+                JOptionPane.showMessageDialog(null, "Event Added!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-            eventManager.addEvent(eventName, date, team1, team2, details, category, type);
-
-            Router.showPage("CustomerPage");
+                // Clear the form fields
+                eventNameField.setText("");
+                team1Field.setText("");
+                team2Field.setText("");
+                dateField.setText("");
+                typeCombo.setSelectedIndex(0);
+                categoryCombo.setSelectedIndex(0);
+                detailsArea.setText("");
+            } catch (IllegalArgumentException error) {
+                JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception error) {
+                JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
 
         });
 

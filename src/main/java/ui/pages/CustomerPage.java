@@ -170,15 +170,19 @@ public class CustomerPage extends JPanel {
         EventService.CustomInformationService customInfoService = new EventService.CustomInformationService();
 
         // Call the addCustomer method to insert data into the database
-        customInfoService.addCustomer(firstName, lastName, contactNumber, email);
+        try{
+            customInfoService.addCustomer(firstName, lastName, contactNumber, email);
+        } catch(Exception e){
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // Show a confirmation dialog
         JOptionPane.showMessageDialog(this,
                 "Customer Information Saved Successfully!\n" +
-                        "First Name: " + firstName + "\n" +
-                        "Last Name: " + lastName + "\n" +
-                        "Contact Number: " + contactNumber + "\n" +
-                        "Email: " + email,
+                "First Name: " + firstName + "\n" +
+                "Last Name: " + lastName + "\n" +
+                "Contact Number: " + contactNumber + "\n" +
+                "Email: " + email,
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE);
 
