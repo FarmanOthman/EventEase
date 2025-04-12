@@ -2,19 +2,27 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.Router;
+import services.booking.BookingServiceSer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.List;
+import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * TODO: Booking System Architecture
  * 1. Create the following structure:
  * services/
- * ├── booking/
- * │ ├── BookingService.java # Core booking functionality
- * │ ├── TicketManager.java # Ticket management
- * │ ├── PricingService.java # Dynamic pricing
- * │ └── InventoryManager.java # Seat/ticket inventory
+ * │ ├── booking/
+ * │ │ ├── BookingService.java # Core booking functionality
+ * │ │ ├── TicketManager.java # Ticket management
+ * │ │ ├── PricingService.java # Dynamic pricing
+ * │ │ └── InventoryManager.java # Seat/ticket inventory
+ * │ └── payment/
+ * │ ├── PaymentProcessor.java # Payment processing
+ * │ └── RefundManager.java # Refund handling
  * └── payment/
  * ├── PaymentProcessor.java # Payment processing
  * └── RefundManager.java # Refund handling
@@ -32,25 +40,28 @@ import java.awt.geom.RoundRectangle2D;
  */
 public class BookingView extends JPanel {
     private JPanel mainPanel, contentPanel;
+    private JComboBox<String> eventCombo;
+    private JComboBox<String> priceCombo;
+    private JTextField nameField;
+    private BookingServiceSer bookingServiceSer;
+
+    // Maps to store event ID references with event names
+    private java.util.Map<String, Integer> eventIdMap = new java.util.HashMap<>();
+    private int selectedEventId = -1;
+
+    // Temporary hardcoded customer ID (this would come from login in real app)
+    private final int CUSTOMER_ID = 1;
 
     public BookingView() {
         setLayout(new BorderLayout());
 
+        // Initialize service
+        bookingServiceSer = new BookingServiceSer();
+
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
 
-        // TODO: Booking System Initialization
-        // 1. Load configuration:
-        // - Pricing rules
-        // - Booking policies
-        // - Payment settings
-        // - Notification preferences
-        //
-        // 2. Initialize services:
-        // - Connect to payment gateway
-        // - Set up notification system
-        // - Initialize inventory tracking
-        // - Set up logging system
+        // Create main panel
         createMainPanel();
 
         // Add main panel to this panel
@@ -98,18 +109,6 @@ public class BookingView extends JPanel {
     }
 
     private void createHeader() {
-        // TODO: Header Features
-        // 1. Add control elements:
-        // - Booking filters
-        // - Date range selector
-        // - Status filters
-        // - Search functionality
-        //
-        // 2. Add action buttons:
-        // - New booking
-        // - Bulk actions
-        // - Export options
-        // - Settings
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         headerPanel.setBackground(new Color(64, 143, 224));
@@ -148,7 +147,7 @@ public class BookingView extends JPanel {
         formPanel.add(nameLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        JTextField nameField = new JTextField();
+        nameField = new JTextField();
         nameField.setMaximumSize(new Dimension(800, 35));
         nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
         nameField.setForeground(new Color(50, 50, 50));
@@ -162,12 +161,40 @@ public class BookingView extends JPanel {
         formPanel.add(eventLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        JComboBox<String> eventCombo = new JComboBox<>(new String[] { "Select Event",
-                "Football Match - Team A vs Team B", "Concert - Artist X", "Basketball Game - Team C vs Team D" });
+        // Initialize with default selection
+        eventCombo = new JComboBox<>();
+        eventCombo.addItem("Select Event");
+
+        // Load events from database
+        loadEventsFromDatabase();
+
         eventCombo.setMaximumSize(new Dimension(800, 35));
         eventCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(eventCombo);
         formPanel.add(Box.createVerticalStrut(15));
+
+        // Add event selection listener
+        eventCombo.addActionListener(e -> {
+            if (eventCombo.getSelectedIndex() > 0) {
+                String selectedEvent = (String) eventCombo.getSelectedItem();
+                selectedEventId = eventIdMap.get(selectedEvent);
+
+                // Check if it's possible to create a ticket for this event
+                // (Match events can only have one ticket)
+                boolean canCreateTicket = bookingServiceSer.canCreateTicketForEvent(selectedEventId);
+                if (!canCreateTicket) {
+                    JOptionPane.showMessageDialog(this,
+                            bookingServiceSer.getLastErrorMessage(),
+                            "Ticket Creation Restricted",
+                            JOptionPane.WARNING_MESSAGE);
+                    // Reset selection
+                    eventCombo.setSelectedIndex(0);
+                    selectedEventId = -1;
+                }
+            } else {
+                selectedEventId = -1;
+            }
+        });
 
         // Price label and combo
         JLabel priceLabel = new JLabel("Select Price Category:");
@@ -176,8 +203,7 @@ public class BookingView extends JPanel {
         formPanel.add(priceLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        JComboBox<String> priceCombo = new JComboBox<>(
-                new String[] { "Select Price Category", "VIP - $100", "Premium - $75", "Standard - $50" });
+        priceCombo = new JComboBox<>(bookingServiceSer.getPricingOptions());
         priceCombo.setMaximumSize(new Dimension(800, 35));
         priceCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(priceCombo);
@@ -221,10 +247,151 @@ public class BookingView extends JPanel {
         // Add components to content panel
         contentPanel.add(formPanel);
 
-        // Add Book Now button
+        // Add Book Now button action
         bookNowButton.addActionListener(e -> {
-            Router.showPage("CustomerPage");
+            // Validate form inputs
+            if (nameField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a customer name", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (eventCombo.getSelectedIndex() == 0) {
+                JOptionPane.showMessageDialog(this, "Please select an event", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (priceCombo.getSelectedIndex() == 0) {
+                JOptionPane.showMessageDialog(this, "Please select a price category", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Get selected values
+            String customerName = nameField.getText().trim();
+            String selectedEvent = (String) eventCombo.getSelectedItem();
+            String selectedPriceCategory = (String) priceCombo.getSelectedItem();
+
+            // Determine ticket type based on price category
+            String ticketType = bookingServiceSer.getTicketTypeFromPriceCategory(selectedPriceCategory);
+
+            // Get event details to verify constraints
+            Map<String, Object> eventDetails = bookingServiceSer.getEventDetails(selectedEventId);
+            if (eventDetails != null) {
+                // Check if ticket type matches the event category
+                String eventCategory = (String) eventDetails.get("category");
+
+                // Ensure ticket type is compatible with event category (enforce schema
+                // constraint)
+                // Schema constraint: ticket_type IN ('Regular', 'VIP')
+                if ((eventCategory.equals("VIP") && !ticketType.equals("VIP")) ||
+                        (eventCategory.equals("Regular") && !ticketType.equals("Regular"))) {
+                    JOptionPane.showMessageDialog(this,
+                            "Ticket type must match event category: " + eventCategory + "\n" +
+                                    "VIP events require VIP tickets.\n" +
+                                    "Regular events require Regular tickets.",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+
+                    // Suggest the correct price category
+                    if (eventCategory.equals("VIP")) {
+                        // Find the VIP price option index
+                        for (int i = 0; i < priceCombo.getItemCount(); i++) {
+                            if (priceCombo.getItemAt(i).toString().startsWith("VIP")) {
+                                priceCombo.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    } else if (eventCategory.equals("Regular")) {
+                        // Find the first Regular price option index
+                        for (int i = 0; i < priceCombo.getItemCount(); i++) {
+                            if (priceCombo.getItemAt(i).toString().startsWith("Regular")) {
+                                priceCombo.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+                    return;
+                }
+            }
+
+            try {
+                // Call the booking service to create the booking
+                boolean success = bookingServiceSer.createBooking(customerName, selectedEvent, selectedPriceCategory,
+                        CUSTOMER_ID, selectedEventId, ticketType);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Booking created successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    // Reset form
+                    nameField.setText("");
+                    eventCombo.setSelectedIndex(0);
+                    priceCombo.setSelectedIndex(0);
+
+                    // Navigate to customer page
+                    Router.showPage("CustomerPage");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to create booking: " +
+                            bookingServiceSer.getLastErrorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
+    }
+
+    /**
+     * Load events from the database into the event combo box
+     */
+    private void loadEventsFromDatabase() {
+        try {
+            // Clear any previous entries except the first one
+            eventIdMap.clear();
+            eventCombo.removeAllItems();
+            eventCombo.addItem("Select Event");
+
+            // Fetch all events from the database using the service
+            List<Map<String, Object>> events = bookingServiceSer.getAllEvents();
+
+            SimpleDateFormat displayDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
+            for (Map<String, Object> event : events) {
+                int eventId = (Integer) event.get("event_id");
+                String eventName = (String) event.get("event_name");
+                String teamA = (String) event.get("team_a");
+                String teamB = (String) event.get("team_b");
+                String category = (String) event.get("category");
+                String eventType = (String) event.get("event_type");
+
+                // Format the date for display
+                String eventDate = "Unknown date";
+                if (event.get("event_date") != null) {
+                    try {
+                        eventDate = event.get("event_date").toString();
+                        // If the date is a timestamp object, try to format it
+                        if (event.get("event_date") instanceof Date) {
+                            eventDate = displayDateFormat.format((Date) event.get("event_date"));
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error formatting date: " + e.getMessage());
+                    }
+                }
+
+                // Create a display string for the event
+                String displayText = String.format("%s - %s vs %s (%s, %s) - %s",
+                        eventName, teamA, teamB, category, eventType, eventDate);
+
+                // Add to combo box and map
+                eventCombo.addItem(displayText);
+                eventIdMap.put(displayText, eventId);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading events: " + e.getMessage());
+
+            // Add some dummy data if database load fails
+            eventCombo.addItem("Football Match - Team A vs Team B");
+            eventCombo.addItem("Concert - Artist X");
+            eventCombo.addItem("Basketball Game - Team C vs Team D");
+        }
     }
 
     // TODO: Additional Features
