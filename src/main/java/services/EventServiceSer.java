@@ -1,4 +1,4 @@
-package services.event;
+package services;
 
 import database.QueryBuilder;
 import server.EventService;

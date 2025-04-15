@@ -1,10 +1,12 @@
 package ui.pages;
 
 import ui.components.Sidebar;
-import services.event.EventServiceSer;
 import ui.Router;
 import javax.swing.*;
 import javax.swing.table.*;
+
+import services.EventServiceSer;
+
 import java.awt.*;
 import java.util.List;
 import java.util.Map;

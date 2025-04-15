@@ -1,8 +1,8 @@
-package services.booking;
+package services;
 
 import database.QueryBuilder;
 import server.BookingService;
-import services.event.EventServiceSer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

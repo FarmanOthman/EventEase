@@ -2,8 +2,11 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.Router;
-import services.booking.BookingServiceSer;
+
 import javax.swing.*;
+
+import services.BookingServiceSer;
+
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;

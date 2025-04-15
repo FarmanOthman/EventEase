@@ -1,8 +1,11 @@
 package ui.pages;
 
 import ui.components.Sidebar;
-import services.event.EventServiceSer;
+
 import javax.swing.*;
+
+import services.EventServiceSer;
+
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
