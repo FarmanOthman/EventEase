@@ -1,12 +1,17 @@
 package ui.pages;
 
+import services.SalesDataService;
 import ui.components.Sidebar;
 
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The main report viewing UI for displaying sales data, applying filters, and exporting data.
@@ -14,10 +19,14 @@ import java.awt.event.ActionListener;
 public class ReportsView extends JPanel {
     private JPanel mainPanel, contentPanel;
     private JTable salesTable;
+    private SalesDataService salesDataService;
 
     public ReportsView() {
         setLayout(new BorderLayout());
         mainPanel = new JPanel(new BorderLayout());
+
+        // Initialize the service
+        salesDataService = new SalesDataService();
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
@@ -107,12 +116,20 @@ public class ReportsView extends JPanel {
     }
 
     private void createSalesTable(JPanel parent) {
+        // Fetch sales data from the service
+        List<Map<String, Object>> salesData = salesDataService.getAllSalesData();
+
+        // Convert the data into a table-friendly format
         String[] columnNames = { "Date", "Tickets Sold", "Revenue ($)", "Category" };
-        Object[][] data = {
-                { "12 Feb 2025", 450, "$22,500", "VIP" },
-                { "15 Feb 2025", 620, "$31,000", "Standard" },
-                { "20 Feb 2025", 320, "$16,000", "Premium" }
-        };
+        Object[][] data = new Object[salesData.size()][columnNames.length];
+
+        for (int i = 0; i < salesData.size(); i++) {
+            Map<String, Object> sale = salesData.get(i);
+            data[i][0] = sale.get("sale_date"); // Date
+            data[i][1] = sale.get("tickets_sold"); // Tickets Sold
+            data[i][2] = "$" + sale.get("revenue"); // Revenue
+            data[i][3] = sale.get("category"); // Category
+        }
 
         DefaultTableModel model = new DefaultTableModel(data, columnNames) {
             @Override
@@ -135,25 +152,25 @@ public class ReportsView extends JPanel {
         salesTable.setFillsViewportHeight(true);
 
         // Set custom cell renderer for each column
-        salesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                                                          boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                c.setBackground(row % 2 == 0 ? new Color(240, 240, 240) : Color.WHITE);
-                if (isSelected) {
-                    c.setBackground(table.getSelectionBackground());
-                }
+   salesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+                                                   boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        c.setBackground(row % 2 == 0 ? new Color(240, 240, 240) : Color.WHITE);
+        if (isSelected) {
+            c.setBackground(table.getSelectionBackground());
+        }
 
-                if (column == 0) { // Align date column to the left
-                    setHorizontalAlignment(SwingConstants.LEFT);
-                } else { // Align other columns (e.g., revenue, tickets sold) to the center
-                    setHorizontalAlignment(SwingConstants.CENTER);
-                }
+        if (column == 0) { // Align date column to the left
+            setHorizontalAlignment(SwingConstants.LEFT);
+        } else { // Align other columns (e.g., revenue, tickets sold) to the center
+            setHorizontalAlignment(SwingConstants.CENTER);
+        }
 
-                return c;
-            }
-        });
+        return c;
+    }
+});
     }
 
     private JPanel createTableHeader() {
@@ -188,8 +205,22 @@ public class ReportsView extends JPanel {
         applyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // You can add filter logic here for your data
-                System.out.println("Filter Applied");
+                String filterCriteria = (String) filterCombo.getSelectedItem();
+                if (filterCriteria == null || "[Select Date/Event]".equals(filterCriteria)) {
+                    JOptionPane.showMessageDialog(ReportsView.this, "Please select a valid filter.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Fetch filtered data from the service
+                List<Map<String, Object>> filteredData = salesDataService.filterSalesData(filterCriteria);
+
+                if (filteredData.isEmpty()) {
+                    JOptionPane.showMessageDialog(ReportsView.this, "No data found for the selected filter.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                // Update the table with filtered data
+                updateSalesTable(filteredData);
             }
         });
 
@@ -197,8 +228,27 @@ public class ReportsView extends JPanel {
         exportButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Export logic goes here
-                System.out.println("Export Button Clicked");
+                // Fetch current table data
+                DefaultTableModel model = (DefaultTableModel) salesTable.getModel();
+                List<Map<String, Object>> salesData = Collections.emptyList();
+
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    Map<String, Object> sale = Map.of(
+                        "sale_date", model.getValueAt(i, 0),
+                        "tickets_sold", model.getValueAt(i, 1),
+                        "revenue", model.getValueAt(i, 2).toString().replace("$", ""),
+                        "category", model.getValueAt(i, 3)
+                    );
+                    salesData.add(sale);
+                }
+
+                // Export data using the service
+                boolean success = salesDataService.exportSalesData(salesData, "sales_data.csv");
+                if (success) {
+                    JOptionPane.showMessageDialog(ReportsView.this, "Sales data exported successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(ReportsView.this, "Failed to export sales data: " + salesDataService.getLastErrorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -238,5 +288,19 @@ public class ReportsView extends JPanel {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
+    }
+
+    private void updateSalesTable(List<Map<String, Object>> salesData) {
+        DefaultTableModel model = (DefaultTableModel) salesTable.getModel();
+        model.setRowCount(0); // Clear existing rows
+
+        for (Map<String, Object> sale : salesData) {
+            model.addRow(new Object[] {
+                sale.get("sale_date"),
+                sale.get("tickets_sold"),
+                "$" + sale.get("revenue"),
+                sale.get("category")
+            });
+        }
     }
 }
