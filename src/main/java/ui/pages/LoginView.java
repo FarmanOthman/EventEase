@@ -60,15 +60,12 @@ public class LoginView extends JPanel {
         return;
       }
 
-      // Get the existing Sidebar instance from MyApp (NOT a new one)
-      Sidebar s = new Sidebar();
-      s.updateSidebar();
-
+      // Set the dashboard choice in the Sidebar class without creating a new instance
       if (username.equals("admin")) {
-        s.setDashboardChoice("ManagerDashboard");
+        Sidebar.setDashboardChoice("ManagerDashboard"); // Use static method
         Router.showPage("ManagerDashboard"); // Navigate to Manager Dashboard
       } else {
-        s.setDashboardChoice("AdminDashboard");
+        Sidebar.setDashboardChoice("AdminDashboard"); // Use static method
         Router.showPage("AdminDashboard"); // Navigate to Admin Dashboard
       }
     });
