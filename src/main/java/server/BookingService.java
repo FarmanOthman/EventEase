@@ -30,17 +30,6 @@ public class BookingService {
         // Assuming the price category corresponds to a price value
         double price = getPriceFromCategory(selectedPriceCategory);
 
-<<<<<<< HEAD
-        // Set ticket details
-        ticketValues.put("customer_id", customerId); // customer ID
-        ticketValues.put("event_id", eventId); // event ID
-        ticketValues.put("ticket_type", ticketType); // ticket type
-        ticketValues.put("ticket_date", new Timestamp(System.currentTimeMillis()));  // Current date for ticket date
-        ticketValues.put("ticket_status", "Booked"); // status set as "Booked"
-        ticketValues.put("price", price);  // Price based on selected category
-        ticketValues.put("created_at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for created_at
-        ticketValues.put("updated_at", new Timestamp(System.currentTimeMillis()));  // Current timestamp for updated_at
-=======
         // Set ticket details - use the actual column names from the database schema
         ticketValues.put("event_id", eventId);
         ticketValues.put("customer_id", customerId);
@@ -50,9 +39,7 @@ public class BookingService {
         ticketValues.put("price", price);
 
         // Note: created_at and updated_at have DEFAULT CURRENT_TIMESTAMP in the
-        // database
-        // so we don't need to explicitly set them
->>>>>>> c335b7ad6cf628387575c88bad9005c9ce31c467
+        // database so we don't need to explicitly set them
 
         // Debugging: Print ticket details before insertion
         System.out.println("Inserting booking with data: " + ticketValues);
