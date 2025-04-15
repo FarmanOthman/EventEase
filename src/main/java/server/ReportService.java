@@ -1,7 +1,5 @@
 package server;
 
-
-
 import database.QueryBuilder;
 
 import java.sql.Timestamp;
