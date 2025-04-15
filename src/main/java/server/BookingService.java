@@ -101,4 +101,9 @@ public class BookingService {
                 return 0.0; // Default case in case of invalid category
         }
     }
+
+    public boolean bookTicket(String customerName, String eventName, String priceCategory) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'bookTicket'");
+    }
 }

@@ -5,6 +5,7 @@ import ui.Router;
 
 import javax.swing.*;
 
+import server.BookingService;
 import services.BookingServiceSer;
 
 import java.awt.*;
@@ -270,7 +271,7 @@ public class BookingView extends JPanel {
             }
 
             // Get selected values
-            String customerName = nameField.getText().trim();
+            String CustomerName = nameField.getText().trim();
             String selectedEvent = (String) eventCombo.getSelectedItem();
             String selectedPriceCategory = (String) priceCombo.getSelectedItem();
 
@@ -319,7 +320,7 @@ public class BookingView extends JPanel {
 
             try {
                 // Call the booking service to create the booking
-                boolean success = bookingServiceSer.createBooking(customerName, selectedEvent, selectedPriceCategory,
+                boolean success = bookingServiceSer.createBooking(CustomerName, selectedEvent, selectedPriceCategory,
                         CUSTOMER_ID, selectedEventId, ticketType);
 
                 if (success) {
@@ -339,6 +340,18 @@ public class BookingView extends JPanel {
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
+                String customerName = nameField.getText();
+    String eventName = (String) eventCombo.getSelectedItem();
+    String priceCategory = (String) priceCombo.getSelectedItem();
+
+    BookingService bookingService = new BookingService();
+    boolean success = bookingService.bookTicket(customerName, eventName, priceCategory);
+
+    if (success) {
+        JOptionPane.showMessageDialog(this, "Ticket booked successfully!");
+    } else {
+        JOptionPane.showMessageDialog(this, "Please fill in all fields correctly.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
         });
     }
 
