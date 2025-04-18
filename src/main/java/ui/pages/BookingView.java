@@ -413,7 +413,7 @@ public class BookingView extends JPanel implements Refreshable {
                 return;
             }
 
-            if (priceCombo.getSelectedIndex() == 0) {
+            if (priceCombo.getSelectedIndex() == 0 || priceCombo.getSelectedItem().equals("Select Price Category")) {
                 JOptionPane.showMessageDialog(this, "Please select a price category", "Error",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -530,16 +530,16 @@ public class BookingView extends JPanel implements Refreshable {
 
     // Method to update price options based on selected event
     private void updatePriceOptions() {
-        // Since we don't have access to the exact API, provide a simple fallback
-        // implementation
         if (priceCombo != null) {
             priceCombo.removeAllItems();
 
             // Default options for all events
             if (selectedEventId != -1) {
-                priceCombo.addItem("Regular - $50");
-                priceCombo.addItem("Premium - $100");
-                priceCombo.addItem("VIP - $150");
+                // Use the same format as in BookingServiceSer.getPricingOptions()
+                priceCombo.addItem("Select Price Category");
+                priceCombo.addItem("VIP - $100");
+                priceCombo.addItem("Regular - Premium - $75");
+                priceCombo.addItem("Regular - Standard - $50");
             } else {
                 priceCombo.addItem("Select Event First");
             }
