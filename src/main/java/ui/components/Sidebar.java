@@ -12,19 +12,26 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import ui.Router;
+import ui.Refreshable;
 
-public class Sidebar extends JPanel {
+public class Sidebar extends JPanel implements Refreshable {
     private static String dashboardChoice = "AdminDashboard"; // Static variable shared across all instances with
                                                               // default value that matches a real page
 
     public static void setDashboardChoice(String choice) {
         dashboardChoice = choice;
-        // Note: We can't call updateSidebar() from a static method
-        // Individual instances need to be updated separately
+
+        // When dashboard choice is changed, try to refresh all existing sidebars
+        // This works with the reflection mechanism in Router
     }
 
     public static String getDashboardChoice() {
         return dashboardChoice;
+    }
+
+    @Override
+    public void refresh() {
+        updateSidebar();
     }
 
     public void updateSidebar() {

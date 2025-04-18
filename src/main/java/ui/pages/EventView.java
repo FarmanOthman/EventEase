@@ -1,6 +1,7 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.Refreshable;
 
 import javax.swing.*;
 
@@ -14,7 +15,7 @@ import java.util.Calendar;
 /**
  * Event Management System - Stadium Management
  */
-public class EventView extends JPanel {
+public class EventView extends JPanel implements Refreshable {
     private JPanel mainPanel;
     private JPanel contentPanel;
     private JPanel headerPanel;
@@ -23,6 +24,7 @@ public class EventView extends JPanel {
     private JComboBox<String> categoryCombo;
 
     public EventView() {
+        setName("EventView"); // Set the name for the Router to identify this panel
         setLayout(new BorderLayout());
 
         // Initialize EventServiceSer
@@ -36,6 +38,31 @@ public class EventView extends JPanel {
 
         // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
+    }
+
+    @Override
+    public void refresh() {
+        // Refresh the sidebar to reflect any changes
+        Component sidebarComponent = null;
+        for (Component component : getComponents()) {
+            if (component instanceof Sidebar) {
+                sidebarComponent = component;
+                break;
+            }
+        }
+
+        if (sidebarComponent != null) {
+            // Remove old sidebar
+            remove(sidebarComponent);
+
+            // Add new sidebar
+            Sidebar sidebar = new Sidebar();
+            add(sidebar, BorderLayout.WEST);
+
+            // Force UI update
+            revalidate();
+            repaint();
+        }
     }
 
     private void createMainPanel() {

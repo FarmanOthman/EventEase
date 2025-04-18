@@ -2,6 +2,8 @@ package ui;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.*;
+import java.awt.*;
 
 public class Router {
   private static MainFrame mainFrame;
@@ -13,7 +15,48 @@ public class Router {
 
   public static void showPage(String pageName) {
     if (mainFrame != null) {
+      // First try to refresh the page if it's already loaded
+      tryRefreshPage(pageName);
+
+      // Then show the page
       mainFrame.showPage(pageName);
+    }
+  }
+
+  // Method to try refreshing a page if it supports the Refreshable interface
+  private static void tryRefreshPage(String pageName) {
+    if (mainFrame != null) {
+      JPanel cardPanel = mainFrame.getCardPanel();
+
+      // Find the component with the given name
+      for (Component component : cardPanel.getComponents()) {
+        if (component instanceof JPanel) {
+          // Check if this is the target panel
+          String componentName = ((JPanel) component).getName();
+          if (componentName == null) {
+            // If no name is set, use the class name
+            componentName = component.getClass().getSimpleName();
+          }
+
+          // If this is our target panel, refresh it
+          if (componentName.equals(pageName)) {
+            // Force a repaint on the target panel
+            component.invalidate();
+            component.revalidate();
+            component.repaint();
+
+            // Use reflection to call refresh method if available
+            try {
+              if (component.getClass().getMethod("refresh") != null) {
+                component.getClass().getMethod("refresh").invoke(component);
+              }
+            } catch (Exception e) {
+              // Method doesn't exist or other exception, just continue
+              // Silent catch is intentional - not all panels will have refresh method
+            }
+          }
+        }
+      }
     }
   }
 

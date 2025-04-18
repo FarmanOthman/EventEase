@@ -2,6 +2,7 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.Router;
+import ui.Refreshable;
 
 import javax.swing.*;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class BookingView extends JPanel {
+public class BookingView extends JPanel implements Refreshable {
     private JPanel mainPanel, contentPanel;
     private JComboBox<String> eventCombo;
     private JComboBox<String> priceCombo;
@@ -34,11 +35,63 @@ public class BookingView extends JPanel {
     private String customerName = "";
 
     public BookingView() {
+        setName("BookingView"); // Set the name for the Router to identify this panel
         setLayout(new BorderLayout());
 
         // Initialize service
         bookingServiceSer = new BookingServiceSer();
 
+        // Check if customer information was passed from CustomerPage
+        loadCustomerFromRouter();
+
+        // Add the Sidebar component
+        add(new Sidebar(), BorderLayout.WEST);
+
+        // Create main panel
+        createMainPanel();
+
+        // Add main panel to this panel
+        add(mainPanel, BorderLayout.CENTER);
+
+        // If we have customer information from the router, prefill the fields
+        populateCustomerFields();
+    }
+
+    @Override
+    public void refresh() {
+        // Reload events from database
+        eventIdMap.clear();
+        eventCombo.removeAllItems();
+        loadEventsFromDatabase();
+
+        // Refresh the customer data if needed
+        loadCustomerFromRouter();
+        populateCustomerFields();
+
+        // Refresh sidebar
+        Component sidebarComponent = null;
+        for (Component component : getComponents()) {
+            if (component instanceof Sidebar) {
+                sidebarComponent = component;
+                break;
+            }
+        }
+
+        if (sidebarComponent != null) {
+            // Remove old sidebar
+            remove(sidebarComponent);
+
+            // Add new sidebar
+            Sidebar sidebar = new Sidebar();
+            add(sidebar, BorderLayout.WEST);
+        }
+
+        // Force UI update
+        revalidate();
+        repaint();
+    }
+
+    private void loadCustomerFromRouter() {
         // Check if customer information was passed from CustomerPage
         Object routerCustomerId = Router.getData("customerId");
         Object routerCustomerName = Router.getData("customerName");
@@ -51,17 +104,9 @@ public class BookingView extends JPanel {
             Router.clearData("customerId");
             Router.clearData("customerName");
         }
+    }
 
-        // Add the Sidebar component
-        add(new Sidebar(), BorderLayout.WEST);
-
-        // Create main panel
-        createMainPanel();
-
-        // Add main panel to this panel
-        add(mainPanel, BorderLayout.CENTER);
-
-        // If we have customer information from the router, prefill the fields
+    private void populateCustomerFields() {
         if (!customerName.isEmpty()) {
             String[] nameParts = customerName.split(" ", 2);
             if (nameParts.length > 0) {
@@ -483,4 +528,21 @@ public class BookingView extends JPanel {
         }
     }
 
+    // Method to update price options based on selected event
+    private void updatePriceOptions() {
+        // Since we don't have access to the exact API, provide a simple fallback
+        // implementation
+        if (priceCombo != null) {
+            priceCombo.removeAllItems();
+
+            // Default options for all events
+            if (selectedEventId != -1) {
+                priceCombo.addItem("Regular - $50");
+                priceCombo.addItem("Premium - $100");
+                priceCombo.addItem("VIP - $150");
+            } else {
+                priceCombo.addItem("Select Event First");
+            }
+        }
+    }
 }

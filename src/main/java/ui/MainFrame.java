@@ -17,12 +17,14 @@ import ui.pages.UpcomingEvent;
 public class MainFrame extends JFrame {
   private JPanel cardPanel;
   private CardLayout cardLayout;
+  private JScrollPane scrollPane;
 
   public MainFrame() {
     setTitle("EventEase");
     setSize(1000, 600);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setLocationRelativeTo(null);
+    setMinimumSize(new Dimension(800, 500));
 
     cardLayout = new CardLayout();
     cardPanel = new JPanel(cardLayout);
@@ -39,18 +41,32 @@ public class MainFrame extends JFrame {
     cardPanel.add(new UpcomingEvent(), "UpcomingEvent");
     cardPanel.add(new AdminManagementView(), "AdminManagementView");
 
-    add(cardPanel);
+    scrollPane = new JScrollPane(cardPanel);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setBorder(null);
+
+    add(scrollPane);
 
     Router.setMainFrame(this);
   }
 
   public void showPage(String pageName) {
-
     cardLayout.show(cardPanel, pageName);
+
+    cardPanel.revalidate();
+    cardPanel.repaint();
+
+    SwingUtilities.invokeLater(() -> {
+      scrollPane.getVerticalScrollBar().setValue(0);
+    });
+  }
+
+  public JPanel getCardPanel() {
+    return cardPanel;
   }
 
   public static void main(String[] args) {
-
     SwingUtilities.invokeLater(() -> {
       MainFrame mainFrame = new MainFrame();
       mainFrame.setVisible(true);
