@@ -64,6 +64,9 @@ public class BookingView extends JPanel implements Refreshable {
         eventCombo.removeAllItems();
         loadEventsFromDatabase();
 
+        // Update price options based on selected event
+        updatePriceOptions();
+
         // Refresh the customer data if needed
         loadCustomerFromRouter();
         populateCustomerFields();
@@ -326,6 +329,9 @@ public class BookingView extends JPanel implements Refreshable {
             } else {
                 selectedEventId = -1;
             }
+
+            // Update price options based on selected event
+            updatePriceOptions();
         });
 
         // Price label and combo
