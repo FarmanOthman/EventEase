@@ -1,32 +1,61 @@
 package server;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
-import database.QueryBuilder;
+import database.Database;
 
 public class AuthenticationService {
 
+    // Enum to represent user roles
+    public enum UserRole {
+        ADMIN,
+        MANAGER,
+        UNKNOWN
+    }
+
+    // Stores the currently logged in username
+    private static String currentUsername = null;
+    // Stores the currently logged in user's role
+    private static UserRole currentUserRole = UserRole.UNKNOWN;
+
     public static boolean authenticate(String username, String password) {
-        // Validate inputs
-        if (!InputValidator.isValidString(username) || !InputValidator.isValidString(password)) {
-            return false;
+        // First check in ADMIN table
+        if (authenticateUser(username, password, "ADMIN")) {
+            currentUsername = username;
+            currentUserRole = UserRole.ADMIN;
+            return true;
         }
 
-        QueryBuilder queryBuilder = new QueryBuilder();
-        Map<String, Object> filters = new HashMap<>();
-        filters.put("username", username);
+        // Then check in MANAGER table if not found in ADMIN
+        if (authenticateUser(username, password, "MANAGER")) {
+            currentUsername = username;
+            currentUserRole = UserRole.MANAGER;
+            return true;
+        }
 
-        try {
-            List<Map<String, Object>> results = queryBuilder.selectWithFilters("ADMIN", filters,
-                    new String[] { "password" });
+        // Authentication failed
+        currentUsername = null;
+        currentUserRole = UserRole.UNKNOWN;
+        return false;
+    }
 
-            if (!results.isEmpty()) {
-                String hashedPassword = (String) results.get(0).get("password"); // Get hashed password from DB
+    private static boolean authenticateUser(String username, String password, String tableName) {
+        String query = "SELECT password FROM " + tableName + " WHERE username = ?";
+
+        try (Connection connection = Database.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, username);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String hashedPassword = resultSet.getString("password"); // Get hashed password from DB
 
                 // Ensure valid bcrypt hash before checking
                 if (hashedPassword != null && hashedPassword.startsWith("$2a$")) {
@@ -34,42 +63,48 @@ public class AuthenticationService {
                 }
                 return false; // Return false if the hash is invalid
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            queryBuilder.closeConnection();
         }
         return false;
     }
 
+    // Get current user's role
+    public static UserRole getCurrentUserRole() {
+        return currentUserRole;
+    }
+
+    // Get current username
+    public static String getCurrentUsername() {
+        return currentUsername;
+    }
+
+    // Logout method to reset current user
+    public static void logout() {
+        currentUsername = null;
+        currentUserRole = UserRole.UNKNOWN;
+    }
+
     public static boolean register(String username, String password, int roleId, String email) {
-        // Validate all inputs
-        if (!InputValidator.isValidString(username) ||
-                !InputValidator.isStrongPassword(password) ||
-                !InputValidator.isValidEmail(email)) {
-            return false;
-        }
+        String query = "INSERT INTO ADMIN (username, password, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
 
         // Hash the password using BCrypt
         String hashedPassword = hashPassword(password);
 
-        QueryBuilder queryBuilder = new QueryBuilder();
-        Map<String, Object> values = new HashMap<>();
-        values.put("username", username);
-        values.put("password", hashedPassword);
-        values.put("email", email);
-        values.put("created_at", Timestamp.valueOf(LocalDateTime.now()));
-        values.put("updated_at", Timestamp.valueOf(LocalDateTime.now()));
+        try (Connection connection = Database.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
 
-        try {
-            queryBuilder.insert("ADMIN", values);
-            return true;
-        } catch (Exception e) {
+            statement.setString(1, username);
+            statement.setString(2, hashedPassword); // Store the hashed password
+            statement.setString(3, email);
+            statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now())); // created_at
+            statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now())); // updated_at
+
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
             e.printStackTrace();
-            return false;
-        } finally {
-            queryBuilder.closeConnection();
         }
+        return false;
     }
 
     // Helper method to hash a password using BCrypt

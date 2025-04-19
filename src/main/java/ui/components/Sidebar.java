@@ -58,7 +58,7 @@ public class Sidebar extends JPanel {
     // Method to initialize sidebar menu items and routing
     private void initSidebarMenu() {
         String[][] menuItems = {
-            { "Dashboard", getDashboardChoice() },
+            { "Dashboard", dashboardChoice },
             { "Manage Ticket", "BookingView" },
             { "Sales Reports", "ReportsView" },
             { "Calendar", "CalendarView" },

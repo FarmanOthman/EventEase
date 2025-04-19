@@ -39,8 +39,7 @@ public class BookingService {
         ticketValues.put("price", price);
 
         // Note: created_at and updated_at have DEFAULT CURRENT_TIMESTAMP in the
-        // database
-        // so we don't need to explicitly set them
+        // database so we don't need to explicitly set them
 
         // Debugging: Print ticket details before insertion
         System.out.println("Inserting booking with data: " + ticketValues);
@@ -91,15 +90,28 @@ public class BookingService {
 
     // Helper method to determine the price based on the price category
     private double getPriceFromCategory(String priceCategory) {
-        switch (priceCategory) {
-            case "VIP - $100":
-                return 100.0;
-            case "Premium - $75":
-                return 75.0;
-            case "Standard - $50":
-                return 50.0;
-            default:
-                return 0.0; // Default case in case of invalid category
+        if (priceCategory.contains("VIP")) {
+            return 100.0;
+        } else if (priceCategory.contains("Premium")) {
+            return 75.0;
+        } else if (priceCategory.contains("Standard")) {
+            return 50.0;
+        } else {
+            // Extract price value using regex if explicit category match fails
+            try {
+                // Try to find a value in the $ format (e.g., $100)
+                String priceStr = priceCategory.replaceAll(".*\\$(\\d+).*", "$1");
+                if (priceStr.matches("\\d+")) {
+                    return Double.parseDouble(priceStr);
+                }
+            } catch (Exception e) {
+                System.out.println("Could not parse price from: " + priceCategory);
+            }
+            return 50.0; // Safer default value (something > 0)
         }
+    }
+
+    public boolean bookTicket(String customerName, String eventName, String priceCategory) {
+        throw new UnsupportedOperationException("Unimplemented method 'bookTicket'");
     }
 }
