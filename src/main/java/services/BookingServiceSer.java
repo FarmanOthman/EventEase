@@ -1,8 +1,8 @@
-package services.booking;
+package services;
 
 import database.QueryBuilder;
 import server.BookingService;
-import services.event.EventServiceSer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +71,10 @@ public class BookingServiceSer {
    * Maps price categories to the allowed ticket types in the database schema
    */
   public String getTicketTypeFromPriceCategory(String priceCategory) {
-    if (priceCategory.startsWith("VIP")) {
+    if (priceCategory.contains("VIP")) {
       return "VIP";
-    } else if (priceCategory.startsWith("Premium") || priceCategory.startsWith("Standard")) {
+    } else if (priceCategory.contains("Regular") || priceCategory.contains("Premium")
+        || priceCategory.contains("Standard")) {
       return "Regular";
     }
 

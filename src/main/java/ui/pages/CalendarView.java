@@ -9,67 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * TODO: Calendar System Architecture
- * 1. Create the following structure:
- * services/
- * ├── calendar/
- * │ ├── CalendarService.java # Core calendar functionality
- * │ ├── EventManager.java # Event handling
- * │ ├── ReminderService.java # Reminders and alerts
- * │ └── SyncService.java # Calendar synchronization
- * └── scheduling/
- * ├── ScheduleManager.java # Schedule management
- * └── ConflictResolver.java # Event conflict handling
- *
- * 2. Calendar Features:
- * - Event creation and management
- * - Recurring events support
- * - Multi-calendar view
- * - Event categorization
- *
- * 3. Integration Points:
- * - External calendar sync
- * - Notification system
- * - Event booking system
- * - User preferences
- *
- * 4. Calendar View Features:
- * - Day/Week/Month view toggle
- * - Event drag and drop
- * - Event duration visualization
- * - Time zone support
- *
- * 5. Event Management:
- * - Click to create new event
- * - Event details popup
- * - Event editing and deletion
- * - Event color coding
- *
- * 6. Data Persistence:
- * - Local storage of events
- * - Cloud sync capability
- * - Offline mode support
- * - Data backup/restore
- *
- * 7. User Interface:
- * - Keyboard navigation
- * - Touch screen support
- * - Accessibility features
- * - Print calendar view
- *
- * 8. Event Features:
- * - Recurring event patterns
- * - Event reminders/alerts
- * - Event categories/tags
- * - Event sharing
- *
- * 9. Search and Filter:
- * - Event search
- * - Category filtering
- * - Date range filtering
- * - Advanced search options
- */
 public class CalendarView extends JPanel {
   private JPanel mainPanel;
   private JPanel calendarPanel;

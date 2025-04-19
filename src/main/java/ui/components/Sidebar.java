@@ -12,17 +12,26 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import ui.Router;
+import ui.Refreshable;
 
-public class Sidebar extends JPanel {
-    private String dashboardChoice = "Dashboard";
+public class Sidebar extends JPanel implements Refreshable {
+    private static String dashboardChoice = "AdminDashboard"; // Static variable shared across all instances with
+                                                              // default value that matches a real page
 
-    public void setDashboardChoice(String dashboardChoice) {
-        this.dashboardChoice = dashboardChoice;
-        updateSidebar();
+    public static void setDashboardChoice(String choice) {
+        dashboardChoice = choice;
+
+        // When dashboard choice is changed, try to refresh all existing sidebars
+        // This works with the reflection mechanism in Router
     }
 
-    public String getDashboardChoice() {
+    public static String getDashboardChoice() {
         return dashboardChoice;
+    }
+
+    @Override
+    public void refresh() {
+        updateSidebar();
     }
 
     public void updateSidebar() {
@@ -31,7 +40,7 @@ public class Sidebar extends JPanel {
         this.revalidate(); // Refresh UI
         this.repaint(); // Redraw UI
     }
-    
+
     public Sidebar() {
         // Set up the layout for the sidebar
         initSidebarLayout();
@@ -39,7 +48,7 @@ public class Sidebar extends JPanel {
         // Set sidebar properties like background color and dimensions
         customizeSidebarAppearance();
 
-        // Initialize the sidebar menu
+        // Initialize the sidebar menu with current dashboard choice
         initSidebarMenu();
     }
 
@@ -52,18 +61,27 @@ public class Sidebar extends JPanel {
 
     // Method to customize sidebar appearance
     private void customizeSidebarAppearance() {
-        this.setBackground(new Color(64, 133, 219));  // Set sidebar background to blue
+        this.setBackground(new Color(64, 133, 219)); // Set sidebar background to blue
     }
 
     // Method to initialize sidebar menu items and routing
     private void initSidebarMenu() {
         String[][] menuItems = {
+<<<<<<< HEAD
             { "Dashboard", dashboardChoice },
             { "Manage Ticket", "BookingView" },
             { "Sales Reports", "ReportsView" },
             { "Calendar", "CalendarView" },
             { "User Management", "UserManagementView" },
             { "Logout", "LoginView" }
+=======
+                { "Dashboard", getDashboardChoice() },
+                { "Manage Ticket", "BookingView" },
+                { "Sales Reports", "ReportsView" },
+                { "Calendar", "CalendarView" },
+                { "User Management", "UserManagementView" },
+                { "Logout", "LoginView" }
+>>>>>>> e4518272d5a4484a674c2f0eb4876caa57144c85
         };
 
         // Loop through the menu items and create labels for them
@@ -89,7 +107,8 @@ public class Sidebar extends JPanel {
         }
     }
 
-    // Method to create a label for a menu item with proper formatting and mouse listener
+    // Method to create a label for a menu item with proper formatting and mouse
+    // listener
     private JLabel createMenuLabel(String menuText, String routeName) {
         JLabel menuLabel = new JLabel(menuText);
         menuLabel.setForeground(Color.WHITE);
@@ -101,12 +120,12 @@ public class Sidebar extends JPanel {
         menuLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Router.showPage(routeName);  // Navigate to the corresponding route
+                Router.showPage(routeName); // Navigate to the corresponding route
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                menuLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));  // Change cursor on hover
+                menuLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)); // Change cursor on hover
             }
         });
 

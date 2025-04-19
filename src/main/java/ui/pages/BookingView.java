@@ -2,8 +2,13 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.Router;
-import services.booking.BookingServiceSer;
+import ui.Refreshable;
+
 import javax.swing.*;
+
+import server.EventService;
+import services.BookingServiceSer;
+
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
@@ -11,52 +16,33 @@ import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * TODO: Booking System Architecture
- * 1. Create the following structure:
- * services/
- * │ ├── booking/
- * │ │ ├── BookingService.java # Core booking functionality
- * │ │ ├── TicketManager.java # Ticket management
- * │ │ ├── PricingService.java # Dynamic pricing
- * │ │ └── InventoryManager.java # Seat/ticket inventory
- * │ └── payment/
- * │ ├── PaymentProcessor.java # Payment processing
- * │ └── RefundManager.java # Refund handling
- * └── payment/
- * ├── PaymentProcessor.java # Payment processing
- * └── RefundManager.java # Refund handling
- *
- * 2. Database Integration:
- * - Bookings table
- * - Tickets table
- * - Pricing table
- * - Payment transactions table
- *
- * 3. External Integration:
- * - Payment gateway
- * - Email notifications
- * - SMS confirmations
- */
-public class BookingView extends JPanel {
+public class BookingView extends JPanel implements Refreshable {
     private JPanel mainPanel, contentPanel;
     private JComboBox<String> eventCombo;
     private JComboBox<String> priceCombo;
-    private JTextField nameField;
+    private JTextField firstNameField;
+    private JTextField lastNameField;
+    private JTextField emailField;
+    private JTextField contactNumberField;
     private BookingServiceSer bookingServiceSer;
 
     // Maps to store event ID references with event names
     private java.util.Map<String, Integer> eventIdMap = new java.util.HashMap<>();
     private int selectedEventId = -1;
 
-    // Temporary hardcoded customer ID (this would come from login in real app)
-    private final int CUSTOMER_ID = 1;
+    // Customer information
+    private int customerId = -1;
+    private String customerName = "";
 
     public BookingView() {
+        setName("BookingView"); // Set the name for the Router to identify this panel
         setLayout(new BorderLayout());
 
         // Initialize service
         bookingServiceSer = new BookingServiceSer();
+
+        // Check if customer information was passed from CustomerPage
+        loadCustomerFromRouter();
 
         // Add the Sidebar component
         add(new Sidebar(), BorderLayout.WEST);
@@ -66,6 +52,97 @@ public class BookingView extends JPanel {
 
         // Add main panel to this panel
         add(mainPanel, BorderLayout.CENTER);
+
+        // If we have customer information from the router, prefill the fields
+        populateCustomerFields();
+    }
+
+    @Override
+    public void refresh() {
+        // Reload events from database
+        eventIdMap.clear();
+        eventCombo.removeAllItems();
+        loadEventsFromDatabase();
+
+        // Update price options based on selected event
+        updatePriceOptions();
+
+        // Refresh the customer data if needed
+        loadCustomerFromRouter();
+        populateCustomerFields();
+
+        // Refresh sidebar
+        Component sidebarComponent = null;
+        for (Component component : getComponents()) {
+            if (component instanceof Sidebar) {
+                sidebarComponent = component;
+                break;
+            }
+        }
+
+        if (sidebarComponent != null) {
+            // Remove old sidebar
+            remove(sidebarComponent);
+
+            // Add new sidebar
+            Sidebar sidebar = new Sidebar();
+            add(sidebar, BorderLayout.WEST);
+        }
+
+        // Force UI update
+        revalidate();
+        repaint();
+    }
+
+    private void loadCustomerFromRouter() {
+        // Check if customer information was passed from CustomerPage
+        Object routerCustomerId = Router.getData("customerId");
+        Object routerCustomerName = Router.getData("customerName");
+
+        if (routerCustomerId != null && routerCustomerName != null) {
+            customerId = (int) routerCustomerId;
+            customerName = (String) routerCustomerName;
+
+            // Clear the router data after retrieving it
+            Router.clearData("customerId");
+            Router.clearData("customerName");
+        }
+    }
+
+    private void populateCustomerFields() {
+        if (!customerName.isEmpty()) {
+            String[] nameParts = customerName.split(" ", 2);
+            if (nameParts.length > 0) {
+                firstNameField.setText(nameParts[0]);
+                if (nameParts.length > 1) {
+                    lastNameField.setText(nameParts[1]);
+                }
+            }
+
+            // Retrieve customer details using the ID
+            try {
+                EventService.CustomInformationService customInfoService = new EventService.CustomInformationService();
+                Map<String, Object> customerInfo = customInfoService.getCustomerDetails(customerId);
+                if (customerInfo != null) {
+                    // Populate contact and email fields
+                    contactNumberField.setText((String) customerInfo.get("contact_number"));
+                    emailField.setText((String) customerInfo.get("email"));
+                }
+            } catch (Exception e) {
+                System.out.println("Error retrieving customer details: " + e.getMessage());
+            }
+
+            // Disable the fields since we already have customer information
+            firstNameField.setEditable(false);
+            lastNameField.setEditable(false);
+            contactNumberField.setEditable(false);
+            emailField.setEditable(false);
+
+            firstNameField.setBackground(new Color(240, 240, 240));
+            lastNameField.setBackground(new Color(240, 240, 240));
+            contactNumberField.setBackground(new Color(240, 240, 240));
+            emailField.setBackground(new Color(240, 240, 240));
+        }
     }
 
     // Custom rounded panel class (for the form panel only)
@@ -129,7 +206,7 @@ public class BookingView extends JPanel {
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 30, 40));
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        formPanel.setMaximumSize(new Dimension(800, 400));
+        formPanel.setMaximumSize(new Dimension(800, 600)); // Increased height for additional fields
 
         // Book a Ticket title
         JLabel bookTicketLabel = new JLabel("Book a Ticket");
@@ -140,19 +217,77 @@ public class BookingView extends JPanel {
         formPanel.add(bookTicketLabel);
         formPanel.add(Box.createVerticalStrut(20));
 
-        // Name label and text field
-        JLabel nameLabel = new JLabel("Customer Name:");
-        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        nameLabel.setForeground(new Color(90, 90, 90));
-        formPanel.add(nameLabel);
+        // Customer Information Section
+        JLabel customerSectionLabel = new JLabel("Customer Information");
+        customerSectionLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        customerSectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        customerSectionLabel.setForeground(new Color(64, 133, 219));
+        formPanel.add(customerSectionLabel);
+        formPanel.add(Box.createVerticalStrut(10));
+
+        // First Name
+        JLabel firstNameLabel = new JLabel("First Name:");
+        firstNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        firstNameLabel.setForeground(new Color(90, 90, 90));
+        formPanel.add(firstNameLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        nameField = new JTextField();
-        nameField.setMaximumSize(new Dimension(800, 35));
-        nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        nameField.setForeground(new Color(50, 50, 50));
-        formPanel.add(nameField);
-        formPanel.add(Box.createVerticalStrut(15));
+        firstNameField = new JTextField();
+        firstNameField.setMaximumSize(new Dimension(800, 35));
+        firstNameField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        firstNameField.setForeground(new Color(50, 50, 50));
+        formPanel.add(firstNameField);
+        formPanel.add(Box.createVerticalStrut(10));
+
+        // Last Name
+        JLabel lastNameLabel = new JLabel("Last Name:");
+        lastNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lastNameLabel.setForeground(new Color(90, 90, 90));
+        formPanel.add(lastNameLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+
+        lastNameField = new JTextField();
+        lastNameField.setMaximumSize(new Dimension(800, 35));
+        lastNameField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lastNameField.setForeground(new Color(50, 50, 50));
+        formPanel.add(lastNameField);
+        formPanel.add(Box.createVerticalStrut(10));
+
+        // Contact Number
+        JLabel contactNumberLabel = new JLabel("Contact Number:");
+        contactNumberLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contactNumberLabel.setForeground(new Color(90, 90, 90));
+        formPanel.add(contactNumberLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+
+        contactNumberField = new JTextField();
+        contactNumberField.setMaximumSize(new Dimension(800, 35));
+        contactNumberField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contactNumberField.setForeground(new Color(50, 50, 50));
+        formPanel.add(contactNumberField);
+        formPanel.add(Box.createVerticalStrut(10));
+
+        // Email
+        JLabel emailLabel = new JLabel("Email:");
+        emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        emailLabel.setForeground(new Color(90, 90, 90));
+        formPanel.add(emailLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+
+        emailField = new JTextField();
+        emailField.setMaximumSize(new Dimension(800, 35));
+        emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        emailField.setForeground(new Color(50, 50, 50));
+        formPanel.add(emailField);
+        formPanel.add(Box.createVerticalStrut(20));
+
+        // Event Information Section
+        JLabel eventSectionLabel = new JLabel("Event Information");
+        eventSectionLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        eventSectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        eventSectionLabel.setForeground(new Color(64, 133, 219));
+        formPanel.add(eventSectionLabel);
+        formPanel.add(Box.createVerticalStrut(10));
 
         // Event label and combo
         JLabel eventLabel = new JLabel("Select Event:");
@@ -171,7 +306,7 @@ public class BookingView extends JPanel {
         eventCombo.setMaximumSize(new Dimension(800, 35));
         eventCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(eventCombo);
-        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(Box.createVerticalStrut(10));
 
         // Add event selection listener
         eventCombo.addActionListener(e -> {
@@ -194,6 +329,9 @@ public class BookingView extends JPanel {
             } else {
                 selectedEventId = -1;
             }
+
+            // Update price options based on selected event
+            updatePriceOptions();
         });
 
         // Price label and combo
@@ -207,7 +345,7 @@ public class BookingView extends JPanel {
         priceCombo.setMaximumSize(new Dimension(800, 35));
         priceCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
         formPanel.add(priceCombo);
-        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(Box.createVerticalStrut(20));
 
         // Button panel for centering the Book Now button
         JPanel buttonPanel = new RoundedPanel(new FlowLayout(FlowLayout.CENTER), 15);
@@ -249,9 +387,30 @@ public class BookingView extends JPanel {
 
         // Add Book Now button action
         bookNowButton.addActionListener(e -> {
-            // Validate form inputs
-            if (nameField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter a customer name", "Error", JOptionPane.ERROR_MESSAGE);
+            // Validate customer information fields
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+            String contactNumber = contactNumberField.getText().trim();
+            String email = emailField.getText().trim();
+
+            if (firstName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a first name", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (lastName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a last name", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (contactNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a contact number", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (email.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter an email", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -260,75 +419,56 @@ public class BookingView extends JPanel {
                 return;
             }
 
-            if (priceCombo.getSelectedIndex() == 0) {
+            if (priceCombo.getSelectedIndex() == 0 || priceCombo.getSelectedItem().equals("Select Price Category")) {
                 JOptionPane.showMessageDialog(this, "Please select a price category", "Error",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             // Get selected values
-            String customerName = nameField.getText().trim();
+            String customerFullName = firstName + " " + lastName;
             String selectedEvent = (String) eventCombo.getSelectedItem();
             String selectedPriceCategory = (String) priceCombo.getSelectedItem();
 
             // Determine ticket type based on price category
             String ticketType = bookingServiceSer.getTicketTypeFromPriceCategory(selectedPriceCategory);
 
-            // Get event details to verify constraints
-            Map<String, Object> eventDetails = bookingServiceSer.getEventDetails(selectedEventId);
-            if (eventDetails != null) {
-                // Check if ticket type matches the event category
-                String eventCategory = (String) eventDetails.get("category");
-
-                // Ensure ticket type is compatible with event category (enforce schema
-                // constraint)
-                // Schema constraint: ticket_type IN ('Regular', 'VIP')
-                if ((eventCategory.equals("VIP") && !ticketType.equals("VIP")) ||
-                        (eventCategory.equals("Regular") && !ticketType.equals("Regular"))) {
-                    JOptionPane.showMessageDialog(this,
-                            "Ticket type must match event category: " + eventCategory + "\n" +
-                                    "VIP events require VIP tickets.\n" +
-                                    "Regular events require Regular tickets.",
-                            "Validation Error",
-                            JOptionPane.ERROR_MESSAGE);
-
-                    // Suggest the correct price category
-                    if (eventCategory.equals("VIP")) {
-                        // Find the VIP price option index
-                        for (int i = 0; i < priceCombo.getItemCount(); i++) {
-                            if (priceCombo.getItemAt(i).toString().startsWith("VIP")) {
-                                priceCombo.setSelectedIndex(i);
-                                break;
-                            }
-                        }
-                    } else if (eventCategory.equals("Regular")) {
-                        // Find the first Regular price option index
-                        for (int i = 0; i < priceCombo.getItemCount(); i++) {
-                            if (priceCombo.getItemAt(i).toString().startsWith("Regular")) {
-                                priceCombo.setSelectedIndex(i);
-                                break;
-                            }
-                        }
-                    }
-                    return;
-                }
-            }
-
             try {
+                // Create an instance of CustomInformationService
+                EventService.CustomInformationService customInfoService = new EventService.CustomInformationService();
+                int customerIdToUse;
+
+                // If we don't have a customer ID yet, add the customer to the database
+                if (customerId <= 0) {
+                    customerIdToUse = customInfoService.addCustomer(firstName, lastName, contactNumber, email);
+                } else {
+                    customerIdToUse = customerId;
+                }
+
                 // Call the booking service to create the booking
-                boolean success = bookingServiceSer.createBooking(customerName, selectedEvent, selectedPriceCategory,
-                        CUSTOMER_ID, selectedEventId, ticketType);
+                boolean success = bookingServiceSer.createBooking(
+                        customerFullName,
+                        selectedEvent,
+                        selectedPriceCategory,
+                        customerIdToUse,
+                        selectedEventId,
+                        ticketType);
 
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Booking created successfully!", "Success",
+                    JOptionPane.showMessageDialog(this,
+                            "Booking created successfully for " + customerFullName + "!",
+                            "Success",
                             JOptionPane.INFORMATION_MESSAGE);
                     // Reset form
-                    nameField.setText("");
+                    firstNameField.setText("");
+                    lastNameField.setText("");
+                    contactNumberField.setText("");
+                    emailField.setText("");
                     eventCombo.setSelectedIndex(0);
                     priceCombo.setSelectedIndex(0);
 
-                    // Navigate to customer page
-                    Router.showPage("CustomerPage");
+                    // Navigate back to event view
+                    Router.showPage("EventView");
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to create booking: " +
                             bookingServiceSer.getLastErrorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -394,34 +534,21 @@ public class BookingView extends JPanel {
         }
     }
 
-    // TODO: Additional Features
-    // 1. Booking Process:
-    // - Multi-step booking wizard
-    // - Seat selection
-    // - Payment processing
-    // - Confirmation emails
-    //
-    // 2. Inventory Management:
-    // - Real-time availability
-    // - Hold management
-    // - Waitlist functionality
-    // - Capacity tracking
-    //
-    // 3. Payment Features:
-    // - Multiple payment methods
-    // - Partial payments
-    // - Refund processing
-    // - Invoice generation
-    //
-    // 4. Customer Management:
-    // - Customer profiles
-    // - Booking history
-    // - Preferences
-    // - VIP handling
-    //
-    // 5. Reporting:
-    // - Sales reports
-    // - Booking analytics
-    // - Revenue tracking
-    // - Performance metrics
+    // Method to update price options based on selected event
+    private void updatePriceOptions() {
+        if (priceCombo != null) {
+            priceCombo.removeAllItems();
+
+            // Default options for all events
+            if (selectedEventId != -1) {
+                // Use the same format as in BookingServiceSer.getPricingOptions()
+                priceCombo.addItem("Select Price Category");
+                priceCombo.addItem("VIP - $100");
+                priceCombo.addItem("Regular - Premium - $75");
+                priceCombo.addItem("Regular - Standard - $50");
+            } else {
+                priceCombo.addItem("Select Event First");
+            }
+        }
+    }
 }
