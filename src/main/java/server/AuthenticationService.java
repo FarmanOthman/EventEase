@@ -1,4 +1,5 @@
-package server; 
+package server;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,18 +12,51 @@ import database.Database;
 
 public class AuthenticationService {
 
+    // Enum to represent user roles
+    public enum UserRole {
+        ADMIN,
+        MANAGER,
+        UNKNOWN
+    }
+
+    // Stores the currently logged in username
+    private static String currentUsername = null;
+    // Stores the currently logged in user's role
+    private static UserRole currentUserRole = UserRole.UNKNOWN;
+
     public static boolean authenticate(String username, String password) {
-        String query = "SELECT password FROM ADMIN WHERE username = ?";
+        // First check in ADMIN table
+        if (authenticateUser(username, password, "ADMIN")) {
+            currentUsername = username;
+            currentUserRole = UserRole.ADMIN;
+            return true;
+        }
+
+        // Then check in MANAGER table if not found in ADMIN
+        if (authenticateUser(username, password, "MANAGER")) {
+            currentUsername = username;
+            currentUserRole = UserRole.MANAGER;
+            return true;
+        }
+
+        // Authentication failed
+        currentUsername = null;
+        currentUserRole = UserRole.UNKNOWN;
+        return false;
+    }
+
+    private static boolean authenticateUser(String username, String password, String tableName) {
+        String query = "SELECT password FROM " + tableName + " WHERE username = ?";
 
         try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
                 String hashedPassword = resultSet.getString("password"); // Get hashed password from DB
-                
+
                 // Ensure valid bcrypt hash before checking
                 if (hashedPassword != null && hashedPassword.startsWith("$2a$")) {
                     return BCrypt.checkpw(password, hashedPassword);
@@ -35,14 +69,30 @@ public class AuthenticationService {
         return false;
     }
 
+    // Get current user's role
+    public static UserRole getCurrentUserRole() {
+        return currentUserRole;
+    }
+
+    // Get current username
+    public static String getCurrentUsername() {
+        return currentUsername;
+    }
+
+    // Logout method to reset current user
+    public static void logout() {
+        currentUsername = null;
+        currentUserRole = UserRole.UNKNOWN;
+    }
+
     public static boolean register(String username, String password, int roleId, String email) {
         String query = "INSERT INTO ADMIN (username, password, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
 
         // Hash the password using BCrypt
         String hashedPassword = hashPassword(password);
-        
+
         try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, username);
             statement.setString(2, hashedPassword); // Store the hashed password
