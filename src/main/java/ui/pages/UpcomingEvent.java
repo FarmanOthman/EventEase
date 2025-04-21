@@ -1,13 +1,17 @@
 package ui.pages;
 
 import ui.components.Sidebar;
-import ui.Router;
+import ui.dialogs.EventDetailsDialog;
+import ui.dialogs.EventEditDialog;
+
 import javax.swing.*;
 import javax.swing.table.*;
 
 import services.EventServiceSer;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
 import java.text.SimpleDateFormat;
@@ -44,17 +48,36 @@ public class UpcomingEvent extends JPanel {
   }
 
   private void createMainPanel() {
-    mainPanel = new JPanel(new BorderLayout());
+    mainPanel = new JPanel(new BorderLayout(0, 20));
     mainPanel.setBackground(Color.WHITE);
 
     // Create header panel
-    JPanel headerPanel = new JPanel();
+    JPanel headerPanel = new JPanel(new BorderLayout());
     headerPanel.setBackground(new Color(64, 133, 219));
-    headerPanel.setPreferredSize(new Dimension(600, 50));
-    JLabel headerLabel = new JLabel("Upcoming Events");
+    headerPanel.setPreferredSize(new Dimension(600, 60));
+
+    JLabel headerLabel = new JLabel("  Upcoming Events");
     headerLabel.setForeground(Color.WHITE);
-    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-    headerPanel.add(headerLabel);
+    headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    headerLabel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
+    headerPanel.add(headerLabel, BorderLayout.WEST);
+
+    // Add a refresh button
+    JButton refreshButton = new JButton("Refresh");
+    refreshButton.setBackground(new Color(245, 245, 245));
+    refreshButton.setForeground(new Color(64, 133, 219));
+    refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
+    refreshButton.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+        BorderFactory.createEmptyBorder(5, 15, 5, 15)));
+    refreshButton.setFocusPainted(false);
+    refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    refreshButton.addActionListener(e -> loadAllEvents());
+
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    buttonPanel.setBackground(new Color(64, 133, 219));
+    buttonPanel.add(refreshButton);
+    headerPanel.add(buttonPanel, BorderLayout.EAST);
 
     // Create content panel
     contentPanel = new JPanel();
@@ -70,7 +93,12 @@ public class UpcomingEvent extends JPanel {
 
     // Add panels to main panel
     mainPanel.add(headerPanel, BorderLayout.NORTH);
-    mainPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
+
+    // Wrap contentPanel in a JScrollPane
+    JScrollPane scrollPane = new JScrollPane(contentPanel);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+    mainPanel.add(scrollPane, BorderLayout.CENTER);
   }
 
   private void createFilterSection() {
@@ -81,43 +109,55 @@ public class UpcomingEvent extends JPanel {
         BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
             "Filter Events"),
-        BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-    filterPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 5));
-    filterPanel.setMaximumSize(new Dimension(800, 80));
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+    filterPanel.setLayout(new GridLayout(1, 3, 15, 0));
+    filterPanel.setMaximumSize(new Dimension(800, 100));
     filterPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     // Date Filter
-    JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JPanel datePanel = new JPanel(new BorderLayout(5, 5));
     datePanel.setBackground(Color.WHITE);
     JLabel dateLabel = new JLabel("Date:");
+    dateLabel.setFont(new Font("Arial", Font.BOLD, 12));
     dateFilter = new JComboBox<>(new String[] { "[Select Date]" });
-    datePanel.add(new JLabel("◆"));
-    datePanel.add(dateLabel);
-    datePanel.add(dateFilter);
-
-    // Location Filter
-    JPanel locationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    locationPanel.setBackground(Color.WHITE);
-    JLabel locationLabel = new JLabel("Location:");
-    locationFilter = new JComboBox<>(new String[] { "[Select Location]" });
-    locationPanel.add(new JLabel("◆"));
-    locationPanel.add(locationLabel);
-    locationPanel.add(locationFilter);
+    dateFilter.setBackground(Color.WHITE);
+    dateFilter.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(200, 200, 200)),
+        BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+    datePanel.add(dateLabel, BorderLayout.NORTH);
+    datePanel.add(dateFilter, BorderLayout.CENTER);
 
     // Category Filter
-    JPanel categoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JPanel categoryPanel = new JPanel(new BorderLayout(5, 5));
     categoryPanel.setBackground(Color.WHITE);
     JLabel categoryLabel = new JLabel("Category:");
+    categoryLabel.setFont(new Font("Arial", Font.BOLD, 12));
     categoryFilter = new JComboBox<>(new String[] { "[Select Category]" });
+    categoryFilter.setBackground(Color.WHITE);
+    categoryFilter.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(200, 200, 200)),
+        BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
     // Add category options from database
     for (String category : eventServiceSer.getEventCategories()) {
       categoryFilter.addItem(category);
     }
 
-    categoryPanel.add(new JLabel("◆"));
-    categoryPanel.add(categoryLabel);
-    categoryPanel.add(categoryFilter);
+    categoryPanel.add(categoryLabel, BorderLayout.NORTH);
+    categoryPanel.add(categoryFilter, BorderLayout.CENTER);
+
+    // Location Filter - if implemented later
+    JPanel locationPanel = new JPanel(new BorderLayout(5, 5));
+    locationPanel.setBackground(Color.WHITE);
+    JLabel locationLabel = new JLabel("Location:");
+    locationLabel.setFont(new Font("Arial", Font.BOLD, 12));
+    locationFilter = new JComboBox<>(new String[] { "[Select Location]" });
+    locationFilter.setBackground(Color.WHITE);
+    locationFilter.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(200, 200, 200)),
+        BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+    locationPanel.add(locationLabel, BorderLayout.NORTH);
+    locationPanel.add(locationFilter, BorderLayout.CENTER);
 
     // Add filter action to category filter
     categoryFilter.addActionListener(e -> {
@@ -129,9 +169,30 @@ public class UpcomingEvent extends JPanel {
       }
     });
 
-    filterPanel.add(datePanel);
-    filterPanel.add(locationPanel);
+    // Add a reset button to clear all filters
+    JPanel resetPanel = new JPanel(new BorderLayout(5, 5));
+    resetPanel.setBackground(Color.WHITE);
+    JButton resetButton = new JButton("Reset Filters");
+    resetButton.setBackground(new Color(64, 133, 219));
+    resetButton.setForeground(Color.WHITE);
+    resetButton.setFont(new Font("Arial", Font.BOLD, 12));
+    resetButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    resetButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    resetButton.addActionListener(e -> {
+      categoryFilter.setSelectedIndex(0);
+      dateFilter.setSelectedIndex(0);
+      locationFilter.setSelectedIndex(0);
+      loadAllEvents();
+    });
+
+    JLabel blankLabel = new JLabel(" ");
+    resetPanel.add(blankLabel, BorderLayout.NORTH);
+    resetPanel.add(resetButton, BorderLayout.CENTER);
+
+    // Add all panels to the filter panel
     filterPanel.add(categoryPanel);
+    filterPanel.add(datePanel);
+    filterPanel.add(resetPanel);
 
     contentPanel.add(filterPanel);
     contentPanel.add(Box.createVerticalStrut(20));
@@ -150,34 +211,62 @@ public class UpcomingEvent extends JPanel {
     eventsListPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     // Create empty table model with column headers
-    String[] columnNames = { "Event Name", "Date", "Category", "Teams", "Action" };
-    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return column == 4; // Only allow editing of the Action column
-      }
-
-      @Override
-      public Class<?> getColumnClass(int column) {
-        return column == 4 ? JButton.class : String.class;
-      }
-    };
+    String[] columnNames = { "Event Name", "Date", "Category", "Teams", "Actions" };
+    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
     // Create table
     eventsTable = new JTable(tableModel);
-    eventsTable.setRowHeight(40);
+    eventsTable.setRowHeight(45);
     eventsTable.setShowGrid(true);
     eventsTable.setGridColor(new Color(230, 230, 230));
     eventsTable.getTableHeader().setBackground(new Color(64, 133, 219));
     eventsTable.getTableHeader().setForeground(Color.WHITE);
     eventsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+    eventsTable.setSelectionBackground(new Color(240, 245, 255));
+    eventsTable.setSelectionForeground(Color.BLACK);
+    eventsTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c = super.getTableCellRendererComponent(
+            table, value, isSelected, hasFocus, row, column);
 
-    // Set custom renderer for the Action column
-    eventsTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
-    eventsTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor());
+        // Skip "Actions" column
+        if (column != 4) {
+          if (!isSelected) {
+            c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250));
+          }
+          // Add padding
+          if (c instanceof JLabel) {
+            ((JLabel) c).setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+          }
+        }
+        return c;
+      }
+    });
+
+    // Adjust column widths
+    eventsTable.getColumnModel().getColumn(0).setPreferredWidth(200); // Event Name
+    eventsTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Date
+    eventsTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Category
+    eventsTable.getColumnModel().getColumn(3).setPreferredWidth(150); // Teams
+    eventsTable.getColumnModel().getColumn(4).setPreferredWidth(250); // Actions
 
     // Load events from the database
     loadAllEvents();
+
+    // Add mouse listener for button clicks
+    eventsTable.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        int row = eventsTable.rowAtPoint(e.getPoint());
+        int col = eventsTable.columnAtPoint(e.getPoint());
+
+        if (row >= 0 && col == 4) { // Actions column
+          handleActionButton(row, e.getX() - eventsTable.getCellRect(row, col, false).x);
+        }
+      }
+    });
 
     eventsListPanel.add(new JScrollPane(eventsTable), BorderLayout.CENTER);
     contentPanel.add(eventsListPanel);
@@ -222,21 +311,24 @@ public class UpcomingEvent extends JPanel {
         String teamB = (String) event.get("team_b");
         String teams = teamA + " vs " + teamB;
 
-        // Create the Details button with event ID as client property
-        JButton detailsButton = createDetailsButton();
-        detailsButton.putClientProperty("event_id", event.get("event_id"));
-        detailsButton.putClientProperty("event_type", eventType);
+        // Get the event ID
+        Integer eventId = (Integer) event.get("event_id");
 
-        // Add the tooltip to show the event type
-        detailsButton.setToolTipText(eventType + " - Click for details and booking");
+        // Store object data in a row
+        Object[] rowData = new Object[5];
+        rowData[0] = eventName + " (" + eventType + ")";
+        rowData[1] = eventDate;
+        rowData[2] = category;
+        rowData[3] = teams;
 
-        model.addRow(new Object[] {
-            eventName + " (" + eventType + ")",
-            eventDate,
-            category,
-            teams,
-            detailsButton
-        });
+        // Store event data in the Actions cell
+        ActionData actionData = new ActionData();
+        actionData.eventId = eventId;
+        actionData.eventName = eventName;
+        actionData.eventType = eventType;
+        rowData[4] = actionData;
+
+        model.addRow(rowData);
       }
 
       // If no events were found, add a message
@@ -249,9 +341,31 @@ public class UpcomingEvent extends JPanel {
       // Add some default data if database load fails
       DefaultTableModel model = (DefaultTableModel) eventsTable.getModel();
       model.setRowCount(0);
-      model.addRow(new Object[] { "Event 1", "May 21, 2025", "VIP", "Team A vs Team B", createDetailsButton() });
-      model.addRow(new Object[] { "Event 2", "June 14, 2025", "Regular", "Team C vs Team D", createDetailsButton() });
+
+      // Create dummy action data
+      ActionData actionData = new ActionData();
+      actionData.eventId = 1;
+      actionData.eventName = "Event 1";
+      actionData.eventType = "Match";
+
+      model.addRow(new Object[] {
+          "Event 1", "May 21, 2025", "VIP", "Team A vs Team B",
+          actionData
+      });
+
+      actionData = new ActionData();
+      actionData.eventId = 2;
+      actionData.eventName = "Event 2";
+      actionData.eventType = "Event";
+
+      model.addRow(new Object[] {
+          "Event 2", "June 14, 2025", "Regular", "Team C vs Team D",
+          actionData
+      });
     }
+
+    // Add custom renderer for the actions column
+    eventsTable.getColumnModel().getColumn(4).setCellRenderer(new ActionRenderer());
   }
 
   /**
@@ -293,21 +407,24 @@ public class UpcomingEvent extends JPanel {
         String teamB = (String) event.get("team_b");
         String teams = teamA + " vs " + teamB;
 
-        // Create the Details button with event ID stored as a property
-        JButton detailsButton = createDetailsButton();
-        detailsButton.putClientProperty("event_id", event.get("event_id"));
-        detailsButton.putClientProperty("event_type", eventType);
+        // Get the event ID
+        Integer eventId = (Integer) event.get("event_id");
 
-        // Add the tooltip to show the event type
-        detailsButton.setToolTipText(eventType + " - Click for details and booking");
+        // Store object data in a row
+        Object[] rowData = new Object[5];
+        rowData[0] = eventName + " (" + eventType + ")";
+        rowData[1] = eventDate;
+        rowData[2] = eventCategory;
+        rowData[3] = teams;
 
-        model.addRow(new Object[] {
-            eventName + " (" + eventType + ")",
-            eventDate,
-            eventCategory,
-            teams,
-            detailsButton
-        });
+        // Store event data in the Actions cell
+        ActionData actionData = new ActionData();
+        actionData.eventId = eventId;
+        actionData.eventName = eventName;
+        actionData.eventType = eventType;
+        rowData[4] = actionData;
+
+        model.addRow(rowData);
       }
 
       // If no events were found, add a message
@@ -317,84 +434,205 @@ public class UpcomingEvent extends JPanel {
     } catch (Exception e) {
       System.out.println("Error loading events by category: " + e.getMessage());
     }
+
+    // Add custom renderer for the actions column
+    eventsTable.getColumnModel().getColumn(4).setCellRenderer(new ActionRenderer());
   }
 
-  private JButton createDetailsButton() {
-    JButton button = new JButton("Details") {
-      @Override
-      protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(39, 174, 96));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 12));
-        FontMetrics fm = g2.getFontMetrics();
-        int x = (getWidth() - fm.stringWidth("Details")) / 2;
-        int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
-        g2.drawString("Details", x, y);
-        g2.dispose();
-      }
-    };
-    button.setPreferredSize(new Dimension(80, 30));
-    button.setBorderPainted(false);
-    button.setContentAreaFilled(false);
-    button.setFocusPainted(false);
-    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    return button;
+  // Class to store action data for events
+  private class ActionData {
+    public Integer eventId;
+    public String eventName;
+    public String eventType;
   }
 
-  // Custom renderer for the Details button
-  private class ButtonRenderer extends JButton implements TableCellRenderer {
-    public ButtonRenderer() {
+  // Custom renderer for the actions column
+  private class ActionRenderer extends JPanel implements TableCellRenderer {
+    private JButton detailsBtn;
+    private JButton editBtn;
+    private JButton deleteBtn;
+
+    public ActionRenderer() {
+      setLayout(new FlowLayout(FlowLayout.CENTER, 8, 5));
+      setBorder(BorderFactory.createEmptyBorder());
       setOpaque(true);
+
+      // Create buttons
+      detailsBtn = createButton("Details", new Color(0, 123, 255));
+      editBtn = createButton("Edit", new Color(255, 153, 0));
+      deleteBtn = createButton("Delete", new Color(220, 53, 69));
+
+      add(detailsBtn);
+      add(editBtn);
+      add(deleteBtn);
+    }
+
+    private JButton createButton(String text, Color color) {
+      JButton btn = new JButton(text);
+      btn.setBackground(color);
+      btn.setForeground(Color.WHITE);
+      btn.setFont(new Font("Arial", Font.BOLD, 11));
+      btn.setFocusPainted(false);
+      btn.setBorderPainted(false);
+      btn.setOpaque(true);
+      btn.setPreferredSize(new Dimension(68, 25));
+      // Add rounded corners effect
+      btn.setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createLineBorder(color, 1),
+          BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+      return btn;
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
         boolean isSelected, boolean hasFocus, int row, int column) {
-      return (JButton) value;
+      // Adjust background color based on selection
+      Color bg;
+      if (isSelected) {
+        bg = new Color(240, 245, 255);
+      } else {
+        bg = row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250);
+      }
+      setBackground(bg);
+
+      return this;
     }
   }
 
-  // Custom editor for the Details button
-  private class ButtonEditor extends DefaultCellEditor {
-    private JButton button;
+  /**
+   * Handle clicks on action buttons based on their position
+   */
+  private void handleActionButton(int row, int xOffset) {
+    // Get action data from the table
+    DefaultTableModel model = (DefaultTableModel) eventsTable.getModel();
+    ActionData actionData = (ActionData) model.getValueAt(row, 4);
 
-    public ButtonEditor() {
-      super(new JTextField());
-      button = new JButton();
-      button.setOpaque(true);
+    if (actionData == null)
+      return;
+
+    // Determine which button was clicked based on x position
+    // Each button is approximately 68px wide with 8px spacing in the renderer
+    if (xOffset < 76) {
+      // Details button
+      showEventDetails(actionData);
+    } else if (xOffset < 152) {
+      // Edit button
+      editEvent(actionData);
+    } else {
+      // Delete button
+      deleteEvent(actionData);
     }
+  }
 
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value,
-        boolean isSelected, int row, int column) {
-      JButton btn = (JButton) value;
+  /**
+   * Show event details dialog
+   */
+  private void showEventDetails(ActionData actionData) {
+    if (actionData.eventId != null) {
+      try {
+        // Get event details from the service
+        Map<String, Object> eventDetails = eventServiceSer.getEventDetails(actionData.eventId);
 
-      // Navigate to booking page when Details button is clicked
-      btn.addActionListener(e -> {
-        // Check if this is a Match event and if so, validate it can have tickets
-        String eventType = (String) btn.getClientProperty("event_type");
-        Integer eventId = (Integer) btn.getClientProperty("event_id");
-
-        if (eventId != null) {
-          // Log the event type and ID being viewed
-          System.out.println("Viewing details for " + eventType + " event (ID: " + eventId + ")");
-
-          // Store the selected event ID in a static variable or pass it to the
-          // BookingView
-          // For now, just navigate to the BookingView
-          Router.showPage("BookingView");
+        if (eventDetails != null) {
+          // Create and show the details dialog
+          EventDetailsDialog dialog = new EventDetailsDialog(
+              SwingUtilities.getWindowAncestor(UpcomingEvent.this),
+              eventDetails);
+          dialog.setVisible(true);
+        } else {
+          JOptionPane.showMessageDialog(UpcomingEvent.this,
+              "Could not find event details.",
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
-      });
-
-      return btn;
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(UpcomingEvent.this,
+            "Error retrieving event details: " + ex.getMessage() + " (Type: " + actionData.eventType + ")",
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
     }
+  }
 
-    @Override
-    public Object getCellEditorValue() {
-      return button;
+  /**
+   * Edit event dialog
+   */
+  private void editEvent(ActionData actionData) {
+    if (actionData.eventId != null) {
+      try {
+        // Get event details from the service
+        Map<String, Object> eventDetails = eventServiceSer.getEventDetails(actionData.eventId);
+
+        if (eventDetails != null) {
+          // Create and show the edit dialog
+          EventEditDialog dialog = new EventEditDialog(
+              SwingUtilities.getWindowAncestor(UpcomingEvent.this),
+              eventDetails,
+              eventServiceSer);
+
+          dialog.setVisible(true);
+
+          // Refresh the table if the edit was successful
+          if (dialog.isEventUpdated()) {
+            loadAllEvents();
+          }
+        } else {
+          JOptionPane.showMessageDialog(UpcomingEvent.this,
+              "Could not find event details for editing.",
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(UpcomingEvent.this,
+            "Error editing event: " + ex.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+  /**
+   * Delete event with confirmation
+   */
+  private void deleteEvent(ActionData actionData) {
+    if (actionData.eventId != null) {
+      // Show confirmation dialog
+      int option = JOptionPane.showConfirmDialog(
+          UpcomingEvent.this,
+          "Are you sure you want to delete event: " + actionData.eventName + "?",
+          "Confirm Deletion",
+          JOptionPane.YES_NO_OPTION,
+          JOptionPane.WARNING_MESSAGE);
+
+      if (option == JOptionPane.YES_OPTION) {
+        try {
+          // Call service to delete the event
+          boolean success = eventServiceSer.deleteEvent(actionData.eventId);
+
+          if (success) {
+            JOptionPane.showMessageDialog(
+                UpcomingEvent.this,
+                "Event deleted successfully.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+
+            // Refresh the table
+            loadAllEvents();
+          } else {
+            JOptionPane.showMessageDialog(
+                UpcomingEvent.this,
+                "Failed to delete event: " + eventServiceSer.getLastErrorMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+          }
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(
+              UpcomingEvent.this,
+              "Error deleting event: " + ex.getMessage(),
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      }
     }
   }
 }
