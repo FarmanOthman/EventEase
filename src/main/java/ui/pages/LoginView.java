@@ -4,23 +4,19 @@ import javax.swing.*;
 import java.awt.*;
 import server.AuthenticationService;
 import server.AuthenticationService.UserRole;
-import services.UserService;
 import services.NotificationService;
 import ui.components.RoundedButton;
 import ui.components.RoundedTextField;
-import ui.components.Sidebar;
 import ui.components.RoundedPasswordField;
 import ui.Router;
 
 public class LoginView extends JPanel {
-  private UserService userService;
   private NotificationService notificationService;
 
   public LoginView() {
     setLayout(new BorderLayout());
 
     // Get service instances
-    userService = UserService.getInstance();
     notificationService = NotificationService.getInstance();
 
     JLabel titleLabel = new JLabel("Login", SwingConstants.CENTER);

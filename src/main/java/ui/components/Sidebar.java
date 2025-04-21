@@ -13,8 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import ui.Router;
 import ui.Refreshable;
-import server.AuthenticationService;
-import server.AuthenticationService.UserRole;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,9 +56,6 @@ public class Sidebar extends JPanel implements Refreshable {
 
     // Method to initialize sidebar menu items and routing
     private void initSidebarMenu() {
-        // Get current user role
-        UserRole userRole = AuthenticationService.getCurrentUserRole();
-
         // Create menu items list for all users
         List<String[]> menuItemsList = new ArrayList<>(Arrays.asList(
                 new String[] { "Dashboard", "Dashboard" },

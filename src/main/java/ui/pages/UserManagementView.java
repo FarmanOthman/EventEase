@@ -3,15 +3,12 @@ package ui.pages;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 import java.util.Map;
 
 import ui.Refreshable;
 import ui.components.Sidebar;
-import server.AuthenticationService;
 import server.AuthenticationService.UserRole;
 import services.UserService;
 
@@ -119,10 +116,6 @@ public class UserManagementView extends JPanel implements Refreshable {
     headerPanel.setBackground(new Color(66, 133, 244));
     headerPanel.setPreferredSize(new Dimension(600, 50));
 
-    // Get current user role for personalized header
-    UserRole userRole = AuthenticationService.getCurrentUserRole();
-    String roleText = (userRole == UserRole.ADMIN) ? "Admin" : "Manager";
-
     JLabel headerLabel = new JLabel("User Management");
     headerLabel.setForeground(Color.WHITE);
     headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
@@ -132,9 +125,6 @@ public class UserManagementView extends JPanel implements Refreshable {
   }
 
   private void createAdminList() {
-    // Get current user role
-    UserRole userRole = AuthenticationService.getCurrentUserRole();
-
     // Create the outer panel with rounded corners
     RoundedPanel listPanel = new RoundedPanel(new BorderLayout(), 15);
     listPanel.setBackground(Color.WHITE);

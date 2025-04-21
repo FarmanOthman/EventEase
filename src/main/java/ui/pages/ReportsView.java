@@ -195,8 +195,7 @@ public class ReportsView extends JPanel {
 
         // Define columns that match the database structure
         String[] columnNames = {
-                "Date", "Team A", "Team B", "Tickets Sold", "Revenue ($)",
-                "VIP Tickets", "Standard Tickets", "Premium Tickets"
+                "Date", "Category", "Tickets Sold", "Revenue ($)"
         };
 
         // Convert the data into a table-friendly format
@@ -210,9 +209,10 @@ public class ReportsView extends JPanel {
 
             @Override
             public Class<?> getColumnClass(int column) {
-                if (column == 3 || column == 4 || column == 5 || column == 6 || column == 7) {
-                    return Number.class;
-                }
+                if (column == 2)
+                    return Integer.class;
+                if (column == 3)
+                    return Double.class;
                 return Object.class;
             }
         };
@@ -236,14 +236,10 @@ public class ReportsView extends JPanel {
 
         for (int i = 0; i < salesData.size(); i++) {
             Map<String, Object> sale = salesData.get(i);
-            formattedData[i][0] = sale.get("event_date"); // Date
-            formattedData[i][1] = sale.get("team_a"); // Team A
-            formattedData[i][2] = sale.get("team_b"); // Team B
-            formattedData[i][3] = sale.get("total_ticket_sold"); // Tickets Sold
-            formattedData[i][4] = sale.get("total_revenue"); // Revenue
-            formattedData[i][5] = sale.get("vip_tickets"); // VIP Tickets
-            formattedData[i][6] = sale.get("standard_tickets"); // Standard Tickets
-            formattedData[i][7] = sale.get("premium_tickets"); // Premium Tickets
+            formattedData[i][0] = sale.get("sale_date"); // Date
+            formattedData[i][1] = sale.get("category"); // Category
+            formattedData[i][2] = sale.get("tickets_sold"); // Tickets Sold
+            formattedData[i][3] = sale.get("revenue"); // Revenue
         }
 
         return formattedData;
@@ -286,11 +282,11 @@ public class ReportsView extends JPanel {
                 }
 
                 // Right-align number columns
-                if (column == 3 || column == 4 || column == 5 || column == 6 || column == 7) {
+                if (column == 2 || column == 3) {
                     setHorizontalAlignment(JLabel.RIGHT);
 
                     // Format currency for revenue column
-                    if (column == 4 && value != null) {
+                    if (column == 3 && value != null) {
                         setText("$" + value);
                     }
                 } else {
@@ -413,8 +409,8 @@ public class ReportsView extends JPanel {
 
             for (Map<String, Object> row : allData) {
                 // Add date
-                if (row.containsKey("event_date") && row.get("event_date") != null) {
-                    Object dateObj = row.get("event_date");
+                if (row.containsKey("sale_date") && row.get("sale_date") != null) {
+                    Object dateObj = row.get("sale_date");
                     if (dateObj instanceof java.sql.Date) {
                         filterOptions.add(dateFormat.format(dateObj));
                     } else if (dateObj != null) {
@@ -422,9 +418,9 @@ public class ReportsView extends JPanel {
                     }
                 }
 
-                // Add event name (team_a vs team_b)
-                if (row.containsKey("team_a") && row.containsKey("team_b")) {
-                    filterOptions.add(row.get("team_a") + " vs " + row.get("team_b"));
+                // Add event name (category)
+                if (row.containsKey("category")) {
+                    filterOptions.add(row.get("category").toString());
                 }
             }
         } catch (Exception e) {
@@ -577,13 +573,10 @@ public class ReportsView extends JPanel {
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
         // Add fields
-        addDetailField(gridPanel, "Event Date:", rowData.get("event_date").toString());
-        addDetailField(gridPanel, "Teams:", rowData.get("team_a") + " vs " + rowData.get("team_b"));
-        addDetailField(gridPanel, "Total Tickets Sold:", rowData.get("total_ticket_sold").toString());
-        addDetailField(gridPanel, "Total Revenue:", "$" + rowData.get("total_revenue").toString());
-        addDetailField(gridPanel, "VIP Tickets:", rowData.get("vip_tickets").toString());
-        addDetailField(gridPanel, "Standard Tickets:", rowData.get("standard_tickets").toString());
-        addDetailField(gridPanel, "Premium Tickets:", rowData.get("premium_tickets").toString());
+        addDetailField(gridPanel, "Event Date:", rowData.get("sale_date").toString());
+        addDetailField(gridPanel, "Category:", rowData.get("category").toString());
+        addDetailField(gridPanel, "Tickets Sold:", rowData.get("tickets_sold").toString());
+        addDetailField(gridPanel, "Revenue:", "$" + rowData.get("revenue").toString());
 
         // Add close button
         JButton closeButton = createStyledButton("Close", primaryColor);

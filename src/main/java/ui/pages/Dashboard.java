@@ -4,18 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import ui.Router;
 import ui.components.Sidebar;
-import server.AuthenticationService;
-import server.AuthenticationService.UserRole;
-import services.UserService;
 
 public class Dashboard extends JPanel {
-  private UserService userService;
-
   public Dashboard() {
     setLayout(new BorderLayout());
-
-    // Get the user service instance
-    userService = UserService.getInstance();
 
     // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);

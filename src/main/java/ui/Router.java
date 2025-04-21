@@ -5,7 +5,6 @@ import java.util.Map;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import server.AuthenticationService;
 import server.AuthenticationService.UserRole;
 
