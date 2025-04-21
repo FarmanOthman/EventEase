@@ -13,21 +13,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import ui.Router;
 import ui.Refreshable;
+import server.AuthenticationService;
+import server.AuthenticationService.UserRole;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Sidebar extends JPanel implements Refreshable {
-    private static String dashboardChoice = "AdminDashboard"; // Static variable shared across all instances with
-                                                              // default value that matches a real page
-
-    public static void setDashboardChoice(String choice) {
-        dashboardChoice = choice;
-
-        // When dashboard choice is changed, try to refresh all existing sidebars
-        // This works with the reflection mechanism in Router
-    }
-
-    public static String getDashboardChoice() {
-        return dashboardChoice;
-    }
 
     @Override
     public void refresh() {
@@ -66,23 +58,22 @@ public class Sidebar extends JPanel implements Refreshable {
 
     // Method to initialize sidebar menu items and routing
     private void initSidebarMenu() {
-        String[][] menuItems = {
-<<<<<<< HEAD
-            { "Dashboard", dashboardChoice },
-            { "Manage Ticket", "BookingView" },
-            { "Sales Reports", "ReportsView" },
-            { "Calendar", "CalendarView" },
-            { "User Management", "UserManagementView" },
-            { "Logout", "LoginView" }
-=======
-                { "Dashboard", getDashboardChoice() },
-                { "Manage Ticket", "BookingView" },
-                { "Sales Reports", "ReportsView" },
-                { "Calendar", "CalendarView" },
-                { "User Management", "UserManagementView" },
-                { "Logout", "LoginView" }
->>>>>>> e4518272d5a4484a674c2f0eb4876caa57144c85
-        };
+        // Get current user role
+        UserRole userRole = AuthenticationService.getCurrentUserRole();
+
+        // Create menu items list for all users
+        List<String[]> menuItemsList = new ArrayList<>(Arrays.asList(
+                new String[] { "Dashboard", "Dashboard" },
+                new String[] { "Manage Ticket", "BookingView" },
+                new String[] { "Sales Reports", "ReportsView" },
+                new String[] { "Calendar", "CalendarView" },
+                new String[] { "User Management", "UserManagementView" })); // Show for all roles
+
+        // Add Logout for all users
+        menuItemsList.add(new String[] { "Logout", "LoginView" });
+
+        // Convert list to array
+        String[][] menuItems = menuItemsList.toArray(new String[0][]);
 
         // Loop through the menu items and create labels for them
         for (String[] menuItem : menuItems) {

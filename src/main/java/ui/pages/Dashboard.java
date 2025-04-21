@@ -4,35 +4,18 @@ import javax.swing.*;
 import java.awt.*;
 import ui.Router;
 import ui.components.Sidebar;
+import server.AuthenticationService;
+import server.AuthenticationService.UserRole;
+import services.UserService;
 
-/**
- * TODO: Dashboard System Architecture
- * 1. Create the following structure:
- * services/
- * ├── dashboard/
- * │ ├── DashboardService.java # Core dashboard functionality
- * │ ├── AnalyticsService.java # Real-time analytics
- * │ ├── MetricsService.java # KPI tracking
- * │ └── NotificationService.java # Alert system
- * └── monitoring/
- * ├── SystemMonitor.java # System health
- * └── PerformanceTracker.java # Performance metrics
- *
- * 2. Dashboard Features:
- * - Real-time analytics display
- * - System health monitoring
- * - User activity tracking
- * - Performance metrics
- *
- * 3. Integration Points:
- * - Analytics engine
- * - Monitoring system
- * - Alert mechanism
- * - Reporting system
- */
-public class AdminDashboard extends JPanel {
-  public AdminDashboard() {
+public class Dashboard extends JPanel {
+  private UserService userService;
+
+  public Dashboard() {
     setLayout(new BorderLayout());
+
+    // Get the user service instance
+    userService = UserService.getInstance();
 
     // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);
@@ -57,7 +40,8 @@ public class AdminDashboard extends JPanel {
     contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding
 
     String[] cardItems = { "Manage Events", "Manage Ticket", "Sales Reports", "Calendar", "Notification",
-        "Data Persistence Import/Export", "Upcoming Events", "" };
+        "Data Persistence Import/Export", "Upcoming Events", "User Management" };
+
     for (String item : cardItems) {
       if (!item.isEmpty()) {
         JButton card = new JButton(item);
@@ -94,12 +78,17 @@ public class AdminDashboard extends JPanel {
         else if (item.equals("Upcoming Events")) {
           card.addActionListener(e -> Router.showPage("UpcomingEvent"));
         }
+        // Add action listener for the User Management button
+        else if (item.equals("User Management")) {
+          card.addActionListener(e -> Router.showPage("UserManagementView"));
+        }
 
         contentPanel.add(card);
       } else {
         contentPanel.add(new JLabel("")); // Empty space
       }
     }
+
     mainPanel.add(contentPanel, BorderLayout.CENTER);
   }
 }
