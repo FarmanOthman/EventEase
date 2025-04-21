@@ -281,6 +281,14 @@ public class EventView extends JPanel implements Refreshable {
                 return;
             }
 
+            // Validate that the event date is not in the past
+            Date currentDate = new Date();
+            if (dateCal.getTime().before(currentDate)) {
+                JOptionPane.showMessageDialog(this, "Event date cannot be in the past", "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             if (category == null || !(category.equals("Regular") || category.equals("VIP"))) {
                 JOptionPane.showMessageDialog(this, "Please select a valid category (Regular or VIP)",
                         "Validation Error", JOptionPane.ERROR_MESSAGE);
