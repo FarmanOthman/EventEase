@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import server.AuthenticationService;
+import server.AuthenticationService.UserRole;
 
 public class Router {
   private static MainFrame mainFrame;
@@ -14,13 +18,37 @@ public class Router {
   }
 
   public static void showPage(String pageName) {
-    if (mainFrame != null) {
-      // First try to refresh the page if it's already loaded
-      tryRefreshPage(pageName);
-
-      // Then show the page
-      mainFrame.showPage(pageName);
+    if (pageName == null || mainFrame == null) {
+      return;
     }
+
+    // Restrict access to UserManagementView
+    if (pageName.equals("UserManagementView")) {
+      UserRole currentRole = AuthenticationService.getCurrentUserRole();
+
+      // Only allow MANAGER to access UserManagementView
+      if (currentRole == UserRole.ADMIN) {
+        JOptionPane.showMessageDialog(
+            mainFrame,
+            "Access Denied: User Management is restricted to Manager roles only. Admins cannot access this feature.",
+            "Access Restricted",
+            JOptionPane.WARNING_MESSAGE);
+        return;
+      } else if (currentRole != UserRole.MANAGER) {
+        JOptionPane.showMessageDialog(
+            mainFrame,
+            "Access Denied: You must be logged in as a Manager to access User Management",
+            "Access Restricted",
+            JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+    }
+
+    // First try to refresh the page if it's already loaded
+    tryRefreshPage(pageName);
+
+    // Then show the page
+    mainFrame.showPage(pageName);
   }
 
   // Method to try refreshing a page if it supports the Refreshable interface

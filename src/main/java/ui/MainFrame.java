@@ -3,13 +3,12 @@ package ui;
 import javax.swing.*;
 import java.awt.*;
 import ui.pages.LoginView;
-import ui.pages.ManagerDashboard;
-import ui.pages.AdminDashboard;
+import ui.pages.Dashboard;
 import ui.pages.EventView;
 import ui.pages.ReportsView;
 import ui.pages.BookingView;
 import ui.pages.CalendarView;
-import ui.pages.AdminManagementView;
+import ui.pages.UserManagementView;
 import ui.pages.DataPersistenceView;
 import ui.pages.NotificationView;
 import ui.pages.UpcomingEvent;
@@ -21,25 +20,24 @@ public class MainFrame extends JFrame {
 
   public MainFrame() {
     setTitle("EventEase");
-    setSize(1000, 600);
+    setSize(1200, 800);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setLocationRelativeTo(null);
-    setMinimumSize(new Dimension(800, 500));
+    setMinimumSize(new Dimension(1200, 800));
 
     cardLayout = new CardLayout();
     cardPanel = new JPanel(cardLayout);
 
     cardPanel.add(new LoginView(), "LoginView");
-    cardPanel.add(new AdminDashboard(), "AdminDashboard");
+    cardPanel.add(new Dashboard(), "Dashboard");
     cardPanel.add(new EventView(), "EventView");
     cardPanel.add(new ReportsView(), "ReportsView");
     cardPanel.add(new BookingView(), "BookingView");
     cardPanel.add(new CalendarView(), "CalendarView");
-    cardPanel.add(new ManagerDashboard(), "ManagerDashboard");
     cardPanel.add(new DataPersistenceView(), "DataPersistenceView");
     cardPanel.add(new NotificationView(), "NotificationView");
     cardPanel.add(new UpcomingEvent(), "UpcomingEvent");
-    cardPanel.add(new AdminManagementView(), "AdminManagementView");
+    cardPanel.add(new UserManagementView(), "UserManagementView");
 
     scrollPane = new JScrollPane(cardPanel);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
