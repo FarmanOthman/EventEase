@@ -4,26 +4,37 @@ import services.SalesDataService;
 import ui.components.Sidebar;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Collections;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
- * The main report viewing UI for displaying sales data, applying filters, and exporting data.
+ * The main report viewing UI for displaying sales data, applying filters, and
+ * exporting data.
  */
 public class ReportsView extends JPanel {
     private JPanel mainPanel, contentPanel;
     private JTable salesTable;
     private SalesDataService salesDataService;
+    private List<Map<String, Object>> currentSalesData;
+    private JComboBox<String> filterCombo;
+    private JTextField searchField;
+    private TableRowSorter<DefaultTableModel> tableSorter;
+    private JLabel statusLabel;
+    private Color primaryColor = new Color(64, 133, 219);
+    private Color accentColor = new Color(46, 204, 113);
+    private Color lightGrayColor = new Color(245, 245, 245);
 
     public ReportsView() {
         setLayout(new BorderLayout());
         mainPanel = new JPanel(new BorderLayout());
+        currentSalesData = new ArrayList<>();
 
         // Initialize the service
         salesDataService = new SalesDataService();
@@ -33,6 +44,15 @@ public class ReportsView extends JPanel {
 
         // Initialize the main UI components
         createMainPanel();
+
+        // Add window resize listener to ensure responsiveness
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                revalidate();
+                repaint();
+            }
+        });
     }
 
     private void createMainPanel() {
@@ -41,62 +61,111 @@ public class ReportsView extends JPanel {
         // Create header panel
         createHeader();
 
-        // Create content panel
-        createContent();
+        // Create content panel with status bar first
+        // This ensures statusLabel is initialized before any data operations
+        createContentPanel();
+
+        // Now populate the content with data
+        populateContent();
 
         add(mainPanel, BorderLayout.CENTER);
     }
 
     private void createHeader() {
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 133, 219));
-        headerPanel.setPreferredSize(new Dimension(600, 50));
-        JLabel headerLabel = new JLabel("Reports");
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(primaryColor);
+        headerPanel.setPreferredSize(new Dimension(0, 50));
+
+        // Create title
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.setBackground(primaryColor);
+        JLabel headerLabel = new JLabel("Sales Reports & Analytics");
         headerLabel.setForeground(Color.WHITE);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        headerPanel.add(headerLabel);
+        titlePanel.add(headerLabel);
+
+        // Create search panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        searchPanel.setBackground(primaryColor);
+        searchField = new JTextField(15);
+        searchField.setPreferredSize(new Dimension(130, 28));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(3, 5, 3, 5)));
+
+        // Add search icon
+        JLabel searchIconLabel = new JLabel("🔍");
+        searchIconLabel.setForeground(Color.WHITE);
+        searchIconLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        JButton searchButton = createStyledButton("Search", primaryColor.darker());
+        searchButton.setPreferredSize(new Dimension(100, 30));
+
+        // Add search action
+        ActionListener searchAction = e -> performSearch(searchField.getText());
+        searchButton.addActionListener(searchAction);
+        searchField.addActionListener(searchAction);
+
+        searchPanel.add(searchIconLabel);
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(searchPanel, BorderLayout.EAST);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
 
-    private void createContent() {
+    private void createContentPanel() {
         contentPanel = new JPanel();
         contentPanel.setBackground(Color.WHITE);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-        createSalesReportingComponents();
+        // Create and add status bar first to ensure it's initialized
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setBackground(lightGrayColor);
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        statusLabel = new JLabel("Ready");
+        statusLabel.setForeground(Color.DARK_GRAY);
+        statusPanel.add(statusLabel, BorderLayout.WEST);
 
         mainPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
+        mainPanel.add(statusPanel, BorderLayout.SOUTH);
     }
 
-    private void createSalesReportingComponents() {
+    private void populateContent() {
         // Sales Reporting Title
         JPanel titlePanel = createStyledPanel("Sales Reporting Analytics", true);
         contentPanel.add(titlePanel);
         contentPanel.add(Box.createVerticalStrut(15));
 
-        // Sales Data panel
-        JPanel salesDataPanel = createSalesDataPanel();
-        contentPanel.add(salesDataPanel);
+        // Add filter/export controls
+        JPanel controlsPanel = createFilterPanel();
+        contentPanel.add(controlsPanel);
         contentPanel.add(Box.createVerticalStrut(15));
 
-        // Filter panel
-        JPanel filterPanel = createFilterPanel();
-        contentPanel.add(filterPanel);
+        // Add sales data table
+        JPanel salesDataPanel = createSalesDataPanel();
+        contentPanel.add(salesDataPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+
+        // Add event calendar panel
+        JPanel calendarPanel = createCalendarPanel();
+        contentPanel.add(calendarPanel);
     }
 
     private JPanel createStyledPanel(String title, boolean isHeader) {
         JPanel panel = new JPanel();
-        panel.setBackground(isHeader ? new Color(64, 133, 219) : Color.WHITE);
-        panel.setMaximumSize(new Dimension(800, 40));
-        panel.setPreferredSize(new Dimension(800, 40));
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(isHeader ? primaryColor : Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel label = new JLabel(title);
-        label.setForeground(isHeader ? Color.WHITE : Color.BLACK);
-        label.setFont(new Font("Arial", Font.BOLD, 16));
-        panel.add(label);
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setForeground(isHeader ? Color.WHITE : Color.BLACK);
+        titleLabel.setFont(new Font("Arial", isHeader ? Font.BOLD : Font.PLAIN, 16));
+        panel.add(titleLabel, BorderLayout.WEST);
 
         return panel;
     }
@@ -105,9 +174,8 @@ public class ReportsView extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        panel.setMaximumSize(new Dimension(800, 300));
-        panel.setPreferredSize(new Dimension(800, 300));
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 450));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createSalesTable(panel);
@@ -117,32 +185,68 @@ public class ReportsView extends JPanel {
 
     private void createSalesTable(JPanel parent) {
         // Fetch sales data from the service
-        List<Map<String, Object>> salesData = salesDataService.getAllSalesData();
+        try {
+            updateSalesData(salesDataService.getAllSalesData());
+        } catch (Exception e) {
+            System.err.println("Error loading sales data: " + e.getMessage());
+            e.printStackTrace();
+            updateSalesData(new ArrayList<>());
+        }
+
+        // Define columns that match the database structure
+        String[] columnNames = {
+                "Date", "Team A", "Team B", "Tickets Sold", "Revenue ($)",
+                "VIP Tickets", "Standard Tickets", "Premium Tickets"
+        };
 
         // Convert the data into a table-friendly format
-        String[] columnNames = { "Date", "Tickets Sold", "Revenue ($)", "Category" };
-        Object[][] data = new Object[salesData.size()][columnNames.length];
-
-        for (int i = 0; i < salesData.size(); i++) {
-            Map<String, Object> sale = salesData.get(i);
-            data[i][0] = sale.get("sale_date"); // Date
-            data[i][1] = sale.get("tickets_sold"); // Tickets Sold
-            data[i][2] = "$" + sale.get("revenue"); // Revenue
-            data[i][3] = sale.get("category"); // Category
-        }
+        Object[][] data = formatTableData(currentSalesData, columnNames);
 
         DefaultTableModel model = new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+
+            @Override
+            public Class<?> getColumnClass(int column) {
+                if (column == 3 || column == 4 || column == 5 || column == 6 || column == 7) {
+                    return Number.class;
+                }
+                return Object.class;
+            }
         };
 
         salesTable = new JTable(model);
         setupTableProperties();
 
-        parent.add(createTableHeader(), BorderLayout.NORTH);
+        // Add sorting capability
+        tableSorter = new TableRowSorter<>(model);
+        salesTable.setRowSorter(tableSorter);
+
+        // Create table header with tooltips
+        JPanel tableHeaderPanel = createTableHeader();
+
+        parent.add(tableHeaderPanel, BorderLayout.NORTH);
         parent.add(new JScrollPane(salesTable), BorderLayout.CENTER);
+    }
+
+    private Object[][] formatTableData(List<Map<String, Object>> salesData, String[] columnNames) {
+        Object[][] formattedData = new Object[salesData.size()][columnNames.length];
+
+        for (int i = 0; i < salesData.size(); i++) {
+            Map<String, Object> sale = salesData.get(i);
+            formattedData[i][0] = sale.get("event_date"); // Date
+            formattedData[i][1] = sale.get("team_a"); // Team A
+            formattedData[i][2] = sale.get("team_b"); // Team B
+            formattedData[i][3] = sale.get("total_ticket_sold"); // Tickets Sold
+            formattedData[i][4] = sale.get("total_revenue"); // Revenue
+            formattedData[i][5] = sale.get("vip_tickets"); // VIP Tickets
+            formattedData[i][6] = sale.get("standard_tickets"); // Standard Tickets
+            formattedData[i][7] = sale.get("premium_tickets"); // Premium Tickets
+        }
+
+        return formattedData;
     }
 
     private void setupTableProperties() {
@@ -150,117 +254,187 @@ public class ReportsView extends JPanel {
         salesTable.setShowGrid(true);
         salesTable.setGridColor(Color.LIGHT_GRAY);
         salesTable.setFillsViewportHeight(true);
+        salesTable.getTableHeader().setReorderingAllowed(false);
+        salesTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+
+        // Add double-click event handler for row details
+        salesTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = salesTable.convertRowIndexToModel(salesTable.getSelectedRow());
+                    if (row >= 0 && row < currentSalesData.size()) {
+                        showDetailDialog(currentSalesData.get(row));
+                    }
+                }
+            }
+        });
 
         // Set custom cell renderer for each column
-   salesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                   boolean isSelected, boolean hasFocus, int row, int column) {
-        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        c.setBackground(row % 2 == 0 ? new Color(240, 240, 240) : Color.WHITE);
-        if (isSelected) {
-            c.setBackground(table.getSelectionBackground());
-        }
+        salesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                c.setBackground(row % 2 == 0 ? lightGrayColor : Color.WHITE);
 
-        if (column == 0) { // Align date column to the left
-            setHorizontalAlignment(SwingConstants.LEFT);
-        } else { // Align other columns (e.g., revenue, tickets sold) to the center
-            setHorizontalAlignment(SwingConstants.CENTER);
-        }
+                if (isSelected) {
+                    c.setBackground(new Color(185, 209, 234));
+                    c.setForeground(Color.BLACK);
+                } else {
+                    c.setForeground(Color.BLACK);
+                }
 
-        return c;
-    }
-});
+                // Right-align number columns
+                if (column == 3 || column == 4 || column == 5 || column == 6 || column == 7) {
+                    setHorizontalAlignment(JLabel.RIGHT);
+
+                    // Format currency for revenue column
+                    if (column == 4 && value != null) {
+                        setText("$" + value);
+                    }
+                } else {
+                    setHorizontalAlignment(JLabel.LEFT);
+                }
+
+                setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                return c;
+            }
+        });
     }
 
     private JPanel createTableHeader() {
-        JPanel headerPanel = new JPanel(new GridLayout(1, 4));
-        headerPanel.setBackground(new Color(64, 133, 219));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
-        String[] headerLabels = { "Date", "Tickets Sold", "Revenue ($)", "Category" };
-        for (String label : headerLabels) {
-            JLabel headerLabel = new JLabel(label, SwingConstants.CENTER);
-            headerLabel.setForeground(Color.WHITE);
-            headerLabel.setFont(new Font("Arial", Font.BOLD, 12));
-            headerLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-            headerPanel.add(headerLabel);
-        }
+        JLabel tableTitle = new JLabel("Sales Data");
+        tableTitle.setFont(new Font("Arial", Font.BOLD, 14));
 
-        return headerPanel;
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.add(tableTitle);
+
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        infoPanel.setBackground(Color.WHITE);
+        JLabel infoLabel = new JLabel("Double-click a row for details • Click column headers to sort");
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+        infoLabel.setForeground(Color.GRAY);
+        infoPanel.add(infoLabel);
+
+        panel.add(titlePanel, BorderLayout.WEST);
+        panel.add(infoPanel, BorderLayout.EAST);
+
+        return panel;
     }
 
     private JPanel createFilterPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
-        panel.setMaximumSize(new Dimension(800, 50));
-        panel.setPreferredSize(new Dimension(800, 50));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Filter section title
+        JLabel sectionTitle = new JLabel("Filter & Export Options");
+        sectionTitle.setFont(new Font("Arial", Font.BOLD, 14));
+        sectionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Create filter controls panel
+        JPanel controlsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        controlsPanel.setBackground(Color.WHITE);
+        controlsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel filterLabel = new JLabel("Filter by Date/Event:");
-        JComboBox<String> filterCombo = new JComboBox<>(new String[] { "[Select Date/Event]" });
-        JButton applyButton = createStyledButton("Apply Filter", new Color(64, 133, 219));
-        JButton exportButton = createStyledButton("Export With Analyzing", new Color(46, 204, 113));
+
+        // Populate filter combo with dates and events from the data
+        populateFilterCombo();
+
+        JButton applyButton = createStyledButton("Apply Filter", primaryColor);
+        JButton resetButton = createStyledButton("Reset", new Color(150, 150, 150));
+        JButton exportButton = createStyledButton("Export With Analysis", accentColor);
 
         // Action Listener for the Apply Filter button
-        applyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String filterCriteria = (String) filterCombo.getSelectedItem();
-                if (filterCriteria == null || "[Select Date/Event]".equals(filterCriteria)) {
-                    JOptionPane.showMessageDialog(ReportsView.this, "Please select a valid filter.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+        applyButton.addActionListener(e -> {
+            String filterCriteria = (String) filterCombo.getSelectedItem();
+            applyFilter(filterCriteria);
+        });
 
-                // Fetch filtered data from the service
-                List<Map<String, Object>> filteredData = salesDataService.filterSalesData(filterCriteria);
-
-                if (filteredData.isEmpty()) {
-                    JOptionPane.showMessageDialog(ReportsView.this, "No data found for the selected filter.", "Info", JOptionPane.INFORMATION_MESSAGE);
-                    return;
-                }
-
-                // Update the table with filtered data
-                updateSalesTable(filteredData);
+        // Action Listener for Reset button
+        resetButton.addActionListener(e -> {
+            filterCombo.setSelectedIndex(0);
+            searchField.setText("");
+            try {
+                updateSalesData(salesDataService.getAllSalesData());
+                refreshTable();
+                statusLabel.setText("Filters cleared");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error resetting data: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         // Action Listener for the Export button
-        exportButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Fetch current table data
-                DefaultTableModel model = (DefaultTableModel) salesTable.getModel();
-                List<Map<String, Object>> salesData = Collections.emptyList();
-
-                for (int i = 0; i < model.getRowCount(); i++) {
-                    Map<String, Object> sale = Map.of(
-                        "sale_date", model.getValueAt(i, 0),
-                        "tickets_sold", model.getValueAt(i, 1),
-                        "revenue", model.getValueAt(i, 2).toString().replace("$", ""),
-                        "category", model.getValueAt(i, 3)
-                    );
-                    salesData.add(sale);
-                }
-
-                // Export data using the service
-                boolean success = salesDataService.exportSalesData(salesData, "sales_data.csv");
-                if (success) {
-                    JOptionPane.showMessageDialog(ReportsView.this, "Sales data exported successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(ReportsView.this, "Failed to export sales data: " + salesDataService.getLastErrorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
+        exportButton.addActionListener(e -> {
+            exportSalesData();
         });
 
-        panel.add(filterLabel);
-        panel.add(Box.createHorizontalStrut(10));
-        panel.add(filterCombo);
-        panel.add(Box.createHorizontalStrut(10));
-        panel.add(applyButton);
-        panel.add(Box.createHorizontalStrut(10));
-        panel.add(exportButton);
+        controlsPanel.add(filterLabel);
+        controlsPanel.add(Box.createHorizontalStrut(10));
+        controlsPanel.add(filterCombo);
+        controlsPanel.add(Box.createHorizontalStrut(15));
+        controlsPanel.add(applyButton);
+        controlsPanel.add(Box.createHorizontalStrut(10));
+        controlsPanel.add(resetButton);
+        controlsPanel.add(Box.createHorizontalStrut(20));
+        controlsPanel.add(exportButton);
+
+        panel.add(sectionTitle);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(controlsPanel);
 
         return panel;
+    }
+
+    private void populateFilterCombo() {
+        Set<String> filterOptions = new TreeSet<>(); // Use TreeSet for automatic sorting
+
+        // Add default option
+        filterOptions.add("[Select Date/Event]");
+
+        try {
+            List<Map<String, Object>> allData = salesDataService.getAllSalesData();
+
+            // Extract unique dates and event names
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            for (Map<String, Object> row : allData) {
+                // Add date
+                if (row.containsKey("event_date") && row.get("event_date") != null) {
+                    Object dateObj = row.get("event_date");
+                    if (dateObj instanceof java.sql.Date) {
+                        filterOptions.add(dateFormat.format(dateObj));
+                    } else if (dateObj != null) {
+                        filterOptions.add(dateObj.toString());
+                    }
+                }
+
+                // Add event name (team_a vs team_b)
+                if (row.containsKey("team_a") && row.containsKey("team_b")) {
+                    filterOptions.add(row.get("team_a") + " vs " + row.get("team_b"));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error populating filter options: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Create and populate combo box
+        filterCombo = new JComboBox<>(filterOptions.toArray(new String[0]));
+        filterCombo.setPreferredSize(new Dimension(180, 28));
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {
@@ -281,26 +455,293 @@ public class ReportsView extends JPanel {
             }
         };
 
-        button.setPreferredSize(new Dimension(150, 35));
+        button.setPreferredSize(new Dimension(130, 30));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(backgroundColor.darker());
+                button.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(backgroundColor);
+                button.repaint();
+            }
+        });
+
         return button;
     }
 
-    private void updateSalesTable(List<Map<String, Object>> salesData) {
-        DefaultTableModel model = (DefaultTableModel) salesTable.getModel();
-        model.setRowCount(0); // Clear existing rows
-
-        for (Map<String, Object> sale : salesData) {
-            model.addRow(new Object[] {
-                sale.get("sale_date"),
-                sale.get("tickets_sold"),
-                "$" + sale.get("revenue"),
-                sale.get("category")
-            });
+    private void updateSalesData(List<Map<String, Object>> newData) {
+        if (newData != null) {
+            currentSalesData = newData;
+            if (statusLabel != null) {
+                statusLabel.setText("Displaying " + currentSalesData.size() + " records");
+            }
         }
+    }
+
+    private void refreshTable() {
+        if (salesTable == null)
+            return;
+
+        DefaultTableModel model = (DefaultTableModel) salesTable.getModel();
+        String[] columnNames = new String[model.getColumnCount()];
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            columnNames[i] = model.getColumnName(i);
+        }
+
+        Object[][] data = formatTableData(currentSalesData, columnNames);
+        model.setDataVector(data, columnNames);
+
+        // Restore custom renderers after model change
+        setupTableProperties();
+    }
+
+    private void applyFilter(String filterCriteria) {
+        if (filterCriteria == null || "[Select Date/Event]".equals(filterCriteria)) {
+            JOptionPane.showMessageDialog(this, "Please select a valid filter.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Fetch filtered data from the service
+            List<Map<String, Object>> filteredData = salesDataService.filterSalesData(filterCriteria);
+
+            if (filteredData.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No data found for the selected filter.", "Info",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            // Update the table with filtered data
+            updateSalesData(filteredData);
+            refreshTable();
+            statusLabel.setText("Filtered: " + filteredData.size() + " records found");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error applying filter: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void performSearch(String searchTerm) {
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return;
+        }
+
+        try {
+            // Use row filter for quick searching
+            RowFilter<DefaultTableModel, Object> rowFilter = RowFilter.regexFilter("(?i)" + searchTerm);
+            tableSorter.setRowFilter(rowFilter);
+
+            int displayedRowCount = salesTable.getRowCount();
+            statusLabel.setText("Search results: " + displayedRowCount + " records found");
+
+            if (displayedRowCount == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "No matches found for: " + searchTerm, "Search Results",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error in search: " + e.getMessage(),
+                    "Search Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showDetailDialog(Map<String, Object> rowData) {
+        JDialog detailDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Event Details", true);
+        detailDialog.setLayout(new BorderLayout());
+        detailDialog.setSize(450, 320);
+        detailDialog.setLocationRelativeTo(this);
+
+        JPanel detailPanel = new JPanel();
+        detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.Y_AXIS));
+        detailPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        detailPanel.setBackground(Color.WHITE);
+
+        // Create header
+        JLabel headerLabel = new JLabel("Sales Event Details");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        headerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Format the details
+        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        gridPanel.setBackground(Color.WHITE);
+        gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+
+        // Add fields
+        addDetailField(gridPanel, "Event Date:", rowData.get("event_date").toString());
+        addDetailField(gridPanel, "Teams:", rowData.get("team_a") + " vs " + rowData.get("team_b"));
+        addDetailField(gridPanel, "Total Tickets Sold:", rowData.get("total_ticket_sold").toString());
+        addDetailField(gridPanel, "Total Revenue:", "$" + rowData.get("total_revenue").toString());
+        addDetailField(gridPanel, "VIP Tickets:", rowData.get("vip_tickets").toString());
+        addDetailField(gridPanel, "Standard Tickets:", rowData.get("standard_tickets").toString());
+        addDetailField(gridPanel, "Premium Tickets:", rowData.get("premium_tickets").toString());
+
+        // Add close button
+        JButton closeButton = createStyledButton("Close", primaryColor);
+        closeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        closeButton.addActionListener(e -> detailDialog.dispose());
+
+        detailPanel.add(headerLabel);
+        detailPanel.add(gridPanel);
+        detailPanel.add(Box.createVerticalGlue());
+        detailPanel.add(closeButton);
+
+        detailDialog.add(detailPanel);
+        detailDialog.setVisible(true);
+    }
+
+    private void addDetailField(JPanel panel, String label, String value) {
+        JLabel labelComp = new JLabel(label);
+        labelComp.setFont(new Font("Arial", Font.BOLD, 14));
+
+        JLabel valueComp = new JLabel(value);
+        valueComp.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        panel.add(labelComp);
+        panel.add(valueComp);
+    }
+
+    private void exportSalesData() {
+        if (currentSalesData.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No data to export.", "Export Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Create file chooser
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Sales Report As");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
+        fileChooser.setSelectedFile(new java.io.File("SalesReport_" +
+                new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".xlsx"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            final String filePath = fileChooser.getSelectedFile().getAbsolutePath().endsWith(".xlsx")
+                    ? fileChooser.getSelectedFile().getAbsolutePath()
+                    : fileChooser.getSelectedFile().getAbsolutePath() + ".xlsx";
+
+            // Show progress indicator
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            statusLabel.setText("Exporting data to Excel...");
+
+            // Export on a background thread to avoid UI freezing
+            SwingWorker<Boolean, Void> exportWorker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    return salesDataService.exportSalesData(currentSalesData, filePath);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean success = get();
+                        if (success) {
+                            JOptionPane.showMessageDialog(ReportsView.this,
+                                    "Sales data exported successfully to " + filePath,
+                                    "Export Successful", JOptionPane.INFORMATION_MESSAGE);
+                            statusLabel.setText("Export completed successfully");
+                        } else {
+                            JOptionPane.showMessageDialog(ReportsView.this,
+                                    "Failed to export sales data: " + salesDataService.getLastErrorMessage(),
+                                    "Export Failed", JOptionPane.ERROR_MESSAGE);
+                            statusLabel.setText("Export failed");
+                        }
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(ReportsView.this,
+                                "Error during export: " + e.getMessage(),
+                                "Export Error", JOptionPane.ERROR_MESSAGE);
+                        statusLabel.setText("Export error: " + e.getMessage());
+                    } finally {
+                        setCursor(Cursor.getDefaultCursor());
+                    }
+                }
+            };
+
+            exportWorker.execute();
+        }
+    }
+
+    private JPanel createCalendarPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 300));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Panel title
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+        JLabel titleLabel = new JLabel("Event Calendar");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+
+        JButton viewFullCalendarButton = createStyledButton("View Full Calendar", accentColor);
+        viewFullCalendarButton.setPreferredSize(new Dimension(150, 30));
+        viewFullCalendarButton.addActionListener(e -> openCalendarView());
+
+        headerPanel.add(viewFullCalendarButton, BorderLayout.EAST);
+
+        // Create mini calendar view - simplified version
+        JPanel miniCalendarPanel = new JPanel(new BorderLayout());
+        miniCalendarPanel.setBackground(Color.WHITE);
+
+        // Add month label and controls
+        JPanel monthControlPanel = new JPanel(new BorderLayout());
+        monthControlPanel.setBackground(primaryColor);
+        monthControlPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        JLabel monthLabel = new JLabel(java.time.YearMonth.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy")),
+                SwingConstants.CENTER);
+        monthLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        monthLabel.setForeground(Color.WHITE);
+
+        monthControlPanel.add(monthLabel, BorderLayout.CENTER);
+
+        miniCalendarPanel.add(monthControlPanel, BorderLayout.NORTH);
+
+        // Placeholder for calendar grid - in real implementation would show key dates
+        JLabel placeholderLabel = new JLabel("Click 'View Full Calendar' to see the detailed event schedule",
+                SwingConstants.CENTER);
+        placeholderLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        placeholderLabel.setForeground(Color.GRAY);
+        miniCalendarPanel.add(placeholderLabel, BorderLayout.CENTER);
+
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(miniCalendarPanel, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private void openCalendarView() {
+        // Get the parent window
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+
+        // Create a new JFrame for the calendar
+        JFrame calendarFrame = new JFrame("Event Calendar");
+        calendarFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        calendarFrame.setSize(800, 600);
+        calendarFrame.setLocationRelativeTo(parentWindow);
+
+        // Add the calendar view
+        calendarFrame.add(new ui.pages.CalendarView());
+
+        // Pack the frame to optimal size instead of fixed size
+        calendarFrame.pack();
+        // Show the frame
+        calendarFrame.setVisible(true);
     }
 }
