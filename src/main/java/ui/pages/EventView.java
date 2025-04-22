@@ -1,12 +1,9 @@
 package ui.pages;
-
+import ui.components.RoundedButton;
 import ui.components.Sidebar;
 import ui.Refreshable;
-
 import javax.swing.*;
-
 import services.EventServiceSer;
-
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,27 +39,8 @@ public class EventView extends JPanel implements Refreshable {
 
     @Override
     public void refresh() {
-        // Refresh the sidebar to reflect any changes
-        Component sidebarComponent = null;
-        for (Component component : getComponents()) {
-            if (component instanceof Sidebar) {
-                sidebarComponent = component;
-                break;
-            }
-        }
-
-        if (sidebarComponent != null) {
-            // Remove old sidebar
-            remove(sidebarComponent);
-
-            // Add new sidebar
-            Sidebar sidebar = new Sidebar();
-            add(sidebar, BorderLayout.WEST);
-
-            // Force UI update
-            revalidate();
-            repaint();
-        }
+       
+       
     }
 
     private void createMainPanel() {
@@ -71,7 +49,7 @@ public class EventView extends JPanel implements Refreshable {
 
         // Create header panel
         headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(64, 143, 224));
+        headerPanel.setBackground(new Color(64, 133, 219));
         headerPanel.setPreferredSize(new Dimension(600, 50));
         JLabel headerLabel = new JLabel("Event Management");
         headerLabel.setForeground(Color.WHITE);
@@ -87,9 +65,8 @@ public class EventView extends JPanel implements Refreshable {
         // Add "Add Event" title
         JLabel titleLabel = new JLabel("Add Event");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+       
         contentPanel.add(titleLabel);
-        contentPanel.add(Box.createVerticalStrut(20));
 
         // Create form components
         createFormComponents();
@@ -135,7 +112,7 @@ public class EventView extends JPanel implements Refreshable {
         JPanel datePanel = new JPanel(new BorderLayout());
         datePanel.setBackground(Color.WHITE);
         datePanel.setMaximumSize(new Dimension(600, 60));
-        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD HH:MM:SS):");
+        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD HH):");
 
         // Create date and time fields in the correct format for the database
         JPanel dateTimePanel = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -149,7 +126,7 @@ public class EventView extends JPanel implements Refreshable {
 
         // Time picker using spinner
         JSpinner timeSpinner = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm:ss");
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, " h a" );
         timeSpinner.setEditor(timeEditor);
         timeSpinner.setValue(new Date()); // Set current time as default
 
@@ -198,40 +175,18 @@ public class EventView extends JPanel implements Refreshable {
         buttonPanel.setMaximumSize(new Dimension(600, 40));
 
         // Create the rounded green Add button
-        JButton addButton = new JButton("Add") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            RoundedButton addButton = new RoundedButton("Add", 25);
+            addButton.setBackground(new Color(28,184,96));
+            addButton.setForeground(Color.WHITE);
+            addButton.setFont(new Font("Arial", Font.BOLD, 14));
+            addButton.setPreferredSize(new Dimension(100, 30));
+            addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-                // Paint the rounded background
-                g2.setColor(new Color(28, 184, 96));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
 
-                // Paint the text
-                FontMetrics fm = g2.getFontMetrics();
-                Rectangle textRect = new Rectangle(0, 0, getWidth(), getHeight());
-                String text = "Add";
+ {
+           
 
-                int x = (textRect.width - fm.stringWidth(text)) / 2;
-                int y = (textRect.height - fm.getHeight()) / 2 + fm.getAscent();
-
-                g2.setColor(Color.WHITE);
-                g2.drawString(text, x, y);
-                g2.dispose();
-            }
-
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(75, 35);
-            }
-        };
-
-        // Remove default button styling
-        addButton.setContentAreaFilled(false);
-        addButton.setBorderPainted(false);
-        addButton.setFocusPainted(false);
-        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
 
         // Update addButton.addActionListener to correctly format date and time
         addButton.addActionListener(e -> {
@@ -241,7 +196,7 @@ public class EventView extends JPanel implements Refreshable {
             String team2 = team2Field.getText();
 
             // Format the date and time correctly for database
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd H a");
             Date dateValue = (Date) dateSpinner.getValue();
             Date timeValue = (Date) timeSpinner.getValue();
 
@@ -253,8 +208,7 @@ public class EventView extends JPanel implements Refreshable {
             timeCal.setTime(timeValue);
 
             dateCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
-            dateCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
-            dateCal.set(Calendar.SECOND, timeCal.get(Calendar.SECOND));
+            
 
             String date = dateFormat.format(dateCal.getTime());
 
@@ -338,7 +292,7 @@ public class EventView extends JPanel implements Refreshable {
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(buttonPanel);
 
-        // No need for category population from service since we're hardcoding
-        // the only two valid values from the schema
+        
     }
+}
 }

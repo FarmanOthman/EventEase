@@ -1,14 +1,10 @@
 package ui.pages;
-
 import ui.components.Sidebar;
 import ui.dialogs.EventDetailsDialog;
 import ui.dialogs.EventEditDialog;
-
 import javax.swing.*;
 import javax.swing.table.*;
-
 import services.EventServiceSer;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -78,6 +74,8 @@ public class UpcomingEvent extends JPanel {
     buttonPanel.setBackground(new Color(64, 133, 219));
     buttonPanel.add(refreshButton);
     headerPanel.add(buttonPanel, BorderLayout.EAST);
+    
+
 
     // Create content panel
     contentPanel = new JPanel();

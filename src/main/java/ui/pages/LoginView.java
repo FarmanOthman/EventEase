@@ -29,26 +29,30 @@ public class LoginView extends JPanel {
     loginBox.setPreferredSize(new Dimension(350, 300));
     loginBox.setBackground(Color.white);
     loginBox.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+    
 
-    JLabel userLabel = new JLabel("Username");
+    JLabel userLabel = new JLabel("Username:");
     userLabel.setBounds(40, 40, 270, 25);
     loginBox.add(userLabel);
 
     RoundedTextField userField = new RoundedTextField(25);
-    userField.setText("admin"); // @OnlyForDevelopment - remove in production
     userField.setBounds(40, 65, 270, 35);
     userField.setBackground(Color.lightGray);
+    userField.setText("admin"); // Pre-fill for testing
     loginBox.add(userField);
+    userField.setToolTipText("Enter Your Username"); 
 
-    JLabel passLabel = new JLabel("Password");
+    JLabel passLabel = new JLabel("Password:");
     passLabel.setBounds(40, 110, 270, 25);
     loginBox.add(passLabel);
 
+
     RoundedPasswordField passField = new RoundedPasswordField(25);
-    passField.setText("admin"); // @OnlyForDevelopment - remove in production
     passField.setBounds(40, 135, 270, 35);
     passField.setBackground(Color.lightGray);
     loginBox.add(passField);
+    passField.setToolTipText("Enter Your Password");
+    passField.setText("admin123"); // Pre-fill for testing
 
     RoundedButton loginButton = new RoundedButton("Login", 25);
     loginButton.setBounds(85, 195, 180, 40);
@@ -60,18 +64,26 @@ public class LoginView extends JPanel {
       String password = new String(passField.getPassword());
       String username = userField.getText();
 
-      // Show loading indicator
-      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-      loginButton.setEnabled(false);
-      loginButton.setText("Logging in...");
+      
 
       // Perform authentication
       boolean isAuthenticated = AuthenticationService.authenticate(username, password);
 
       // Reset UI state
-      setCursor(Cursor.getDefaultCursor());
-      loginButton.setEnabled(true);
-      loginButton.setText("Login");
+      
+       
+      //  Check for empty fields
+
+      if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+          "Please enter both username and password.",
+          "Input Required",
+          JOptionPane.WARNING_MESSAGE
+        );
+        return;
+      }
+     
+      
 
       if (!isAuthenticated) {
         JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
@@ -88,23 +100,13 @@ public class LoginView extends JPanel {
 
         // Direct all authenticated users to the Dashboard
         Router.showPage("Dashboard");
-      } else {
-        // This shouldn't happen if properly authenticated, but just in case
-        JOptionPane.showMessageDialog(this, "Unknown user role", "Error", JOptionPane.ERROR_MESSAGE);
-        AuthenticationService.logout(); // Log them out
-      }
+      } 
     });
 
     JPanel wrapperPanel = new JPanel(new GridBagLayout());
     wrapperPanel.add(loginBox);
     add(wrapperPanel, BorderLayout.CENTER);
 
-    // Add footer with version info
-    JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    footerPanel.setBackground(Color.WHITE);
-    JLabel versionLabel = new JLabel("EventEase v1.0");
-    versionLabel.setForeground(Color.GRAY);
-    footerPanel.add(versionLabel);
-    add(footerPanel, BorderLayout.SOUTH);
+   
   }
 }
