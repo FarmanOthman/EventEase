@@ -3,12 +3,9 @@ package ui.pages;
 import ui.components.Sidebar;
 import ui.Router;
 import ui.Refreshable;
-
 import javax.swing.*;
-
 import server.EventService;
 import services.BookingServiceSer;
-
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
