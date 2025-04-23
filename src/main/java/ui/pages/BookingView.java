@@ -6,7 +6,6 @@ import ui.Refreshable;
 import javax.swing.*;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import javax.swing.*;
 import server.EventService;
 import services.BookingServiceSer;
 import java.awt.*;
