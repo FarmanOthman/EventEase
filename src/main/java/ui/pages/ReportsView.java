@@ -352,6 +352,7 @@ public class ReportsView extends JPanel {
         JButton applyButton = createStyledButton("Apply Filter", primaryColor);
         JButton resetButton = createStyledButton("Reset", new Color(150, 150, 150));
         JButton exportButton = createStyledButton("Export With Analysis", accentColor);
+        exportButton.setPreferredSize(new Dimension(150, 30));
 
         // Action Listener for the Apply Filter button
         applyButton.addActionListener(e -> {
