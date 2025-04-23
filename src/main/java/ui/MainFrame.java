@@ -43,6 +43,8 @@ public class MainFrame extends JFrame {
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(null);
+    cardPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
     
 
     add(scrollPane);

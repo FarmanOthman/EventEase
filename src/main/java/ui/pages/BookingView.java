@@ -419,6 +419,7 @@ public class BookingView extends JPanel implements Refreshable {
         bookNowButton.setContentAreaFilled(false);
         bookNowButton.setPreferredSize(new Dimension(120, 35));
         bookNowButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
 
         buttonPanel.add(bookNowButton);
         formPanel.add(buttonPanel);
