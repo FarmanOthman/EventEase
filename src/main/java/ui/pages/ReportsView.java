@@ -94,9 +94,7 @@ public class ReportsView extends JPanel {
                 BorderFactory.createEmptyBorder(3, 5, 3, 5)));
 
         // Add search icon
-        JLabel searchIconLabel = new JLabel("🔍");
-        searchIconLabel.setForeground(Color.WHITE);
-        searchIconLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+       
 
         JButton searchButton = createStyledButton("Search", primaryColor.darker());
         searchButton.setPreferredSize(new Dimension(100, 30));
@@ -106,7 +104,7 @@ public class ReportsView extends JPanel {
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
 
-        searchPanel.add(searchIconLabel);
+        
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
