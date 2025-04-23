@@ -79,10 +79,7 @@ public class ReportsView extends JPanel {
         // Create title
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         titlePanel.setBackground(primaryColor);
-        JLabel headerLabel = new JLabel("Sales Reports & Analytics");
-        headerLabel.setForeground(Color.WHITE);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titlePanel.add(headerLabel);
+        
 
         // Create search panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -134,9 +131,13 @@ public class ReportsView extends JPanel {
 
     private void populateContent() {
         // Sales Reporting Title
-        JPanel titlePanel = createStyledPanel("Sales Reporting Analytics", true);
+        JPanel titlePanel = createStyledPanel("", true);
+        JLabel titleLabel = new JLabel("Sales Report Analytics");
         contentPanel.add(titlePanel);
         contentPanel.add(Box.createVerticalStrut(15));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
 
         // Add filter/export controls
         JPanel controlsPanel = createFilterPanel();
@@ -237,7 +238,7 @@ public class ReportsView extends JPanel {
             formattedData[i][0] = sale.get("sale_date"); // Date
             formattedData[i][1] = sale.get("category"); // Category
             formattedData[i][2] = sale.get("tickets_sold"); // Tickets Sold
-            formattedData[i][3] = sale.get("revenue"); // Revenue
+            formattedData[i][3] =  sale.get("revenue"); // Revenue
         }
 
         return formattedData;
