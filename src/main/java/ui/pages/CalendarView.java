@@ -140,7 +140,7 @@ public class CalendarView extends JPanel {
     navigationPanel.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
 
     // Previous month button
-    JButton prevButton = createStyledButton("◀", Color.WHITE);
+    JButton prevButton = createStyledButton("<", Color.WHITE);
     prevButton.addActionListener(e -> {
       currentYearMonth = currentYearMonth.minusMonths(1);
       loadEventsForCurrentMonth();
@@ -153,7 +153,7 @@ public class CalendarView extends JPanel {
     monthYearLabel.setForeground(Color.WHITE);
 
     // Next month button
-    JButton nextButton = createStyledButton("▶", Color.WHITE);
+    JButton nextButton = createStyledButton(">", Color.WHITE);
     nextButton.addActionListener(e -> {
       currentYearMonth = currentYearMonth.plusMonths(1);
       loadEventsForCurrentMonth();
