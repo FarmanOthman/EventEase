@@ -4,6 +4,9 @@ import ui.components.Sidebar;
 import ui.Router;
 import ui.Refreshable;
 import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.*;
 import server.EventService;
 import services.BookingServiceSer;
 import java.awt.*;
@@ -13,6 +16,12 @@ import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * BookingView class represents the ticket booking interface in the application.
+ * This view allows users to create bookings for events by selecting events and 
+ * providing customer information.
+ * Implements Refreshable interface to update content when needed.
+ */
 public class BookingView extends JPanel implements Refreshable {
     private JPanel mainPanel, contentPanel;
     private JComboBox<String> eventCombo;
@@ -31,11 +40,15 @@ public class BookingView extends JPanel implements Refreshable {
     private int customerId = -1;
     private String customerName = "";
 
+    /**
+     * Constructor initializes the booking view, loads customer data if available,
+     * and sets up the UI components.
+     */
     public BookingView() {
         setName("BookingView"); // Set the name for the Router to identify this panel
         setLayout(new BorderLayout());
 
-        // Initialize service
+        // Initialize booking service
         bookingServiceSer = new BookingServiceSer();
 
         // Check if customer information was passed from CustomerPage
@@ -54,6 +67,10 @@ public class BookingView extends JPanel implements Refreshable {
         populateCustomerFields();
     }
 
+    /**
+     * Refreshes the view by reloading events, updating price options,
+     * and refreshing customer data. Used when returning to this view.
+     */
     @Override
     public void refresh() {
         // Reload events from database
@@ -91,6 +108,10 @@ public class BookingView extends JPanel implements Refreshable {
         repaint();
     }
 
+    /**
+     * Loads customer data from the Router shared data if available.
+     * This allows passing customer information between different views.
+     */
     private void loadCustomerFromRouter() {
         // Check if customer information was passed from CustomerPage
         Object routerCustomerId = Router.getData("customerId");
@@ -106,8 +127,14 @@ public class BookingView extends JPanel implements Refreshable {
         }
     }
 
+    /**
+     * Populates customer information fields if customer data is available.
+     * Splits the customer name into first and last name and retrieves
+     * additional details like email and contact number from the database.
+     */
     private void populateCustomerFields() {
         if (!customerName.isEmpty()) {
+            // Split customer name into first and last name components
             String[] nameParts = customerName.split(" ", 2);
             if (nameParts.length > 0) {
                 firstNameField.setText(nameParts[0]);
@@ -130,11 +157,13 @@ public class BookingView extends JPanel implements Refreshable {
             }
 
             // Disable the fields since we already have customer information
+            // to prevent modification of existing customer data
             firstNameField.setEditable(false);
             lastNameField.setEditable(false);
             contactNumberField.setEditable(false);
             emailField.setEditable(false);
 
+            // Change background color to indicate non-editable fields
             firstNameField.setBackground(new Color(240, 240, 240));
             lastNameField.setBackground(new Color(240, 240, 240));
             contactNumberField.setBackground(new Color(240, 240, 240));
@@ -142,18 +171,22 @@ public class BookingView extends JPanel implements Refreshable {
         }
     }
 
-    // Custom rounded panel class (for the form panel only)
+    /**
+     * Custom JPanel with rounded corners used for the booking form.
+     * Provides a more modern UI appearance with rounded edges.
+     */
     private class RoundedPanel extends JPanel {
         private int cornerRadius = 15;
 
         public RoundedPanel(LayoutManager layout, int radius) {
             super(layout);
             cornerRadius = radius;
-            setOpaque(false);
+            setOpaque(false); // Required for custom painting
         }
 
         @Override
         protected void paintComponent(Graphics g) {
+            // Use anti-aliasing for smooth rounded corners
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(getBackground());
@@ -162,6 +195,9 @@ public class BookingView extends JPanel implements Refreshable {
         }
     }
 
+    /**
+     * Creates the main panel containing the header and content area.
+     */
     private void createMainPanel() {
         mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(240, 240, 240));
@@ -182,20 +218,27 @@ public class BookingView extends JPanel implements Refreshable {
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Creates the header section with title at the top of the view.
+     */
     private void createHeader() {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        headerPanel.setBackground(new Color(64, 143, 224));
+        headerPanel.setBackground(new Color(64, 143, 224)); // Blue header background
         headerPanel.setPreferredSize(new Dimension(600, 50));
 
         JLabel headerLabel = new JLabel("Ticket Management");
-        headerLabel.setForeground(new Color(240, 240, 255));
+        headerLabel.setForeground(new Color(240, 240, 255)); // Light text color
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         headerPanel.add(headerLabel);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
 
+    /**
+     * Creates the booking form with customer information fields,
+     * event selection, price category selection, and booking button.
+     */
     private void createBookingSystem() {
         // Booking form panel with rounded corners
         JPanel formPanel = new RoundedPanel(null, 15);
@@ -212,9 +255,9 @@ public class BookingView extends JPanel implements Refreshable {
         bookTicketLabel.setHorizontalAlignment(SwingConstants.CENTER);
         bookTicketLabel.setForeground(new Color(90, 90, 90));
         formPanel.add(bookTicketLabel);
-        formPanel.add(Box.createVerticalStrut(20));
+        formPanel.add(Box.createVerticalStrut(20)); // Spacing
 
-        // Customer Information Section
+        // ---- Customer Information Section ----
         JLabel customerSectionLabel = new JLabel("Customer Information");
         customerSectionLabel.setFont(new Font("Arial", Font.BOLD, 14));
         customerSectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -222,7 +265,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(customerSectionLabel);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // First Name
+        // First Name field
         JLabel firstNameLabel = new JLabel("First Name:");
         firstNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         firstNameLabel.setForeground(new Color(90, 90, 90));
@@ -236,7 +279,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(firstNameField);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // Last Name
+        // Last Name field
         JLabel lastNameLabel = new JLabel("Last Name:");
         lastNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         lastNameLabel.setForeground(new Color(90, 90, 90));
@@ -250,7 +293,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(lastNameField);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // Contact Number
+        // Contact Number field
         JLabel contactNumberLabel = new JLabel("Contact Number:");
         contactNumberLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         contactNumberLabel.setForeground(new Color(90, 90, 90));
@@ -264,7 +307,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(contactNumberField);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // Email
+        // Email field
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         emailLabel.setForeground(new Color(90, 90, 90));
@@ -278,7 +321,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(emailField);
         formPanel.add(Box.createVerticalStrut(20));
 
-        // Event Information Section
+        // ---- Event Information Section ----
         JLabel eventSectionLabel = new JLabel("Event Information");
         eventSectionLabel.setFont(new Font("Arial", Font.BOLD, 14));
         eventSectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -286,14 +329,14 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(eventSectionLabel);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // Event label and combo
+        // Event selection dropdown
         JLabel eventLabel = new JLabel("Select Event:");
         eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         eventLabel.setForeground(new Color(90, 90, 90));
         formPanel.add(eventLabel);
         formPanel.add(Box.createVerticalStrut(5));
 
-        // Initialize with default selection
+        // Initialize event combo with default selection
         eventCombo = new JComboBox<>();
         eventCombo.addItem("Select Event");
 
@@ -305,7 +348,7 @@ public class BookingView extends JPanel implements Refreshable {
         formPanel.add(eventCombo);
         formPanel.add(Box.createVerticalStrut(10));
 
-        // Add event selection listener
+        // Add event selection listener to handle event selection changes
         eventCombo.addActionListener(e -> {
             if (eventCombo.getSelectedIndex() > 0) {
                 String selectedEvent = (String) eventCombo.getSelectedItem();
@@ -331,7 +374,7 @@ public class BookingView extends JPanel implements Refreshable {
             updatePriceOptions();
         });
 
-        // Price label and combo
+        // Price category selection dropdown
         JLabel priceLabel = new JLabel("Select Price Category:");
         priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         priceLabel.setForeground(new Color(90, 90, 90));
@@ -350,13 +393,14 @@ public class BookingView extends JPanel implements Refreshable {
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         buttonPanel.setMaximumSize(new Dimension(800, 50));
 
-        // Create a custom rounded button that matches the image
+        // Create a custom rounded button with green background
         JButton bookNowButton = new JButton("Book Now") {
             @Override
             protected void paintComponent(Graphics g) {
+                // Custom painting for rounded button with text centering
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(46, 204, 113));
+                g2.setColor(new Color(46, 204, 113)); // Green color
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 14));
@@ -368,6 +412,7 @@ public class BookingView extends JPanel implements Refreshable {
             }
         };
 
+        // Button styling
         bookNowButton.setBackground(new Color(66, 133, 244));
         bookNowButton.setForeground(Color.WHITE);
         bookNowButton.setFocusPainted(false);
@@ -382,7 +427,7 @@ public class BookingView extends JPanel implements Refreshable {
         // Add components to content panel
         contentPanel.add(formPanel);
 
-        // Add Book Now button action
+        // Add Book Now button action listener for form submission
         bookNowButton.addActionListener(e -> {
             // Validate customer information fields
             String firstName = firstNameField.getText().trim();
@@ -390,6 +435,7 @@ public class BookingView extends JPanel implements Refreshable {
             String contactNumber = contactNumberField.getText().trim();
             String email = emailField.getText().trim();
 
+            // Input validation - show error messages for missing required fields
             if (firstName.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter a first name", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -422,7 +468,7 @@ public class BookingView extends JPanel implements Refreshable {
                 return;
             }
 
-            // Get selected values
+            // Get selected values for booking creation
             String customerFullName = firstName + " " + lastName;
             String selectedEvent = (String) eventCombo.getSelectedItem();
             String selectedPriceCategory = (String) priceCombo.getSelectedItem();
@@ -452,11 +498,12 @@ public class BookingView extends JPanel implements Refreshable {
                         ticketType);
 
                 if (success) {
+                    // Show success message
                     JOptionPane.showMessageDialog(this,
                             "Booking created successfully for " + customerFullName + "!",
                             "Success",
                             JOptionPane.INFORMATION_MESSAGE);
-                    // Reset form
+                    // Reset form fields
                     firstNameField.setText("");
                     lastNameField.setText("");
                     contactNumberField.setText("");
@@ -467,17 +514,21 @@ public class BookingView extends JPanel implements Refreshable {
                     // Navigate back to event view
                     Router.showPage("EventView");
                 } else {
+                    // Show error message from service
                     JOptionPane.showMessageDialog(this, "Failed to create booking: " +
                             bookingServiceSer.getLastErrorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
+                // Handle any exceptions during booking creation
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
 
     /**
-     * Load events from the database into the event combo box
+     * Loads available events from the database into the event combo box.
+     * Creates a formatted display string for each event with key information.
+     * Falls back to dummy data if database load fails.
      */
     private void loadEventsFromDatabase() {
         try {
@@ -513,11 +564,11 @@ public class BookingView extends JPanel implements Refreshable {
                     }
                 }
 
-                // Create a display string for the event
+                // Create a display string for the event with consistent format
                 String displayText = String.format("%s - %s vs %s (%s, %s) - %s",
                         eventName, teamA, teamB, category, eventType, eventDate);
 
-                // Add to combo box and map
+                // Add to combo box and map for later reference
                 eventCombo.addItem(displayText);
                 eventIdMap.put(displayText, eventId);
             }
@@ -525,13 +576,18 @@ public class BookingView extends JPanel implements Refreshable {
             System.out.println("Error loading events: " + e.getMessage());
 
             // Add some dummy data if database load fails
+            // This provides a fallback UI for testing when database connection fails
             eventCombo.addItem("Football Match - Team A vs Team B");
             eventCombo.addItem("Concert - Artist X");
             eventCombo.addItem("Basketball Game - Team C vs Team D");
         }
     }
 
-    // Method to update price options based on selected event
+    /**
+     * Updates the price category dropdown options based on the selected event.
+     * Different event types may have different pricing structures.
+     */
+    
     private void updatePriceOptions() {
         if (priceCombo != null) {
             priceCombo.removeAllItems();
@@ -544,6 +600,7 @@ public class BookingView extends JPanel implements Refreshable {
                 priceCombo.addItem("Regular - Premium - $75");
                 priceCombo.addItem("Regular - Standard - $50");
             } else {
+                // Prompt to select an event first
                 priceCombo.addItem("Select Event First");
             }
         }
