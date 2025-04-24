@@ -1,0 +1,689 @@
+package ui.pages;
+
+import ui.components.Sidebar;
+import services.DataPersistenceService;
+import services.DataPersistenceService.BackupInfo;
+import services.DataPersistenceService.BackupResult;
+import services.DataPersistenceService.ImportResult;
+
+import javax.swing.*;
+import javax.swing.SpinnerDateModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.io.File;
+import java.util.Date;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.text.SimpleDateFormat;
+
+public class DataPersistenceView extends JPanel {
+  private JPanel mainPanel;
+  private JSpinner fromDateSpinner;
+  private JSpinner toDateSpinner;
+  private DataPersistenceService dataPersistenceService;
+  private JPanel historyPanel;
+
+  public DataPersistenceView() {
+    setLayout(new BorderLayout());
+
+    // Initialize the service
+    dataPersistenceService = new DataPersistenceService();
+
+    // Add the Sidebar component
+    add(new Sidebar(), BorderLayout.WEST);
+
+    // Create main panel
+    createMainPanel();
+
+    // Add main panel to this panel
+    add(mainPanel, BorderLayout.CENTER);
+
+    // Refresh backup history
+    refreshBackupHistory();
+  }
+
+  private void createMainPanel() {
+    mainPanel = new JPanel(new BorderLayout());
+    mainPanel.setBackground(Color.WHITE);
+
+    // Create header panel
+    JPanel headerPanel = new JPanel();
+    headerPanel.setBackground(new Color(64, 133, 219));
+    headerPanel.setPreferredSize(new Dimension(600, 50));
+    JLabel headerLabel = new JLabel("Data Persistence");
+    headerLabel.setForeground(Color.WHITE);
+    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+    headerPanel.add(headerLabel);
+
+    // Create content panel
+    JPanel contentPanel = new JPanel();
+    contentPanel.setBackground(Color.WHITE);
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+
+    // Create sections
+    createImportExportSection(contentPanel);
+    createBackupSettingsSection(contentPanel);
+    createBackupHistorySection(contentPanel);
+
+    // Add panels to main panel
+    mainPanel.add(headerPanel, BorderLayout.NORTH);
+    mainPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
+  }
+
+  private void createImportExportSection(JPanel parent) {
+    // Create main panel for this section
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+    panel.setMaximumSize(new Dimension(800, 200));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Title
+    JLabel title = new JLabel("Import/Export Data");
+    title.setFont(new Font("Arial", Font.BOLD, 16));
+    title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Create grid panel for buttons and date selection
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBackground(Color.WHITE);
+    contentPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Create date selection panel
+    JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    datePanel.setBackground(Color.WHITE);
+
+    // From date
+    JLabel fromLabel = new JLabel("From:");
+    Date initDate = new Date();
+    SpinnerDateModel fromModel = new SpinnerDateModel(initDate, null, null, Calendar.DAY_OF_MONTH);
+    fromDateSpinner = new JSpinner(fromModel);
+    JSpinner.DateEditor fromEditor = new JSpinner.DateEditor(fromDateSpinner, "yyyy-MM-dd");
+    fromDateSpinner.setEditor(fromEditor);
+    fromDateSpinner.setPreferredSize(new Dimension(150, 30));
+
+    // To date
+    JLabel toLabel = new JLabel("To:");
+    SpinnerDateModel toModel = new SpinnerDateModel(initDate, null, null, Calendar.DAY_OF_MONTH);
+    toDateSpinner = new JSpinner(toModel);
+    JSpinner.DateEditor toEditor = new JSpinner.DateEditor(toDateSpinner, "yyyy-MM-dd");
+    toDateSpinner.setEditor(toEditor);
+    toDateSpinner.setPreferredSize(new Dimension(150, 30));
+
+    datePanel.add(fromLabel);
+    datePanel.add(fromDateSpinner);
+    datePanel.add(Box.createHorizontalStrut(20));
+    datePanel.add(toLabel);
+    datePanel.add(toDateSpinner);
+
+    // Create buttons panel
+    JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    buttonsPanel.setBackground(Color.WHITE);
+
+    // Create buttons
+    JButton importButton = createStyledButton("Import Data", new Color(64, 133, 219));
+    JButton exportButton = createStyledButton("Export Data", new Color(40, 167, 69));
+
+    // Add action listeners
+    importButton.addActionListener(e -> handleImport());
+    exportButton.addActionListener(e -> handleExport());
+
+    buttonsPanel.add(importButton);
+    buttonsPanel.add(Box.createHorizontalStrut(10));
+    buttonsPanel.add(exportButton);
+
+    contentPanel.add(datePanel);
+    contentPanel.add(Box.createVerticalStrut(15));
+    contentPanel.add(buttonsPanel);
+
+    panel.add(title);
+    panel.add(Box.createVerticalStrut(15));
+    panel.add(contentPanel);
+
+    parent.add(panel);
+    parent.add(Box.createVerticalStrut(20));
+  }
+
+  private void createBackupSettingsSection(JPanel parent) {
+    // Create main panel for this section
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+    panel.setMaximumSize(new Dimension(800, 150));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Title
+    JLabel title = new JLabel("Automatic Backup Settings");
+    title.setFont(new Font("Arial", Font.BOLD, 16));
+    title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Settings panel
+    JPanel settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    settingsPanel.setBackground(Color.WHITE);
+
+    JLabel frequencyLabel = new JLabel("Backup Frequency:");
+    String[] frequencies = { "Daily", "Weekly", "Monthly", "Quarterly", "Yearly" };
+    JComboBox<String> frequencyCombo = new JComboBox<>(frequencies);
+    frequencyCombo.setPreferredSize(new Dimension(150, 30));
+
+    JButton manageButton = createStyledButton("Create Backup Now", new Color(64, 133, 219));
+    manageButton.addActionListener(e -> handleManageBackups());
+
+    settingsPanel.add(frequencyLabel);
+    settingsPanel.add(Box.createHorizontalStrut(10));
+    settingsPanel.add(frequencyCombo);
+    settingsPanel.add(Box.createHorizontalStrut(20));
+    settingsPanel.add(manageButton);
+
+    panel.add(title);
+    panel.add(Box.createVerticalStrut(15));
+    panel.add(settingsPanel);
+
+    parent.add(panel);
+    parent.add(Box.createVerticalStrut(20));
+  }
+
+  private void createBackupHistorySection(JPanel parent) {
+    // Create main panel for this section
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+    panel.setMaximumSize(new Dimension(800, 200));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Title
+    JLabel title = new JLabel("Backup History");
+    title.setFont(new Font("Arial", Font.BOLD, 16));
+    title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // History items panel
+    historyPanel = new JPanel();
+    historyPanel.setLayout(new BoxLayout(historyPanel, BoxLayout.Y_AXIS));
+    historyPanel.setBackground(Color.WHITE);
+
+    panel.add(title);
+    panel.add(Box.createVerticalStrut(15));
+    panel.add(historyPanel);
+
+    parent.add(panel);
+  }
+
+  private JButton createStyledButton(String text, Color backgroundColor) {
+    JButton button = new JButton(text) {
+      @Override
+      protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (backgroundColor.equals(Color.WHITE)) {
+          g2.setColor(backgroundColor);
+          g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+          g2.setColor(Color.LIGHT_GRAY);
+          g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+          g2.setColor(Color.BLACK);
+        } else {
+          g2.setColor(backgroundColor);
+          g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+          g2.setColor(Color.WHITE);
+        }
+
+        FontMetrics fm = g2.getFontMetrics();
+        Rectangle textRect = new Rectangle(0, 0, getWidth(), getHeight());
+        int x = (textRect.width - fm.stringWidth(text)) / 2;
+        int y = (textRect.height - fm.getHeight()) / 2 + fm.getAscent();
+        g2.drawString(text, x, y);
+        g2.dispose();
+      }
+    };
+
+    button.setPreferredSize(new Dimension(text.equals("Select from when to when") ? 200 : 150, 35));
+    button.setFocusPainted(false);
+    button.setBorderPainted(false);
+    button.setContentAreaFilled(false);
+    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    return button;
+  }
+
+  private void createHistoryItem(JPanel parent, BackupInfo backup) {
+    JPanel itemPanel = new JPanel();
+    itemPanel.setLayout(new BorderLayout());
+
+    // Set background color based on age (newer backups are greener)
+    long ageInDays = (new Date().getTime() - backup.getCreationDate().getTime()) / (1000 * 60 * 60 * 24);
+    Color backgroundColor;
+    if (ageInDays < 7) {
+      backgroundColor = new Color(220, 255, 220); // Green for recent backups
+    } else if (ageInDays < 30) {
+      backgroundColor = new Color(255, 243, 205); // Yellow for older backups
+    } else {
+      backgroundColor = new Color(255, 220, 220); // Red for very old backups
+    }
+
+    itemPanel.setBackground(backgroundColor);
+    itemPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+    itemPanel.setMaximumSize(new Dimension(800, 40));
+
+    // Format date for display
+    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm");
+    String dateText = sdf.format(backup.getCreationDate());
+
+    // Format file size
+    String sizeText = formatFileSize(backup.getSize());
+
+    JLabel label = new JLabel(backup.getName() + " - " + dateText + " (" + sizeText + ")");
+    label.setFont(new Font("Arial", Font.PLAIN, 14));
+    itemPanel.add(label, BorderLayout.CENTER);
+
+    // Add restore button (could be implemented in a future version)
+    JButton restoreButton = new JButton("Restore");
+    restoreButton.setPreferredSize(new Dimension(80, 25));
+    itemPanel.add(restoreButton, BorderLayout.EAST);
+
+    parent.add(itemPanel);
+    parent.add(Box.createVerticalStrut(5));
+  }
+
+  private String formatFileSize(long size) {
+    if (size < 1024) {
+      return size + " B";
+    } else if (size < 1024 * 1024) {
+      return String.format("%.1f KB", size / 1024.0);
+    } else if (size < 1024 * 1024 * 1024) {
+      return String.format("%.1f MB", size / (1024.0 * 1024));
+    } else {
+      return String.format("%.1f GB", size / (1024.0 * 1024 * 1024));
+    }
+  }
+
+  private void refreshBackupHistory() {
+    // Clear existing items
+    historyPanel.removeAll();
+
+    // Get backup list from service
+    List<BackupInfo> backups = dataPersistenceService.listBackups();
+
+    if (backups.isEmpty()) {
+      JLabel noBackupsLabel = new JLabel("No backups found");
+      noBackupsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+      noBackupsLabel.setForeground(Color.GRAY);
+      historyPanel.add(noBackupsLabel);
+    } else {
+      // Add backup items to history panel
+      for (BackupInfo backup : backups) {
+        createHistoryItem(historyPanel, backup);
+      }
+    }
+
+    // Refresh panel
+    historyPanel.revalidate();
+    historyPanel.repaint();
+  }
+
+  private void handleImport() {
+    Date fromDate = (Date) fromDateSpinner.getValue();
+    Date toDate = (Date) toDateSpinner.getValue();
+
+    if (fromDate.after(toDate)) {
+      JOptionPane.showMessageDialog(this,
+          "Start date must be before end date",
+          "Invalid Date Range",
+          JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+
+    // Step 1: Show entity type selection dialog
+    String[] entityTypes = { "Event", "Ticket" };
+    String selectedEntityType = (String) JOptionPane.showInputDialog(
+        this,
+        "Select what you want to import:",
+        "Import Selection",
+        JOptionPane.QUESTION_MESSAGE,
+        null,
+        entityTypes,
+        entityTypes[0]);
+
+    if (selectedEntityType == null) {
+      return; // User canceled
+    }
+
+    // Step 2: Show file format information
+    StringBuilder formatInfo = new StringBuilder();
+    formatInfo.append("Please ensure your Excel file has the following format:\n\n");
+
+    if (selectedEntityType.equals("Event")) {
+      formatInfo.append("Required columns:\n");
+      formatInfo.append("- event_name: Name of the event (text)\n");
+      formatInfo.append("- event_date: Date of the event (YYYY-MM-DD)\n");
+      formatInfo.append("- team_a: First team or participant (text)\n");
+      formatInfo.append("- team_b: Second team or participant (text)\n");
+      formatInfo.append("- category: Must be either 'Regular' or 'VIP' (text)\n");
+      formatInfo.append("- event_type: Must be either 'Event' or 'Match' (text)\n\n");
+
+      formatInfo.append("Optional columns:\n");
+      formatInfo.append("- event_description: Description of the event (text)\n");
+    } else if (selectedEntityType.equals("Ticket")) {
+      formatInfo.append("Required columns:\n");
+      formatInfo.append("- event_id: ID of the associated event (number)\n");
+      formatInfo.append("- ticket_type: Must be either 'Regular' or 'VIP' (text)\n");
+      formatInfo.append("- ticket_date: Date of the ticket (YYYY-MM-DD)\n");
+      formatInfo.append("- price: Ticket price (number, must be positive)\n\n");
+
+      formatInfo.append("Optional columns:\n");
+      formatInfo
+          .append("- ticket_status: Must be 'Available', 'Sold', or 'Canceled' (text, defaults to 'Available')\n");
+    }
+
+    JOptionPane.showMessageDialog(
+        this,
+        formatInfo.toString(),
+        "File Format Requirements",
+        JOptionPane.INFORMATION_MESSAGE);
+
+    // Step 3: Show file chooser dialog
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle("Select Excel File to Import");
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        "Excel Files", "xlsx", "xls");
+    fileChooser.setFileFilter(filter);
+
+    int result = fileChooser.showOpenDialog(this);
+    if (result != JFileChooser.APPROVE_OPTION) {
+      return; // User canceled
+    }
+
+    // Step 4: Process the import
+    File selectedFile = fileChooser.getSelectedFile();
+    ImportResult importResult = dataPersistenceService.importFromExcel(
+        selectedFile.getAbsolutePath(),
+        selectedEntityType);
+
+    // Step 5: Show result message
+    if (importResult.isSuccess()) {
+      JOptionPane.showMessageDialog(
+          this,
+          importResult.getMessage(),
+          "Import Successful",
+          JOptionPane.INFORMATION_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(
+          this,
+          "Import failed: " + importResult.getMessage(),
+          "Import Error",
+          JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  private void handleExport() {
+    Date fromDate = (Date) fromDateSpinner.getValue();
+    Date toDate = (Date) toDateSpinner.getValue();
+
+    if (fromDate.after(toDate)) {
+      JOptionPane.showMessageDialog(this,
+          "Start date must be before end date",
+          "Invalid Date Range",
+          JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+
+    // Step 1: Select what to export
+    String[] exportTypes = { "Events", "Tickets", "Sales Report" };
+    String selectedType = (String) JOptionPane.showInputDialog(
+        this,
+        "Select what you want to export:",
+        "Export Selection",
+        JOptionPane.QUESTION_MESSAGE,
+        null,
+        exportTypes,
+        exportTypes[0]);
+
+    if (selectedType == null) {
+      return; // User canceled
+    }
+
+    // Step 2: Select export format
+    String[] exportFormats = { "Excel (.xlsx)", "PDF (.pdf)" };
+    String selectedFormat = (String) JOptionPane.showInputDialog(
+        this,
+        "Select export format:",
+        "Export Format",
+        JOptionPane.QUESTION_MESSAGE,
+        null,
+        exportFormats,
+        exportFormats[0]);
+
+    if (selectedFormat == null) {
+      return; // User canceled
+    }
+
+    // Step 3: Choose destination
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle("Save Export File");
+
+    // Set extension filter based on selected format
+    String extension = selectedFormat.contains("Excel") ? "xlsx" : "pdf";
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        selectedFormat, extension);
+    fileChooser.setFileFilter(filter);
+
+    // Set default file name
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    String defaultFileName = selectedType + "_" + sdf.format(fromDate) + "_to_" + sdf.format(toDate) + "." + extension;
+    fileChooser.setSelectedFile(new File(defaultFileName));
+
+    int result = fileChooser.showSaveDialog(this);
+    if (result != JFileChooser.APPROVE_OPTION) {
+      return; // User canceled
+    }
+
+    // Ensure file has correct extension
+    File selectedFile = fileChooser.getSelectedFile();
+    if (!selectedFile.getName().endsWith("." + extension)) {
+      selectedFile = new File(selectedFile.getAbsolutePath() + "." + extension);
+    }
+
+    // Step 4: Generate sample data (in a real app, this would be from the database)
+    List<Map<String, Object>> data = generateSampleData(selectedType, fromDate, toDate);
+
+    // Step 5: Perform export
+    boolean success = false;
+    String title = selectedType + " Report (" + sdf.format(fromDate) + " to " + sdf.format(toDate) + ")";
+    String[] columnNames = getColumnNames(selectedType);
+
+    if (selectedFormat.contains("Excel")) {
+      success = dataPersistenceService.exportToExcel(data, selectedFile.getAbsolutePath(), selectedType, columnNames);
+    } else {
+      success = dataPersistenceService.exportToPDF(data, selectedFile.getAbsolutePath(), title, columnNames);
+    }
+
+    // Step 6: Show result message
+    if (success) {
+      JOptionPane.showMessageDialog(
+          this,
+          "Export completed successfully.\nFile saved to: " + selectedFile.getAbsolutePath(),
+          "Export Successful",
+          JOptionPane.INFORMATION_MESSAGE);
+    } else {
+      JOptionPane.showMessageDialog(
+          this,
+          "Failed to export data. Please try again.",
+          "Export Error",
+          JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  private String[] getColumnNames(String dataType) {
+    switch (dataType) {
+      case "Events":
+        return new String[] { "Event Name", "Date", "Team A", "Team B", "Category", "Event Type", "Description" };
+      case "Tickets":
+        return new String[] { "Event ID", "Ticket Type", "Date", "Price", "Status" };
+      case "Sales Report":
+        return new String[] { "Date", "Event", "Team A", "Team B", "Tickets Sold", "Revenue" };
+      default:
+        return new String[] { "Column 1", "Column 2", "Column 3" };
+    }
+  }
+
+  private List<Map<String, Object>> generateSampleData(String dataType, Date fromDate, Date toDate) {
+    // This is sample data for demonstration; in a real application,
+    // you would query the database for this data
+    List<Map<String, Object>> data = new ArrayList<>();
+
+    // Generate different sample data based on type
+    if (dataType.equals("Events")) {
+      Map<String, Object> row1 = new HashMap<>();
+      row1.put("event_name", "Summer Festival");
+      row1.put("event_date", "2025-06-15");
+      row1.put("team_a", "Team Red");
+      row1.put("team_b", "Team Blue");
+      row1.put("category", "VIP");
+      row1.put("event_type", "Event");
+      row1.put("event_description", "Annual summer celebration");
+      data.add(row1);
+
+      Map<String, Object> row2 = new HashMap<>();
+      row2.put("event_name", "Tech Conference");
+      row2.put("event_date", "2025-07-20");
+      row2.put("team_a", "Developer Group");
+      row2.put("team_b", "Industry Leaders");
+      row2.put("category", "Regular");
+      row2.put("event_type", "Event");
+      row2.put("event_description", "Annual technology showcase");
+      data.add(row2);
+
+      Map<String, Object> row3 = new HashMap<>();
+      row3.put("event_name", "Championship Final");
+      row3.put("event_date", "2025-08-10");
+      row3.put("team_a", "Eagles");
+      row3.put("team_b", "Tigers");
+      row3.put("category", "VIP");
+      row3.put("event_type", "Match");
+      row3.put("event_description", "Season finale championship match");
+      data.add(row3);
+    } else if (dataType.equals("Tickets")) {
+      Map<String, Object> row1 = new HashMap<>();
+      row1.put("event_id", 1);
+      row1.put("ticket_type", "VIP");
+      row1.put("ticket_date", "2025-06-15");
+      row1.put("price", 150.00);
+      row1.put("ticket_status", "Available");
+      data.add(row1);
+
+      Map<String, Object> row2 = new HashMap<>();
+      row2.put("event_id", 1);
+      row2.put("ticket_type", "Regular");
+      row2.put("ticket_date", "2025-06-15");
+      row2.put("price", 75.00);
+      row2.put("ticket_status", "Available");
+      data.add(row2);
+
+      Map<String, Object> row3 = new HashMap<>();
+      row3.put("event_id", 2);
+      row3.put("ticket_type", "Regular");
+      row3.put("ticket_date", "2025-07-20");
+      row3.put("price", 299.00);
+      row3.put("ticket_status", "Sold");
+      data.add(row3);
+    } else if (dataType.equals("Sales Report")) {
+      Map<String, Object> row1 = new HashMap<>();
+      row1.put("event_date", "2025-03-15");
+      row1.put("event_name", "Winter Concert");
+      row1.put("team_a", "Orchestra");
+      row1.put("team_b", "Special Guests");
+      row1.put("total_ticket_sold", 3245);
+      row1.put("total_revenue", 243375.00);
+      data.add(row1);
+
+      Map<String, Object> row2 = new HashMap<>();
+      row2.put("event_date", "2025-04-22");
+      row2.put("event_name", "Food Festival");
+      row2.put("team_a", "Local Chefs");
+      row2.put("team_b", "International Chefs");
+      row2.put("total_ticket_sold", 1823);
+      row2.put("total_revenue", 91150.00);
+      data.add(row2);
+
+      Map<String, Object> row3 = new HashMap<>();
+      row3.put("event_date", "2025-05-10");
+      row3.put("event_name", "Business Summit");
+      row3.put("team_a", "Industry Leaders");
+      row3.put("team_b", "Startups");
+      row3.put("total_ticket_sold", 782);
+      row3.put("total_revenue", 156400.00);
+      data.add(row3);
+    }
+
+    return data;
+  }
+
+  private void handleManageBackups() {
+    // Generate a backup name based on the current timestamp
+    String backupName = "backup_" + System.currentTimeMillis();
+
+    // Show a dialog to let the user customize the backup name
+    String customName = JOptionPane.showInputDialog(
+        this,
+        "Enter a name for this backup:",
+        backupName);
+
+    // If user provided a name, create the backup
+    if (customName != null && !customName.trim().isEmpty()) {
+      // Show a progress dialog
+      JDialog progressDialog = new JDialog();
+      progressDialog.setTitle("Creating Backup");
+      progressDialog.setLayout(new BorderLayout());
+      progressDialog.setSize(300, 100);
+      progressDialog.setLocationRelativeTo(this);
+
+      JLabel progressLabel = new JLabel("Creating backup... Please wait.", JLabel.CENTER);
+      progressDialog.add(progressLabel, BorderLayout.CENTER);
+
+      // Show the dialog on a separate thread to avoid blocking UI
+      SwingUtilities.invokeLater(() -> progressDialog.setVisible(true));
+
+      // Create the backup on a background thread
+      new Thread(() -> {
+        // Perform the backup
+        BackupResult result = dataPersistenceService.createBackup(customName);
+
+        // Close the progress dialog
+        SwingUtilities.invokeLater(() -> progressDialog.dispose());
+
+        // Show the result message
+        if (result.isSuccess()) {
+          SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(
+                this,
+                result.getMessage(),
+                "Backup Created",
+                JOptionPane.INFORMATION_MESSAGE);
+
+            // Refresh the backup history
+            refreshBackupHistory();
+          });
+        } else {
+          SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(
+                this,
+                "Failed to create backup: " + result.getMessage(),
+                "Backup Error",
+                JOptionPane.ERROR_MESSAGE);
+          });
+        }
+      }).start();
+    }
+  }
+}

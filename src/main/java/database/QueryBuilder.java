@@ -90,7 +90,47 @@ public class QueryBuilder {
             System.err.println("Error selecting data from table: " + table);
         }
 
-        return resultList; // Return the list of maps
+        return resultList;
+    }
+
+    // Select data from a table with filters
+    public List<Map<String, Object>> selectWithFilters(String table, Map<String, Object> filters, String[] columns) {
+        Table<?> targetTable = DSL.table(DSL.name(table));
+        List<Field<?>> fieldList = new ArrayList<>();
+
+        // Create fields for selected columns
+        for (String column : columns) {
+            fieldList.add(DSL.field(DSL.name(column)));
+        }
+
+        // Build the conditions for filtering
+        Condition conditions = null;
+        for (Map.Entry<String, Object> filter : filters.entrySet()) {
+            Condition newCondition = DSL.field(DSL.name(filter.getKey())).eq(filter.getValue());
+            conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+        }
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        try {
+            // Execute the query with filters
+            SelectConditionStep<Record> query = create.select(fieldList).from(targetTable).where(conditions);
+            Result<Record> result = query.fetch();
+
+            // Convert results to map
+            for (Record record : result) {
+                Map<String, Object> row = new HashMap<>();
+                for (Field<?> field : fieldList) {
+                    row.put(field.getName(), record.get(field));
+                }
+                resultList.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error selecting data from table: " + table);
+        }
+
+        return resultList;
     }
 
     // Update data in a table
@@ -128,5 +168,4 @@ public class QueryBuilder {
             System.err.println("Error deleting data from table: " + table);
         }
     }
-
 }

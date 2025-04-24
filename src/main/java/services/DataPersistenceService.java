@@ -1,0 +1,469 @@
+package services;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Date;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.apache.poi.ss.usermodel.*;
+
+import database.BackupManager;
+import database.Database;
+import server.ExcelExportService;
+import server.PDFExportService;
+
+/**
+ * Service for managing data persistence operations: import, export, and backup.
+ */
+public class DataPersistenceService {
+  private static final String BACKUP_DIRECTORY = "backups/";
+  private final ExcelExportService excelExportService;
+  private final PDFExportService pdfExportService;
+
+  public DataPersistenceService() {
+    this.excelExportService = new ExcelExportService();
+    this.pdfExportService = new PDFExportService();
+    initializeBackupDirectory();
+  }
+
+  private void initializeBackupDirectory() {
+    File backupDir = new File(BACKUP_DIRECTORY);
+    if (!backupDir.exists()) {
+      backupDir.mkdirs();
+    }
+  }
+
+  /**
+   * Import data from Excel file for the specified entity type
+   * 
+   * @param filePath   the path to the Excel file
+   * @param entityType the type of entity to import (e.g., "event", "ticket")
+   * @return Import status with success flag and message
+   */
+  public ImportResult importFromExcel(String filePath, String entityType) {
+    if (!new File(filePath).exists()) {
+      return new ImportResult(false, "File not found: " + filePath);
+    }
+
+    try (FileInputStream fis = new FileInputStream(filePath);
+        Workbook workbook = WorkbookFactory.create(fis)) {
+
+      Sheet sheet = workbook.getSheetAt(0);
+
+      // Get headers
+      Row headerRow = sheet.getRow(0);
+      if (headerRow == null) {
+        return new ImportResult(false, "Empty file or missing header row");
+      }
+
+      // Read header columns
+      Map<Integer, String> columnMap = new HashMap<>();
+      for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+        Cell cell = headerRow.getCell(i);
+        if (cell != null) {
+          columnMap.put(i, cell.getStringCellValue());
+        }
+      }
+
+      // Determine which import processor to use based on entity type
+      switch (entityType.toLowerCase()) {
+        case "event":
+          return importEvents(sheet, columnMap);
+        case "ticket":
+          return importTickets(sheet, columnMap);
+        default:
+          return new ImportResult(false, "Unsupported entity type: " + entityType);
+      }
+    } catch (IOException e) {
+      return new ImportResult(false, "Error reading file: " + e.getMessage());
+    }
+  }
+
+  private ImportResult importEvents(Sheet sheet, Map<Integer, String> columnMap) {
+    List<Map<String, Object>> events = new ArrayList<>();
+
+    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+      Row row = sheet.getRow(i);
+      if (row == null)
+        continue;
+
+      Map<String, Object> event = new HashMap<>();
+      for (int j = 0; j < columnMap.size(); j++) {
+        Cell cell = row.getCell(j);
+        if (cell != null) {
+          String columnName = columnMap.get(j);
+          event.put(columnName, getCellValue(cell));
+        }
+      }
+
+      // Validate event data
+      if (!isValidEventData(event)) {
+        return new ImportResult(false, "Invalid event data at row " + (i + 1)
+            + ". Required fields: event_name, event_date, team_a, team_b, category, event_type");
+      }
+
+      events.add(event);
+    }
+
+    // Import events to database
+    boolean success = saveEventsToDatabase(events);
+    return success
+        ? new ImportResult(true, events.size() + " events imported successfully")
+        : new ImportResult(false, "Failed to import events to database");
+  }
+
+  private boolean isValidEventData(Map<String, Object> event) {
+    // Required fields must be present and have valid values according to database
+    // schema
+    return event.containsKey("event_name") && event.get("event_name") != null
+        && event.containsKey("event_date") && event.get("event_date") != null
+        && event.containsKey("team_a") && event.get("team_a") != null
+        && event.containsKey("team_b") && event.get("team_b") != null
+        && event.containsKey("category") && isValidCategory((String) event.get("category"))
+        && event.containsKey("event_type") && isValidEventType((String) event.get("event_type"));
+  }
+
+  private boolean isValidCategory(String category) {
+    if (category == null)
+      return false;
+    return category.equals("Regular") || category.equals("VIP");
+  }
+
+  private boolean isValidEventType(String eventType) {
+    if (eventType == null)
+      return false;
+    return eventType.equals("Event") || eventType.equals("Match");
+  }
+
+  private boolean saveEventsToDatabase(List<Map<String, Object>> events) {
+    // SQL matched to the actual database schema
+    String sql = "INSERT INTO Event (event_name, event_date, event_description, category, event_type, team_a, team_b) "
+        +
+        "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    try (Connection conn = Database.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      conn.setAutoCommit(false);
+
+      for (Map<String, Object> event : events) {
+        pstmt.setString(1, (String) event.get("event_name"));
+        pstmt.setString(2, (String) event.get("event_date"));
+
+        // Event description
+        if (event.get("event_description") != null) {
+          pstmt.setString(3, (String) event.get("event_description"));
+        } else {
+          pstmt.setNull(3, Types.VARCHAR);
+        }
+
+        pstmt.setString(4, (String) event.get("category")); // Category (Regular or VIP)
+        pstmt.setString(5, (String) event.get("event_type")); // Event type (Event or Match)
+        pstmt.setString(6, (String) event.get("team_a"));
+        pstmt.setString(7, (String) event.get("team_b"));
+
+        pstmt.addBatch();
+      }
+
+      pstmt.executeBatch();
+      conn.commit();
+      return true;
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  private ImportResult importTickets(Sheet sheet, Map<Integer, String> columnMap) {
+    List<Map<String, Object>> tickets = new ArrayList<>();
+
+    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+      Row row = sheet.getRow(i);
+      if (row == null)
+        continue;
+
+      Map<String, Object> ticket = new HashMap<>();
+      for (int j = 0; j < columnMap.size(); j++) {
+        Cell cell = row.getCell(j);
+        if (cell != null) {
+          String columnName = columnMap.get(j);
+          ticket.put(columnName, getCellValue(cell));
+        }
+      }
+
+      // Validate ticket data
+      if (!isValidTicketData(ticket)) {
+        return new ImportResult(false,
+            "Invalid ticket data at row " + (i + 1) + ". Required fields: event_id, ticket_type, ticket_date, price");
+      }
+
+      tickets.add(ticket);
+    }
+
+    // Import tickets to database
+    boolean success = saveTicketsToDatabase(tickets);
+    return success
+        ? new ImportResult(true, tickets.size() + " tickets imported successfully")
+        : new ImportResult(false, "Failed to import tickets to database");
+  }
+
+  private boolean isValidTicketData(Map<String, Object> ticket) {
+    // Required fields must be present and have valid values according to database
+    // schema
+    boolean basic = ticket.containsKey("event_id") && ticket.get("event_id") != null
+        && ticket.containsKey("ticket_type") && isValidTicketType((String) ticket.get("ticket_type"))
+        && ticket.containsKey("ticket_date") && ticket.get("ticket_date") != null
+        && ticket.containsKey("price") && isPositiveNumber(ticket.get("price"));
+
+    // Ticket status if provided must be valid
+    if (ticket.containsKey("ticket_status") && ticket.get("ticket_status") != null) {
+      return basic && isValidTicketStatus((String) ticket.get("ticket_status"));
+    }
+
+    return basic;
+  }
+
+  private boolean isValidTicketType(String ticketType) {
+    if (ticketType == null)
+      return false;
+    return ticketType.equals("Regular") || ticketType.equals("VIP");
+  }
+
+  private boolean isValidTicketStatus(String ticketStatus) {
+    if (ticketStatus == null)
+      return false;
+    return ticketStatus.equals("Available") || ticketStatus.equals("Sold") || ticketStatus.equals("Canceled");
+  }
+
+  private boolean isPositiveNumber(Object value) {
+    if (value == null)
+      return false;
+    try {
+      if (value instanceof Number) {
+        return ((Number) value).doubleValue() > 0;
+      } else {
+        return Double.parseDouble(value.toString()) > 0;
+      }
+    } catch (NumberFormatException e) {
+      return false;
+    }
+  }
+
+  private boolean saveTicketsToDatabase(List<Map<String, Object>> tickets) {
+    // SQL matched to the actual database schema
+    String sql = "INSERT INTO Ticket (event_id, ticket_type, ticket_date, ticket_status, price) " +
+        "VALUES (?, ?, ?, ?, ?)";
+
+    try (Connection conn = Database.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      conn.setAutoCommit(false);
+
+      for (Map<String, Object> ticket : tickets) {
+        // Event ID
+        Object eventIdObj = ticket.get("event_id");
+        if (eventIdObj instanceof Number) {
+          pstmt.setInt(1, ((Number) eventIdObj).intValue());
+        } else {
+          pstmt.setInt(1, Integer.parseInt(eventIdObj.toString()));
+        }
+
+        pstmt.setString(2, (String) ticket.get("ticket_type"));
+        pstmt.setString(3, (String) ticket.get("ticket_date"));
+
+        // Ticket status (default to 'Available' if not provided)
+        if (ticket.containsKey("ticket_status") && ticket.get("ticket_status") != null) {
+          pstmt.setString(4, (String) ticket.get("ticket_status"));
+        } else {
+          pstmt.setString(4, "Available");
+        }
+
+        // Price
+        Object priceObj = ticket.get("price");
+        if (priceObj instanceof Number) {
+          pstmt.setDouble(5, ((Number) priceObj).doubleValue());
+        } else {
+          pstmt.setDouble(5, Double.parseDouble(priceObj.toString()));
+        }
+
+        pstmt.addBatch();
+      }
+
+      pstmt.executeBatch();
+      conn.commit();
+      return true;
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  private Object getCellValue(Cell cell) {
+    switch (cell.getCellType()) {
+      case STRING:
+        return cell.getStringCellValue();
+      case NUMERIC:
+        if (DateUtil.isCellDateFormatted(cell)) {
+          return cell.getDateCellValue();
+        }
+        return cell.getNumericCellValue();
+      case BOOLEAN:
+        return cell.getBooleanCellValue();
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Export data to Excel file
+   * 
+   * @param data        Data to export (list of maps with row data)
+   * @param filePath    Output file path
+   * @param sheetName   Name of the Excel sheet
+   * @param columnNames Column headers
+   * @return True if export was successful
+   */
+  public boolean exportToExcel(List<Map<String, Object>> data, String filePath,
+      String sheetName, String[] columnNames) {
+    return excelExportService.exportToExcel(data, filePath, sheetName, columnNames);
+  }
+
+  /**
+   * Export data to PDF file
+   * 
+   * @param data        Data to export
+   * @param filePath    Output file path
+   * @param title       Title of the PDF document
+   * @param columnNames Column headers for the PDF table
+   * @return True if export was successful
+   */
+  public boolean exportToPDF(List<Map<String, Object>> data, String filePath, String title, String[] columnNames) {
+    return pdfExportService.exportToPDF(data, filePath, title, columnNames);
+  }
+
+  /**
+   * Create a database backup
+   * 
+   * @param backupName Name for the backup file
+   * @return Backup result with success flag and message
+   */
+  public BackupResult createBackup(String backupName) {
+    if (backupName == null || backupName.trim().isEmpty()) {
+      backupName = "backup_" + System.currentTimeMillis();
+    }
+
+    String backupPath = BACKUP_DIRECTORY + backupName + ".db";
+    try {
+      BackupManager.backupDatabase(backupPath);
+      return new BackupResult(true, "Backup created successfully at " + backupPath);
+    } catch (Exception e) {
+      return new BackupResult(false, "Backup failed: " + e.getMessage());
+    }
+  }
+
+  /**
+   * List all available backups
+   * 
+   * @return List of backup files with metadata
+   */
+  public List<BackupInfo> listBackups() {
+    File backupDir = new File(BACKUP_DIRECTORY);
+    File[] files = backupDir.listFiles((dir, name) -> name.endsWith(".db"));
+
+    List<BackupInfo> backups = new ArrayList<>();
+    if (files != null) {
+      for (File file : files) {
+        backups.add(new BackupInfo(
+            file.getName(),
+            new Date(file.lastModified()),
+            file.length(),
+            file.getAbsolutePath()));
+      }
+    }
+
+    return backups;
+  }
+
+  /**
+   * Class representing import operation result
+   */
+  public static class ImportResult {
+    private final boolean success;
+    private final String message;
+
+    public ImportResult(boolean success, String message) {
+      this.success = success;
+      this.message = message;
+    }
+
+    public boolean isSuccess() {
+      return success;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+  }
+
+  /**
+   * Class representing backup operation result
+   */
+  public static class BackupResult {
+    private final boolean success;
+    private final String message;
+
+    public BackupResult(boolean success, String message) {
+      this.success = success;
+      this.message = message;
+    }
+
+    public boolean isSuccess() {
+      return success;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+  }
+
+  /**
+   * Class representing backup file information
+   */
+  public static class BackupInfo {
+    private final String name;
+    private final Date creationDate;
+    private final long size;
+    private final String path;
+
+    public BackupInfo(String name, Date creationDate, long size, String path) {
+      this.name = name;
+      this.creationDate = creationDate;
+      this.size = size;
+      this.path = path;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public Date getCreationDate() {
+      return creationDate;
+    }
+
+    public long getSize() {
+      return size;
+    }
+
+    public String getPath() {
+      return path;
+    }
+  }
+}

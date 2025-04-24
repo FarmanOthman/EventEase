@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS Customer (
 CREATE TABLE IF NOT EXISTS Ticket (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INTEGER NOT NULL,  
+    customer_id INTEGER UNIQUE,  -- Making this UNIQUE ensures one-to-one relationship
     ticket_type TEXT CHECK (ticket_type IN ('Regular', 'VIP')) NOT NULL,
     ticket_date TIMESTAMP NOT NULL,
     ticket_status TEXT CHECK (ticket_status IN ('Available', 'Sold', 'Canceled')) DEFAULT 'Available',  -- Validating ticket status
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS Ticket (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES Event(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE SET NULL,  -- If customer is deleted, set ticket's customer_id to NULL
     CONSTRAINT ticket_unique UNIQUE (event_id, ticket_type)  -- Only one ticket for Regular events
 );
 
@@ -73,3 +75,17 @@ CREATE INDEX IF NOT EXISTS idx_event_name ON Event(event_name);
 CREATE INDEX IF NOT EXISTS idx_event_date ON Event(event_date);
 CREATE INDEX IF NOT EXISTS idx_ticket_event_id ON Ticket(event_id);
 CREATE INDEX IF NOT EXISTS idx_event_name_date ON Event(event_name, event_date);  -- Composite index for faster event name and date search
+
+-- Sales Table (Stores aggregated sales data)
+CREATE TABLE IF NOT EXISTS Sales (
+    sale_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sale_date TIMESTAMP NOT NULL,
+    tickets_sold INTEGER NOT NULL CHECK (tickets_sold >= 0),
+    revenue REAL NOT NULL CHECK (revenue >= 0),
+    category TEXT CHECK (category IN ('Regular', 'VIP', 'Premium')) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for faster date-based queries
+CREATE INDEX IF NOT EXISTS idx_sales_date ON Sales(sale_date);
