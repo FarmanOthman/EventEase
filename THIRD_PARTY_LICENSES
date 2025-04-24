@@ -1,0 +1,44 @@
+THIRD-PARTY SOFTWARE LICENSES
+
+EventEase - Event Management System uses third-party libraries or other resources that may be
+distributed under licenses different from the EventEase proprietary software license.
+
+The following third-party software components are used in this project:
+
+--------------------------------------------------------------------------------
+1. BCrypt Password Hashing Function
+   - License: ISC-style license
+   - Copyright (c) 2006 Damien Miller <djm@mindrot.org>
+   Used for secure password hashing in authentication.
+
+--------------------------------------------------------------------------------
+2. SQLite JDBC Driver
+   - License: Apache License 2.0
+   - Copyright (c) 2006-2014 Taro L. Saito
+   Used for database connectivity.
+
+--------------------------------------------------------------------------------
+3. Apache PDFBox
+   - License: Apache License 2.0
+   - Copyright (c) 2002-2023 The Apache Software Foundation
+   Used for PDF report generation.
+
+--------------------------------------------------------------------------------
+4. Apache POI
+   - License: Apache License 2.0
+   - Copyright (c) 2002-2023 The Apache Software Foundation
+   Used for Excel file handling and report generation.
+
+--------------------------------------------------------------------------------
+5. SwingX
+   - License: LGPL 2.1
+   - Copyright (c) 2005-2006 Sun Microsystems, Inc.
+   Used for enhanced Swing UI components.
+
+--------------------------------------------------------------------------------
+
+Full license texts for the above components can be found at:
+- Apache License 2.0: http://www.apache.org/licenses/LICENSE-2.0
+- LGPL 2.1: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
+
+For any questions regarding third-party licenses, please contact the project maintainers.
