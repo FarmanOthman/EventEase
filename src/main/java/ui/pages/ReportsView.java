@@ -91,6 +91,7 @@ public class ReportsView extends JPanel {
                 BorderFactory.createEmptyBorder(3, 5, 3, 5)));
 
         // Add search icon
+        
        
 
         JButton searchButton = createStyledButton("Search", primaryColor.darker());
@@ -101,10 +102,12 @@ public class ReportsView extends JPanel {
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
 
-        
+        Label searchIcon = new Label("Miran");
+        searchIcon.setFont(new Font("Arial", Font.BOLD, 16));
+        searchIcon.setForeground(Color.WHITE);
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-
+        headerPanel.add(searchIcon, BorderLayout.WEST);
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
 
@@ -349,7 +352,7 @@ public class ReportsView extends JPanel {
         populateFilterCombo();
 
         JButton applyButton = createStyledButton("Apply Filter", primaryColor);
-        JButton resetButton = createStyledButton("Reset", new Color(150, 150, 150));
+        
         JButton exportButton = createStyledButton("Export With Analysis", accentColor);
         exportButton.setPreferredSize(new Dimension(150, 30));
 
@@ -359,19 +362,7 @@ public class ReportsView extends JPanel {
             applyFilter(filterCriteria);
         });
 
-        // Action Listener for Reset button
-        resetButton.addActionListener(e -> {
-            filterCombo.setSelectedIndex(0);
-            searchField.setText("");
-            try {
-                updateSalesData(salesDataService.getAllSalesData());
-                refreshTable();
-                statusLabel.setText("Filters cleared");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error resetting data: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+      
 
         // Action Listener for the Export button
         exportButton.addActionListener(e -> {
@@ -384,7 +375,7 @@ public class ReportsView extends JPanel {
         controlsPanel.add(Box.createHorizontalStrut(15));
         controlsPanel.add(applyButton);
         controlsPanel.add(Box.createHorizontalStrut(10));
-        controlsPanel.add(resetButton);
+       
         controlsPanel.add(Box.createHorizontalStrut(20));
         controlsPanel.add(exportButton);
 
