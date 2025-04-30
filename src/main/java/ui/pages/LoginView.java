@@ -59,6 +59,8 @@ public class LoginView extends JPanel {
     loginButton.setBackground(new Color(50, 120, 200));
     loginButton.setForeground(Color.white);
     loginBox.add(loginButton);
+    loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
 
     loginButton.addActionListener(e -> {
       String password = new String(passField.getPassword());
