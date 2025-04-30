@@ -576,9 +576,9 @@ public class BookingView extends JPanel implements Refreshable {
             if (selectedEventId != -1) {
                 // Use the same format as in BookingServiceSer.getPricingOptions()
                 priceCombo.addItem("Select Price Category");
-                priceCombo.addItem("VIP - $100");
-                priceCombo.addItem("Regular - Premium - $75");
-                priceCombo.addItem("Regular - Standard - $50");
+                priceCombo.addItem("VIP - $25");
+                priceCombo.addItem("Regular - Premium - $15");
+                priceCombo.addItem("Regular - Standard - $10");
             } else {
                 // Prompt to select an event first
                 priceCombo.addItem("Select Event First");
