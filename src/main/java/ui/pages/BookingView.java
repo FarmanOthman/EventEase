@@ -1,5 +1,5 @@
 package ui.pages;
-
+import java.awt.Graphics;
 import ui.components.Sidebar;
 import ui.Router;
 import ui.Refreshable;
