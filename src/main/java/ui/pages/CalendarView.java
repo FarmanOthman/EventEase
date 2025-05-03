@@ -3,6 +3,7 @@ package ui.pages;
 import ui.components.Sidebar;
 import services.EventCalendarService;
 import ui.dialogs.EventAddDialog;
+import ui.components.RoundedButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -169,7 +170,12 @@ public class CalendarView extends JPanel {
     });
 
     // Add event button
-    JButton addEventButton = createStyledButton("+ Add Event", Color.WHITE);
+    RoundedButton addEventButton = new RoundedButton("+ Add Event", 25);
+    addEventButton.setBackground(new Color(28, 184, 96)); // Green color
+    addEventButton.setFont(new Font("Arial", Font.BOLD, 14));
+    addEventButton.setForeground(Color.white);
+    addEventButton.setPreferredSize(new Dimension(120, 40));
+    addEventButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     addEventButton.addActionListener(e -> showAddEventDialog(null));
 
     JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -458,7 +464,13 @@ public class CalendarView extends JPanel {
     headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
     headerLabel.setForeground(primaryColor);
 
-    JButton addButton = new JButton("+ Add Event");
+    // Add event button
+    JButton addButton = new RoundedButton("+ Add Event", 25);
+    addButton.setBackground(new Color(28, 184, 96)); // Green color
+    addButton.setFont(new Font("Arial", Font.BOLD, 14));
+    addButton.setForeground(Color.white);
+    addButton.setPreferredSize(new Dimension(120, 40));
+    addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     addButton.addActionListener(e -> {
       eventDialog.dispose();
       showAddEventDialog(date);
@@ -478,7 +490,12 @@ public class CalendarView extends JPanel {
     }
 
     // Add close button
-    JButton closeButton = new JButton("Close");
+    RoundedButton closeButton = new RoundedButton("Close", 25);
+    closeButton.setBackground(new Color(64, 133, 219));
+    closeButton.setFont(new Font("Arial", Font.BOLD, 14));
+    closeButton.setForeground(Color.white);
+    closeButton.setPreferredSize(new Dimension(120, 40));
+    closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     closeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     closeButton.addActionListener(e -> eventDialog.dispose());
     contentPanel.add(Box.createVerticalStrut(20));
@@ -591,27 +608,12 @@ public class CalendarView extends JPanel {
    * Creates a styled button with hover effects
    */
   private JButton createStyledButton(String text, Color foregroundColor) {
-    JButton button = new JButton(text);
-    button.setContentAreaFilled(false);
-    button.setBorderPainted(false);
-    button.setFocusPainted(false);
-    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    RoundedButton button = new RoundedButton(text, 25);
+    button.setBackground(primaryColor);
+    button.setFont(new Font("Arial", Font.BOLD, 14));
     button.setForeground(foregroundColor);
-    button.setFont(new Font("Arial", Font.BOLD, 16));
-
-    // Add hover effect
-    button.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        button.setForeground(foregroundColor.darker());
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        button.setForeground(foregroundColor);
-      }
-    });
-
+    button.setPreferredSize(new Dimension(85, 30));
+    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     return button;
   }
 }

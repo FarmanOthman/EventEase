@@ -1,6 +1,7 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.components.RoundedButton;
 import services.NotificationService;
 import services.NotificationService.UINotification;
 
@@ -15,7 +16,7 @@ public class NotificationView extends JPanel {
   private JPanel mainPanel;
   private JPanel notificationsPanel;
   private JLabel notificationCountLabel;
-  private JButton markAllReadButton;
+  private RoundedButton markAllReadButton;
   private JComboBox<String> filterComboBox;
   private NotificationService notificationService;
   private List<UINotification> notifications;
@@ -91,8 +92,12 @@ public class NotificationView extends JPanel {
     filterComboBox.addActionListener(e -> applyFilter((String) filterComboBox.getSelectedItem()));
 
     // Mark all as read button
-    markAllReadButton = new JButton("Mark All as Read");
-    markAllReadButton.setPreferredSize(new Dimension(140, 30));
+    markAllReadButton = new RoundedButton("Mark All as Read", 25);
+    markAllReadButton.setBackground(new Color(64, 133, 219));
+    markAllReadButton.setFont(new Font("Arial", Font.BOLD, 14));
+    markAllReadButton.setForeground(Color.white);
+    markAllReadButton.setPreferredSize(new Dimension(160, 40));
+    markAllReadButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     markAllReadButton.addActionListener(e -> markAllAsRead());
 
     controlPanel.add(filterComboBox);
@@ -195,9 +200,12 @@ public class NotificationView extends JPanel {
     actionsPanel.setOpaque(false);
 
     // Mark as read/unread button
-    JButton readButton = new JButton(notification.isRead() ? "Mark as Unread" : "Mark as Read");
-    readButton.setFont(new Font("Arial", Font.PLAIN, 12));
-    readButton.setFocusPainted(false);
+    RoundedButton readButton = new RoundedButton(notification.isRead() ? "Mark as Unread" : "Mark as Read", 25);
+    readButton.setBackground(new Color(64, 133, 219));
+    readButton.setFont(new Font("Arial", Font.BOLD, 14));
+    readButton.setForeground(Color.white);
+    readButton.setPreferredSize(new Dimension(130, 30));
+    readButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     readButton.addActionListener(e -> {
       if (notification.isRead()) {
         notificationService.markAsUnread(notification.getId());
@@ -208,9 +216,12 @@ public class NotificationView extends JPanel {
     });
 
     // Dismiss button
-    JButton dismissButton = new JButton("Dismiss");
-    dismissButton.setFont(new Font("Arial", Font.PLAIN, 12));
-    dismissButton.setFocusPainted(false);
+    RoundedButton dismissButton = new RoundedButton("Dismiss", 25);
+    dismissButton.setBackground(new Color(231, 76, 60)); // Red color
+    dismissButton.setFont(new Font("Arial", Font.BOLD, 14));
+    dismissButton.setForeground(Color.white);
+    dismissButton.setPreferredSize(new Dimension(120, 30));
+    dismissButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     dismissButton.addActionListener(e -> {
       notificationService.deleteNotification(notification.getId());
       refreshNotifications();

@@ -1,6 +1,7 @@
 package ui.pages;
 
 import ui.components.Sidebar;
+import ui.components.RoundedButton;
 import services.DataPersistenceService;
 import services.DataPersistenceService.BackupInfo;
 import services.DataPersistenceService.BackupResult;
@@ -222,37 +223,11 @@ public class DataPersistenceView extends JPanel {
   }
 
   private JButton createStyledButton(String text, Color backgroundColor) {
-    JButton button = new JButton(text) {
-      @Override
-      protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        if (backgroundColor.equals(Color.WHITE)) {
-          g2.setColor(backgroundColor);
-          g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
-          g2.setColor(Color.LIGHT_GRAY);
-          g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
-          g2.setColor(Color.BLACK);
-        } else {
-          g2.setColor(backgroundColor);
-          g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-          g2.setColor(Color.WHITE);
-        }
-
-        FontMetrics fm = g2.getFontMetrics();
-        Rectangle textRect = new Rectangle(0, 0, getWidth(), getHeight());
-        int x = (textRect.width - fm.stringWidth(text)) / 2;
-        int y = (textRect.height - fm.getHeight()) / 2 + fm.getAscent();
-        g2.drawString(text, x, y);
-        g2.dispose();
-      }
-    };
-
-    button.setPreferredSize(new Dimension(text.equals("Select from when to when") ? 200 : 150, 35));
-    button.setFocusPainted(false);
-    button.setBorderPainted(false);
-    button.setContentAreaFilled(false);
+    RoundedButton button = new RoundedButton(text, 25);
+    button.setBackground(backgroundColor);
+    button.setFont(new Font("Arial", Font.BOLD, 14));
+    button.setForeground(Color.white);
+    button.setPreferredSize(new Dimension(120, 40));
     button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     return button;
   }
@@ -288,8 +263,12 @@ public class DataPersistenceView extends JPanel {
     itemPanel.add(label, BorderLayout.CENTER);
 
     // Add restore button (could be implemented in a future version)
-    JButton restoreButton = new JButton("Restore");
+    RoundedButton restoreButton = new RoundedButton("Restore", 25);
+    restoreButton.setBackground(new Color(64, 133, 219));
+    restoreButton.setFont(new Font("Arial", Font.BOLD, 14));
+    restoreButton.setForeground(Color.white);
     restoreButton.setPreferredSize(new Dimension(80, 25));
+    restoreButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     itemPanel.add(restoreButton, BorderLayout.EAST);
 
     parent.add(itemPanel);

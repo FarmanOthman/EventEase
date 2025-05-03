@@ -9,6 +9,7 @@ import java.util.Map;
 
 import ui.Refreshable;
 import ui.components.Sidebar;
+import ui.components.RoundedButton;
 import server.AuthenticationService.UserRole;
 import services.UserService;
 
@@ -55,37 +56,6 @@ public class UserManagementView extends JPanel implements Refreshable {
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2.setColor(getBackground());
       g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius));
-      g2.dispose();
-    }
-  }
-
-  // Custom button with rounded corners
-  private class RoundedButton extends JButton {
-    private Color buttonColor;
-    private int radius = 10;
-
-    public RoundedButton(String text, Color bgColor) {
-      super(text);
-      this.buttonColor = bgColor;
-      setContentAreaFilled(false);
-      setFocusPainted(false);
-      setBorderPainted(false);
-      setForeground(Color.WHITE);
-      setFont(new Font("Arial", Font.BOLD, 12));
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-      Graphics2D g2 = (Graphics2D) g.create();
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g2.setColor(buttonColor);
-      g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), radius, radius));
-      FontMetrics fm = g2.getFontMetrics();
-      Rectangle textRect = fm.getStringBounds(getText(), g2).getBounds();
-      int textX = (getWidth() - textRect.width) / 2;
-      int textY = (getHeight() - textRect.height) / 2 + fm.getAscent();
-      g2.setColor(getForeground());
-      g2.drawString(getText(), textX, textY);
       g2.dispose();
     }
   }
@@ -190,7 +160,9 @@ public class UserManagementView extends JPanel implements Refreshable {
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
     // Create custom button with rounded corners
-    RoundedButton addNewButton = new RoundedButton("+ Add New User", new Color(39, 174, 96));
+    RoundedButton addNewButton = new RoundedButton("+ Add New User",25);
+    addNewButton.setBackground(new Color(66, 133, 244)); // Blue color
+    
     addNewButton.setPreferredSize(new Dimension(150, 40));
     addNewButton.addActionListener(e -> showAddUserDialog());
     buttonPanel.add(addNewButton);
@@ -270,10 +242,20 @@ public class UserManagementView extends JPanel implements Refreshable {
     formPanel.add(roleComboBox);
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton cancelButton = new JButton("Cancel");
+    RoundedButton cancelButton = new RoundedButton("Cancel", 25);
+    cancelButton.setBackground(new Color(204, 204, 204)); // Gray color
+    cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+    cancelButton.setForeground(Color.black);
+    cancelButton.setPreferredSize(new Dimension(120, 40));
+    cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     cancelButton.addActionListener(e -> dialog.dispose());
 
-    JButton saveButton = new JButton("Save");
+    RoundedButton saveButton = new RoundedButton("Save", 25);
+    saveButton.setBackground(new Color(66, 133, 244)); // Blue color
+    saveButton.setFont(new Font("Arial", Font.BOLD, 14));
+    saveButton.setForeground(Color.white);
+    saveButton.setPreferredSize(new Dimension(120, 40));
+    saveButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     saveButton.addActionListener(e -> {
       String username = usernameField.getText().trim();
       String password = new String(passwordField.getPassword());
@@ -336,10 +318,20 @@ public class UserManagementView extends JPanel implements Refreshable {
     formPanel.add(emailField);
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton cancelButton = new JButton("Cancel");
+    RoundedButton cancelButton = new RoundedButton("Cancel", 25);
+    cancelButton.setBackground(new Color(204, 204, 204)); // Gray color
+    cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+    cancelButton.setForeground(Color.black);
+    cancelButton.setPreferredSize(new Dimension(120, 40));
+    cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     cancelButton.addActionListener(e -> dialog.dispose());
 
-    JButton saveButton = new JButton("Save");
+    RoundedButton saveButton = new RoundedButton("Save", 25);
+    saveButton.setBackground(new Color(66, 133, 244)); // Blue color
+    saveButton.setFont(new Font("Arial", Font.BOLD, 14));
+    saveButton.setForeground(Color.white);
+    saveButton.setPreferredSize(new Dimension(120, 40));
+    saveButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     saveButton.addActionListener(e -> {
       String newEmail = emailField.getText().trim();
       String newPassword = new String(passwordField.getPassword());
@@ -378,13 +370,17 @@ public class UserManagementView extends JPanel implements Refreshable {
     panel.setBackground(Color.WHITE);
 
     // Both roles have full access with View, Edit, Delete buttons
-    RoundedButton viewButton = new RoundedButton("View", new Color(66, 133, 244));
+    RoundedButton viewButton = new RoundedButton("View", 25);
+    viewButton.setBackground(new Color(66, 133, 244)); // Blue color
     viewButton.setPreferredSize(new Dimension(60, 25));
 
-    RoundedButton editButton = new RoundedButton("Edit", new Color(242, 153, 0));
+    RoundedButton editButton = new RoundedButton("Edit", 25);
+    editButton.setBackground(new Color(242, 153, 0)); // Orange color
+    
     editButton.setPreferredSize(new Dimension(60, 25));
 
-    RoundedButton deleteButton = new RoundedButton("Delete", new Color(231, 76, 60));
+    RoundedButton deleteButton = new RoundedButton("Delete", 25);
+    deleteButton.setBackground(new Color(231, 76, 60)); // Red color
     deleteButton.setPreferredSize(new Dimension(60, 25));
 
     panel.add(viewButton);
@@ -408,14 +404,17 @@ public class UserManagementView extends JPanel implements Refreshable {
       removeAll();
 
       // Both roles have full access with View, Edit, Delete buttons
-      RoundedButton viewButton = new RoundedButton("View", new Color(66, 133, 244));
-      viewButton.setPreferredSize(new Dimension(60, 25));
+      RoundedButton viewButton = new RoundedButton("View", 25);
+      viewButton.setBackground(new Color(66, 133, 244)); // Blue color
+      viewButton.setPreferredSize(new Dimension(70, 25));
 
-      RoundedButton editButton = new RoundedButton("Edit", new Color(242, 153, 0));
+      RoundedButton editButton = new RoundedButton("Edit", 25);
+      editButton.setBackground(new Color(242, 153, 0)); // Orange color
       editButton.setPreferredSize(new Dimension(60, 25));
 
-      RoundedButton deleteButton = new RoundedButton("Delete", new Color(231, 76, 60));
-      deleteButton.setPreferredSize(new Dimension(60, 25));
+      RoundedButton deleteButton = new RoundedButton("Delete", 25);
+      deleteButton.setBackground(new Color(231, 76, 60)); // Red color
+      deleteButton.setPreferredSize(new Dimension(70, 25));
 
       add(viewButton);
       add(editButton);
@@ -432,8 +431,9 @@ public class UserManagementView extends JPanel implements Refreshable {
       panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
 
       // Both roles have full access
-      RoundedButton viewButton = new RoundedButton("View", new Color(66, 133, 244));
-      viewButton.setPreferredSize(new Dimension(60, 25));
+      RoundedButton viewButton = new RoundedButton("View", 25);
+      viewButton.setBackground(new Color(66, 133, 244)); // Blue color
+      viewButton.setPreferredSize(new Dimension(80, 25)); // Increased width from 60 to 80
       viewButton.addActionListener(e -> {
         int row = adminTable.getSelectedRow();
         if (row >= 0) {
@@ -450,8 +450,9 @@ public class UserManagementView extends JPanel implements Refreshable {
         fireEditingStopped();
       });
 
-      RoundedButton editButton = new RoundedButton("Edit", new Color(242, 153, 0));
-      editButton.setPreferredSize(new Dimension(60, 25));
+      RoundedButton editButton = new RoundedButton("Edit", 25);
+      editButton.setBackground(new Color(242, 153, 0)); // Orange color
+      editButton.setPreferredSize(new Dimension(80, 25)); // Increased width from 60 to 80
       editButton.addActionListener(e -> {
         int row = adminTable.getSelectedRow();
         if (row >= 0) {
@@ -463,8 +464,9 @@ public class UserManagementView extends JPanel implements Refreshable {
         fireEditingStopped();
       });
 
-      RoundedButton deleteButton = new RoundedButton("Delete", new Color(231, 76, 60));
-      deleteButton.setPreferredSize(new Dimension(60, 25));
+      RoundedButton deleteButton = new RoundedButton("Delete", 25);
+      deleteButton.setBackground(new Color(231, 76, 60)); // Red color
+      deleteButton.setPreferredSize(new Dimension(80, 25)); // Changed from 200 to 80 to match other buttons
       deleteButton.addActionListener(e -> {
         int row = adminTable.getSelectedRow();
         if (row >= 0) {
