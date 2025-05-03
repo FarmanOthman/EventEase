@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
  * This is a large utility class with unfunctional code
  * Created purely for demonstration purposes
  */
-public class LargeUnfunctionalUtility {
+public class LargeUtility {
     
     // Various constants and fields
     private static final int MAX_RETRY_ATTEMPTS = 5;
@@ -38,7 +38,7 @@ public class LargeUnfunctionalUtility {
     /**
      * Default constructor initializes with default values
      */
-    public LargeUnfunctionalUtility() {
+    public LargeUtility() {
         this.contextCache = new HashMap<>();
         this.executionHistory = new ArrayList<>();
         this.random = new Random();
@@ -51,7 +51,7 @@ public class LargeUnfunctionalUtility {
      * Parameterized constructor with custom load factor
      * @param loadFactor Custom load factor for operations
      */
-    public LargeUnfunctionalUtility(double loadFactor) {
+    public LargeUtility(double loadFactor) {
         this();
         this.loadFactor = loadFactor;
     }
@@ -1346,7 +1346,7 @@ public class LargeUnfunctionalUtility {
      * Main demonstration method for testing utility functions
      */
     public static void demonstrateUtility() {
-        LargeUnfunctionalUtility utility = new LargeUnfunctionalUtility();
+        LargeUtility utility = new LargeUtility();
         utility.initialize(12345L, 10);
         
         // Test various functions
