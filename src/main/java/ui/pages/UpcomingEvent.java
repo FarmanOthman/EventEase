@@ -2,6 +2,7 @@ package ui.pages;
 import ui.components.Sidebar;
 import ui.dialogs.EventDetailsDialog;
 import ui.dialogs.EventEditDialog;
+import ui.components.RoundedButton;
 import javax.swing.*;
 import javax.swing.table.*;
 import services.EventServiceSer;
@@ -59,14 +60,11 @@ public class UpcomingEvent extends JPanel {
     headerPanel.add(headerLabel, BorderLayout.WEST);
 
     // Add a refresh button
-    JButton refreshButton = new JButton("Refresh");
+    RoundedButton refreshButton = new RoundedButton("Refresh", 25);
     refreshButton.setBackground(new Color(245, 245, 245));
+    refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
     refreshButton.setForeground(new Color(64, 133, 219));
-    refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
-    refreshButton.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-        BorderFactory.createEmptyBorder(5, 15, 5, 15)));
-    refreshButton.setFocusPainted(false);
+    refreshButton.setPreferredSize(new Dimension(120, 40));
     refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     refreshButton.addActionListener(e -> loadAllEvents());
 
@@ -170,11 +168,11 @@ public class UpcomingEvent extends JPanel {
     // Add a reset button to clear all filters
     JPanel resetPanel = new JPanel(new BorderLayout(5, 5));
     resetPanel.setBackground(Color.WHITE);
-    JButton resetButton = new JButton("Reset Filters");
+    RoundedButton resetButton = new RoundedButton("Reset Filters", 25);
     resetButton.setBackground(new Color(64, 133, 219));
-    resetButton.setForeground(Color.WHITE);
-    resetButton.setFont(new Font("Arial", Font.BOLD, 12));
-    resetButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    resetButton.setFont(new Font("Arial", Font.BOLD, 14));
+    resetButton.setForeground(Color.white);
+    resetButton.setPreferredSize(new Dimension(120, 40));
     resetButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     resetButton.addActionListener(e -> {
       categoryFilter.setSelectedIndex(0);
@@ -466,18 +464,12 @@ public class UpcomingEvent extends JPanel {
     }
 
     private JButton createButton(String text, Color color) {
-      JButton btn = new JButton(text);
+      RoundedButton btn = new RoundedButton(text, 25);
       btn.setBackground(color);
-      btn.setForeground(Color.WHITE);
-      btn.setFont(new Font("Arial", Font.BOLD, 11));
-      btn.setFocusPainted(false);
-      btn.setBorderPainted(false);
-      btn.setOpaque(true);
+      btn.setFont(new Font("Arial", Font.BOLD, 14));
+      btn.setForeground(Color.white);
       btn.setPreferredSize(new Dimension(68, 25));
-      // Add rounded corners effect
-      btn.setBorder(BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(color, 1),
-          BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+      btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
       return btn;
     }
 

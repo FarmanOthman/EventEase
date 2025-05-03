@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import ui.Router;
 import ui.components.Sidebar;
+import ui.components.RoundedButton;
 
 public class Dashboard extends JPanel {
   public Dashboard() {
@@ -18,7 +19,7 @@ public class Dashboard extends JPanel {
 
     // Create top header panel
     JPanel headerPanel = new JPanel();
-    headerPanel.setBackground(new Color(70, 130, 200));
+    headerPanel.setBackground(new Color(64, 133, 219));
     headerPanel.setPreferredSize(new Dimension(800, 50));
     JLabel titleLabel = new JLabel("Dashboard", SwingConstants.CENTER);
     titleLabel.setForeground(Color.WHITE);
@@ -36,11 +37,12 @@ public class Dashboard extends JPanel {
 
     for (String item : cardItems) {
       if (!item.isEmpty()) {
-        JButton card = new JButton(item);
-        card.setFont(new Font("Arial", Font.PLAIN, 14));
-        card.setFocusPainted(false);
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1)); // Subtle border for cards
+        RoundedButton card = new RoundedButton(item, 25);
+        card.setBackground(new Color(248, 249, 250)); // Light gray background
+        card.setFont(new Font("Arial", Font.BOLD, 14));
+        card.setForeground(new Color(60, 60, 60)); // Dark gray text
+        card.setPreferredSize(new Dimension(180, 40));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Add action listener for the Manage Events button
         if (item.equals("Manage Events")) {

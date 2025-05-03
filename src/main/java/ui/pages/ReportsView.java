@@ -2,6 +2,7 @@ package ui.pages;
 
 import services.SalesDataService;
 import ui.components.Sidebar;
+import ui.components.RoundedButton;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -90,21 +91,18 @@ public class ReportsView extends JPanel {
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
                 BorderFactory.createEmptyBorder(3, 5, 3, 5)));
 
-        // Add search icon
-        
-       
-
-        JButton searchButton = createStyledButton("Search", primaryColor.darker());
-        searchButton.setPreferredSize(new Dimension(100, 30));
+        RoundedButton searchButton = new RoundedButton("Search", 25);
+        searchButton.setBackground(primaryColor.darker());
+        searchButton.setFont(new Font("Arial", Font.BOLD, 14));
+        searchButton.setForeground(Color.white);
+        searchButton.setPreferredSize(new Dimension(120, 40));
+        searchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Add search action
         ActionListener searchAction = e -> performSearch(searchField.getText());
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
-
-        Label searchIcon = new Label("Miran");
-        searchIcon.setFont(new Font("Arial", Font.BOLD, 16));
-        searchIcon.setForeground(Color.WHITE);
+        
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
         headerPanel.add(searchIcon, BorderLayout.WEST);
@@ -425,44 +423,12 @@ public class ReportsView extends JPanel {
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(backgroundColor);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Arial", Font.BOLD, 14));
-                FontMetrics fm = g2.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
-                g2.drawString(getText(), x, y);
-                g2.dispose();
-            }
-        };
-
+        RoundedButton button = new RoundedButton(text, 25);
+        button.setBackground(backgroundColor);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setForeground(Color.white);
         button.setPreferredSize(new Dimension(130, 30));
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Add hover effect
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-                button.repaint();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-                button.repaint();
-            }
-        });
-
         return button;
     }
 

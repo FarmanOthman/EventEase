@@ -172,15 +172,17 @@ public class EventView extends JPanel implements Refreshable {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setMaximumSize(new Dimension(600, 40));
+        buttonPanel.setMaximumSize(new Dimension(600, 100));
 
         // Create the rounded green Add button
-            RoundedButton addButton = new RoundedButton("Add", 25);
-            addButton.setBackground(new Color(28,184,96));
-            addButton.setForeground(Color.WHITE);
-            addButton.setFont(new Font("Arial", Font.BOLD, 14));
-            addButton.setPreferredSize(new Dimension(100, 30));
-            addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        RoundedButton addButton = new RoundedButton("Add", 25);
+        
+        addButton.setBackground(new Color(28, 184, 96));
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setForeground(Color.white);
+        addButton.setPreferredSize(new Dimension(120, 40));
+        buttonPanel.add(addButton);
+        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
 
  {
