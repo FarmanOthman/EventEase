@@ -18,7 +18,7 @@ public class Dashboard extends JPanel {
 
     // Create top header panel
     JPanel headerPanel = new JPanel();
-    headerPanel.setBackground(new Color(70, 130, 200));
+    headerPanel.setBackground(new Color(64, 133, 219));
     headerPanel.setPreferredSize(new Dimension(800, 50));
     JLabel titleLabel = new JLabel("Dashboard", SwingConstants.CENTER);
     titleLabel.setForeground(Color.WHITE);

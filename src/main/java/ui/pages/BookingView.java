@@ -4,8 +4,7 @@ import ui.components.Sidebar;
 import ui.Router;
 import ui.Refreshable;
 import javax.swing.*;
-import javax.swing.JButton;
-import javax.swing.JTextField;
+
 import server.EventService;
 import services.BookingServiceSer;
 import java.awt.*;
@@ -223,7 +222,7 @@ public class BookingView extends JPanel implements Refreshable {
     private void createHeader() {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        headerPanel.setBackground(new Color(64, 143, 224)); // Blue header background
+        headerPanel.setBackground(new Color(64, 133, 219)); // Blue header background
         headerPanel.setPreferredSize(new Dimension(600, 50));
 
         JLabel headerLabel = new JLabel("Ticket Management");

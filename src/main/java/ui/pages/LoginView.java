@@ -54,8 +54,24 @@ public class LoginView extends JPanel {
     passField.setToolTipText("Enter Your Password");
     passField.setText("admin123"); // Pre-fill for testing
 
+    // Add show password checkbox
+    JCheckBox showPasswordCheckbox = new JCheckBox("Show Password");
+    showPasswordCheckbox.setBounds(40, 170, 270, 20);
+    showPasswordCheckbox.setBackground(Color.white);
+    showPasswordCheckbox.setFocusPainted(false);
+    loginBox.add(showPasswordCheckbox);
+
+    // Add action listener to toggle password visibility
+    showPasswordCheckbox.addActionListener(e -> {
+        if (showPasswordCheckbox.isSelected()) {
+            passField.setEchoChar((char) 0); // Show the password
+        } else {
+            passField.setEchoChar('\u2022'); // Hide the password (bullet character)
+        }
+    });
+
     RoundedButton loginButton = new RoundedButton("Login", 25);
-    loginButton.setBounds(85, 195, 180, 40);
+    loginButton.setBounds(85, 195, 180, 40); // Move the button down slightly
     loginButton.setBackground(new Color(50, 120, 200));
     loginButton.setForeground(Color.white);
     loginBox.add(loginButton);

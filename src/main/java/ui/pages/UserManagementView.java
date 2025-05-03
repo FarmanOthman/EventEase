@@ -92,7 +92,7 @@ public class UserManagementView extends JPanel implements Refreshable {
 
   private void createMainPanel() {
     mainPanel = new JPanel(new BorderLayout());
-    mainPanel.setBackground(new Color(240, 240, 240));
+    mainPanel.setBackground(new Color(64, 133, 219));
 
     // Create header panel
     createHeader();
@@ -113,7 +113,7 @@ public class UserManagementView extends JPanel implements Refreshable {
   private void createHeader() {
     JPanel headerPanel = new JPanel();
     headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-    headerPanel.setBackground(new Color(66, 133, 244));
+    headerPanel.setBackground(new Color(64, 133, 219));
     headerPanel.setPreferredSize(new Dimension(600, 50));
 
     JLabel headerLabel = new JLabel("User Management");
