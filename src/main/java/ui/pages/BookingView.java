@@ -1,5 +1,6 @@
 package ui.pages;
 
+import ui.components.RoundedButton;
 import ui.components.Sidebar;
 import ui.Router;
 import ui.Refreshable;
@@ -392,35 +393,14 @@ public class BookingView extends JPanel implements Refreshable {
         buttonPanel.setMaximumSize(new Dimension(800, 50));
 
         // Create a custom rounded button with green background
-        JButton bookNowButton = new JButton("Book Now") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                // Custom painting for rounded button with text centering
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(46, 204, 113)); // Green color
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Arial", Font.BOLD, 14));
-                FontMetrics fm = g2.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(getText())) / 2;
-                int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
-                g2.drawString(getText(), x, y);
-                g2.dispose();
-            }
-        };
-
-        // Button styling
-        bookNowButton.setBackground(new Color(66, 133, 244));
-        bookNowButton.setForeground(Color.WHITE);
-        bookNowButton.setFocusPainted(false);
-        bookNowButton.setBorderPainted(false);
-        bookNowButton.setContentAreaFilled(false);
-        bookNowButton.setPreferredSize(new Dimension(120, 35));
-        bookNowButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
-
+        RoundedButton bookNowButton = new RoundedButton("Book Now", 25);
+        bookNowButton.setBackground(new Color(28, 184, 96));
+        bookNowButton.setFont(new Font("Arial", Font.BOLD, 14));
+        bookNowButton.setForeground(Color.white);
+        bookNowButton.setPreferredSize(new Dimension(120, 40));
         buttonPanel.add(bookNowButton);
+        bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         formPanel.add(buttonPanel);
 
         // Add components to content panel

@@ -888,11 +888,36 @@ class DatabaseManager {
 
 /**
  * Engine for analyzing taste data
+ * This class provides comprehensive analytics capabilities for taste tracking data,
+ * including trend analysis, flavor correlations, and personalized insights.
  */
 class AnalyticsEngine {
     private Map<String, Integer> categoryPopularity;
     private Map<String, Double> categoryAverageRatings;
     private Map<String, Double> flavorPopularity;
+    private Map<String, Map<String, Integer>> categoryToFlavorMap;
+    private Map<String, Map<String, Double>> userCategoryPreferences;
+    private Map<String, List<String>> userFavoriteFlavors;
+    private Map<String, Double> seasonalTrends;
+    private Map<String, Map<String, Integer>> locationPopularity;
+    private Map<String, Integer> timeOfDayPreferences;
+    private Map<String, List<Double>> ratingDistribution;
+    private Map<String, Double> tasteCorrelations;
+    private Map<String, Integer> tagPopularity;
+    private Map<String, Map<String, Integer>> flavorComboPopularity;
+    private Map<String, List<LocalDateTime>> categoryTrends;
+    private final int TREND_INTERVAL_DAYS = 30;
+    private final int MAX_FAVORITE_TAGS = 10;
+    private final int MIN_ENTRIES_FOR_INSIGHT = 5;
+    private static final String[] TIME_PERIODS = {
+        "Morning (6AM-11AM)", "Noon (11AM-2PM)", "Afternoon (2PM-5PM)", 
+        "Evening (5PM-8PM)", "Night (8PM-12AM)", "Late Night (12AM-6AM)"
+    };
+    
+    // Statistical analysis constants
+    private static final double CORRELATION_THRESHOLD = 0.7;
+    private static final int MIN_DATA_POINTS = 3;
+    private static final int PERCENTILE_INTERVALS = 5;
     
     /**
      * Constructor initializes analytics structures
@@ -901,37 +926,766 @@ class AnalyticsEngine {
         this.categoryPopularity = new HashMap<>();
         this.categoryAverageRatings = new HashMap<>();
         this.flavorPopularity = new HashMap<>();
+        this.categoryToFlavorMap = new HashMap<>();
+        this.userCategoryPreferences = new HashMap<>();
+        this.userFavoriteFlavors = new HashMap<>();
+        this.seasonalTrends = new HashMap<>();
+        this.locationPopularity = new HashMap<>();
+        this.timeOfDayPreferences = new HashMap<>();
+        this.ratingDistribution = new HashMap<>();
+        this.tasteCorrelations = new HashMap<>();
+        this.tagPopularity = new HashMap<>();
+        this.flavorComboPopularity = new HashMap<>();
+        this.categoryTrends = new HashMap<>();
+        
+        initializeAnalyticsStructures();
     }
     
+    /**
+     * Initialize data structures with default values where needed
+     */
+    private void initializeAnalyticsStructures() {
+        // Initialize time periods
+        for (String period : TIME_PERIODS) {
+            timeOfDayPreferences.put(period, 0);
+        }
+        
+        // Initialize standard flavor correlations
+        String[] standardFlavors = {"sweet", "sour", "salty", "bitter", "umami", "spicy"};
+        for (String flavor1 : standardFlavors) {
+            for (String flavor2 : standardFlavors) {
+                if (!flavor1.equals(flavor2)) {
+                    tasteCorrelations.put(flavor1 + "-" + flavor2, 0.0);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Rebuilds all analytics from a list of taste entries
+     * This method should be called when loading data from storage
+     * @param tasteEntries List of all taste entries
+     */
     public void rebuildAnalytics(List<TasteEntry> tasteEntries) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'rebuildAnalytics'");
+        // Clear existing data
+        categoryPopularity.clear();
+        categoryAverageRatings.clear();
+        flavorPopularity.clear();
+        categoryToFlavorMap.clear();
+        userCategoryPreferences.clear();
+        userFavoriteFlavors.clear();
+        seasonalTrends.clear();
+        locationPopularity.clear();
+        timeOfDayPreferences = new HashMap<>();
+        ratingDistribution.clear();
+        tagPopularity.clear();
+        flavorComboPopularity.clear();
+        categoryTrends.clear();
+        
+        // Reinitialize structures
+        initializeAnalyticsStructures();
+        
+        // Process each entry
+        for (TasteEntry entry : tasteEntries) {
+            processEntry(entry);
+        }
+        
+        // Calculate derived analytics that require the full dataset
+        calculateFlavorCorrelations(tasteEntries);
+        calculateCategoryTrends();
+        calculateLocationInsights();
+        calculateUserInsights();
     }
 
     /**
      * Process a new taste entry for analytics
+     * Updates all analytics structures with data from the new entry
      * @param entry The taste entry to process
      */
     public void processEntry(TasteEntry entry) {
-        String category = getCategoryFromEntry(entry); // Replace with actual logic
-
+        if (entry == null) {
+            return;
+        }
+        
+        String category = getCategoryFromEntry(entry);
+        String userId = entry.getUserId();
+        
         // Update category popularity
         categoryPopularity.put(category, categoryPopularity.getOrDefault(category, 0) + 1);
 
         // Update category ratings
-        double currentTotal = categoryAverageRatings.getOrDefault(category, 0.0) * 
-                             (categoryPopularity.get(category) - 1);
-        categoryAverageRatings.put(category, 
-                                  (currentTotal + entry.getRating()) / categoryPopularity.get(category));
+        updateCategoryRating(category, entry.getRating());
 
-        // Update flavor popularity
-        for (Map.Entry<String, Integer> flavor : entry.getFlavorRatings().entrySet()) {
-            flavorPopularity.put(flavor.getKey(), flavorPopularity.getOrDefault(flavor.getKey(), 0.0) + flavor.getValue());
+        // Update flavor popularity and mappings
+        updateFlavorAnalytics(entry, category);
+        
+        // Update user preferences
+        updateUserPreferences(userId, category, entry);
+        
+        // Update seasonal trends
+        updateSeasonalTrends(entry);
+        
+        // Update location data
+        updateLocationData(entry);
+        
+        // Update time of day preferences
+        updateTimeOfDayPreferences(entry);
+        
+        // Update rating distribution
+        updateRatingDistribution(category, entry.getRating());
+        
+        // Update tag popularity
+        updateTagPopularity(entry);
+        
+        // Update category trends timeline
+        updateCategoryTrends(category, entry.getTimestamp());
+    }
+    
+    /**
+     * Gets the category from a taste entry
+     * @param entry The taste entry
+     * @return The category name
+     */
+    private String getCategoryFromEntry(TasteEntry entry) {
+        // In a real implementation, this would look up the category
+        // from the food item database using the foodItemId
+        // For now, we'll use a placeholder implementation
+        
+        // If we had a direct reference to the food items database:
+        // return foodItemsDatabase.getById(entry.getFoodItemId()).getCategory();
+        
+        // Placeholder implementation:
+        String foodName = entry.getFoodName().toLowerCase();
+        
+        if (foodName.contains("pizza") || foodName.contains("pasta") || foodName.contains("lasagna")) {
+            return "Italian";
+        } else if (foodName.contains("sushi") || foodName.contains("ramen") || foodName.contains("miso")) {
+            return "Japanese";
+        } else if (foodName.contains("taco") || foodName.contains("burrito") || foodName.contains("quesadilla")) {
+            return "Mexican";
+        } else if (foodName.contains("curry") || foodName.contains("tikka") || foodName.contains("naan")) {
+            return "Indian";
+        } else if (foodName.contains("burger") || foodName.contains("fries") || foodName.contains("sandwich")) {
+            return "American";
+        } else if (foodName.contains("stir fry") || foodName.contains("dumpling") || foodName.contains("spring roll")) {
+            return "Chinese";
+        } else if (foodName.contains("coffee") || foodName.contains("tea") || foodName.contains("latte")) {
+            return "Beverage";
+        } else if (foodName.contains("cake") || foodName.contains("cookie") || foodName.contains("pie")) {
+            return "Dessert";
+        } else if (foodName.contains("salad") || foodName.contains("vegetable") || foodName.contains("vegan")) {
+            return "Vegetarian";
+        } else {
+            return "Other";
         }
     }
-
-    private String getCategoryFromEntry(TasteEntry entry) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCategoryFromEntry'");
+    
+    /**
+     * Updates the average rating for a category
+     * @param category The food category
+     * @param rating The new rating to incorporate
+     */
+    private void updateCategoryRating(String category, int rating) {
+        int count = categoryPopularity.getOrDefault(category, 0);
+        double currentTotal = categoryAverageRatings.getOrDefault(category, 0.0) * (count - 1);
+        
+        if (count > 0) {
+            categoryAverageRatings.put(category, (currentTotal + rating) / count);
+        } else {
+            categoryAverageRatings.put(category, (double) rating);
+        }
+    }
+    
+    /**
+     * Updates flavor-related analytics
+     * @param entry The taste entry containing flavor ratings
+     * @param category The food category
+     */
+    private void updateFlavorAnalytics(TasteEntry entry, String category) {
+        Map<String, Integer> entryFlavorRatings = entry.getFlavorRatings();
+        
+        // Update overall flavor popularity
+        for (Map.Entry<String, Integer> flavorEntry : entryFlavorRatings.entrySet()) {
+            String flavor = flavorEntry.getKey();
+            int rating = flavorEntry.getValue();
+            
+            flavorPopularity.put(flavor, flavorPopularity.getOrDefault(flavor, 0.0) + rating);
+            
+            // Update category to flavor mapping
+            Map<String, Integer> flavorMap = categoryToFlavorMap.getOrDefault(category, new HashMap<>());
+            flavorMap.put(flavor, flavorMap.getOrDefault(flavor, 0) + 1);
+            categoryToFlavorMap.put(category, flavorMap);
+            
+            // Update flavor combinations (pairs of flavors that appear together)
+            updateFlavorCombinations(entryFlavorRatings.keySet());
+        }
+    }
+    
+    /**
+     * Updates the popularity count of flavor combinations
+     * @param flavors Set of flavors that appear together
+     */
+    private void updateFlavorCombinations(Set<String> flavors) {
+        if (flavors.size() < 2) return;
+        
+        // Convert to sorted list to ensure consistent combination keys
+        List<String> flavorList = new ArrayList<>(flavors);
+        Collections.sort(flavorList);
+        
+        // Update counts for each pair of flavors
+        for (int i = 0; i < flavorList.size(); i++) {
+            for (int j = i + 1; j < flavorList.size(); j++) {
+                String flavor1 = flavorList.get(i);
+                String flavor2 = flavorList.get(j);
+                String comboKey = flavor1 + "+" + flavor2;
+                
+                Map<String, Integer> combos = flavorComboPopularity.getOrDefault(flavor1, new HashMap<>());
+                combos.put(flavor2, combos.getOrDefault(flavor2, 0) + 1);
+                flavorComboPopularity.put(flavor1, combos);
+            }
+        }
+    }
+    
+    /**
+     * Updates user preference data
+     * @param userId User identifier
+     * @param category Food category
+     * @param entry The taste entry
+     */
+    private void updateUserPreferences(String userId, String category, TasteEntry entry) {
+        // Update category preferences
+        Map<String, Double> userCategories = userCategoryPreferences.getOrDefault(userId, new HashMap<>());
+        userCategories.put(category, userCategories.getOrDefault(category, 0.0) + entry.getRating());
+        userCategoryPreferences.put(userId, userCategories);
+        
+        // Update favorite flavors (keeping top rated flavors)
+        if (!entry.getFlavorRatings().isEmpty()) {
+            List<String> favorites = userFavoriteFlavors.getOrDefault(userId, new ArrayList<>());
+            
+            // Add new flavors rated highly (4-5)
+            for (Map.Entry<String, Integer> flavorEntry : entry.getFlavorRatings().entrySet()) {
+                if (flavorEntry.getValue() >= 4 && !favorites.contains(flavorEntry.getKey())) {
+                    favorites.add(flavorEntry.getKey());
+                }
+            }
+            
+            // Keep list from growing too large
+            if (favorites.size() > MAX_FAVORITE_TAGS) {
+                favorites = favorites.subList(0, MAX_FAVORITE_TAGS);
+            }
+            
+            userFavoriteFlavors.put(userId, favorites);
+        }
+    }
+    
+    /**
+     * Updates seasonal trend data
+     * @param entry The taste entry
+     */
+    private void updateSeasonalTrends(TasteEntry entry) {
+        if (entry.getTimestamp() != null) {
+            int month = entry.getTimestamp().getMonthValue();
+            String season;
+            
+            // Determine season (Northern Hemisphere)
+            if (month == 12 || month == 1 || month == 2) {
+                season = "Winter";
+            } else if (month >= 3 && month <= 5) {
+                season = "Spring";
+            } else if (month >= 6 && month <= 8) {
+                season = "Summer";
+            } else {
+                season = "Fall";
+            }
+            
+            // Update seasonal popularity
+            String seasonCategory = season + "-" + getCategoryFromEntry(entry);
+            seasonalTrends.put(seasonCategory, seasonalTrends.getOrDefault(seasonCategory, 0.0) + entry.getRating());
+        }
+    }
+    
+    /**
+     * Updates location-based analytics
+     * @param entry The taste entry
+     */
+    private void updateLocationData(TasteEntry entry) {
+        if (entry.getLocation() != null && !entry.getLocation().isEmpty()) {
+            String location = entry.getLocation();
+            String category = getCategoryFromEntry(entry);
+            
+            // Update location to category mapping
+            Map<String, Integer> categories = locationPopularity.getOrDefault(location, new HashMap<>());
+            categories.put(category, categories.getOrDefault(category, 0) + 1);
+            locationPopularity.put(location, categories);
+        }
+    }
+    
+    /**
+     * Updates time of day preference analytics
+     * @param entry The taste entry
+     */
+    private void updateTimeOfDayPreferences(TasteEntry entry) {
+        if (entry.getTimestamp() != null) {
+            int hour = entry.getTimestamp().getHour();
+            String timePeriod;
+            
+            // Determine time period
+            if (hour >= 6 && hour < 11) {
+                timePeriod = "Morning (6AM-11AM)";
+            } else if (hour >= 11 && hour < 14) {
+                timePeriod = "Noon (11AM-2PM)";
+            } else if (hour >= 14 && hour < 17) {
+                timePeriod = "Afternoon (2PM-5PM)";
+            } else if (hour >= 17 && hour < 20) {
+                timePeriod = "Evening (5PM-8PM)";
+            } else if (hour >= 20 && hour < 24) {
+                timePeriod = "Night (8PM-12AM)";
+            } else {
+                timePeriod = "Late Night (12AM-6AM)";
+            }
+            
+            // Update preference count
+            timeOfDayPreferences.put(timePeriod, timeOfDayPreferences.getOrDefault(timePeriod, 0) + 1);
+        }
+    }
+    
+    /**
+     * Updates rating distribution for categories
+     * @param category The food category
+     * @param rating The rating value
+     */
+    private void updateRatingDistribution(String category, int rating) {
+        List<Double> ratings = ratingDistribution.getOrDefault(category, new ArrayList<>());
+        ratings.add((double) rating);
+        ratingDistribution.put(category, ratings);
+    }
+    
+    /**
+     * Updates tag popularity analytics
+     * @param entry The taste entry with tags
+     */
+    private void updateTagPopularity(TasteEntry entry) {
+        for (String tag : entry.getTags()) {
+            tagPopularity.put(tag, tagPopularity.getOrDefault(tag, 0) + 1);
+        }
+    }
+    
+    /**
+     * Updates category trend timeline data
+     * @param category The food category
+     * @param timestamp When the entry was created
+     */
+    private void updateCategoryTrends(String category, LocalDateTime timestamp) {
+        if (timestamp != null) {
+            List<LocalDateTime> timestamps = categoryTrends.getOrDefault(category, new ArrayList<>());
+            timestamps.add(timestamp);
+            categoryTrends.put(category, timestamps);
+        }
+    }
+    
+    /**
+     * Calculates taste correlations based on all entries
+     * @param entries List of taste entries
+     */
+    private void calculateFlavorCorrelations(List<TasteEntry> entries) {
+        Map<String, List<Integer>> flavorRatings = new HashMap<>();
+        
+        // Collect all flavor ratings
+        for (TasteEntry entry : entries) {
+            for (Map.Entry<String, Integer> flavorEntry : entry.getFlavorRatings().entrySet()) {
+                String flavor = flavorEntry.getKey();
+                int rating = flavorEntry.getValue();
+                
+                List<Integer> ratings = flavorRatings.getOrDefault(flavor, new ArrayList<>());
+                ratings.add(rating);
+                flavorRatings.put(flavor, ratings);
+            }
+        }
+        
+        // Calculate correlations between flavors
+        List<String> flavors = new ArrayList<>(flavorRatings.keySet());
+        for (int i = 0; i < flavors.size(); i++) {
+            for (int j = i + 1; j < flavors.size(); j++) {
+                String flavor1 = flavors.get(i);
+                String flavor2 = flavors.get(j);
+                
+                List<Integer> ratings1 = flavorRatings.get(flavor1);
+                List<Integer> ratings2 = flavorRatings.get(flavor2);
+                
+                // Only calculate correlation if we have enough overlapping data points
+                if (ratings1.size() >= MIN_DATA_POINTS && ratings2.size() >= MIN_DATA_POINTS) {
+                    double correlation = calculateCorrelation(ratings1, ratings2);
+                    
+                    tasteCorrelations.put(flavor1 + "-" + flavor2, correlation);
+                    tasteCorrelations.put(flavor2 + "-" + flavor1, correlation);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Calculates the Pearson correlation coefficient between two lists of ratings
+     * @param list1 First list of ratings
+     * @param list2 Second list of ratings
+     * @return Correlation coefficient (-1 to 1)
+     */
+    private double calculateCorrelation(List<Integer> list1, List<Integer> list2) {
+        // Ensure the lists are the same size by using the smaller size
+        int size = Math.min(list1.size(), list2.size());
+        if (size < 2) return 0; // Need at least 2 points for correlation
+        
+        double sum1 = 0, sum2 = 0, sum1Sq = 0, sum2Sq = 0, pSum = 0;
+        
+        // Calculate sums
+        for (int i = 0; i < size; i++) {
+            double val1 = list1.get(i);
+            double val2 = list2.get(i);
+            
+            sum1 += val1;
+            sum2 += val2;
+            sum1Sq += val1 * val1;
+            sum2Sq += val2 * val2;
+            pSum += val1 * val2;
+        }
+        
+        // Calculate Pearson correlation coefficient
+        double num = pSum - (sum1 * sum2 / size);
+        double den = Math.sqrt((sum1Sq - sum1 * sum1 / size) * (sum2Sq - sum2 * sum2 / size));
+        
+        if (den == 0) return 0;
+        return num / den;
+    }
+    
+    /**
+     * Calculates category trends over time
+     */
+    private void calculateCategoryTrends() {
+        // This would analyze the frequency of categories over time intervals
+        // to detect increasing or decreasing popularity
+        
+        // For each category, analyze its trend over time periods
+        for (Map.Entry<String, List<LocalDateTime>> entry : categoryTrends.entrySet()) {
+            String category = entry.getKey();
+            List<LocalDateTime> timestamps = entry.getValue();
+            
+            // Sort timestamps chronologically
+            Collections.sort(timestamps);
+            
+            // Analyze the trend (simplified version)
+            if (timestamps.size() >= MIN_DATA_POINTS) {
+                LocalDateTime firstTimestamp = timestamps.get(0);
+                LocalDateTime lastTimestamp = timestamps.get(timestamps.size() - 1);
+                
+                // Calculate days between first and last entry
+                long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(firstTimestamp, lastTimestamp);
+                
+                if (daysBetween > 0) {
+                    // Calculate entries per day - higher value means increasing popularity
+                    double entriesPerDay = timestamps.size() / (double) daysBetween;
+                    
+                    // Store trend information (could be expanded to more sophisticated analysis)
+                    seasonalTrends.put(category + "-trend", entriesPerDay);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Calculates insights based on location data
+     */
+    private void calculateLocationInsights() {
+        // This would find the most popular categories by location
+        // and detect location-specific preferences
+        
+        // For demonstration, we'll just count the entries
+        for (Map.Entry<String, Map<String, Integer>> entry : locationPopularity.entrySet()) {
+            // Additional calculations could be performed here
+        }
+    }
+    
+    /**
+     * Calculates insights for individual users
+     */
+    private void calculateUserInsights() {
+        // This would analyze user preferences and generate personalized insights
+        
+        // For each user, calculate their preference profile
+        for (Map.Entry<String, Map<String, Double>> entry : userCategoryPreferences.entrySet()) {
+            String userId = entry.getKey();
+            Map<String, Double> preferences = entry.getValue();
+            
+            // Sort categories by preference score
+            List<Map.Entry<String, Double>> sortedPreferences = new ArrayList<>(preferences.entrySet());
+            sortedPreferences.sort(Map.Entry.<String, Double>comparingByValue().reversed());
+            
+            // Store user's top categories for recommendation purposes
+            if (!sortedPreferences.isEmpty()) {
+                List<String> topCategories = new ArrayList<>();
+                for (int i = 0; i < Math.min(3, sortedPreferences.size()); i++) {
+                    topCategories.add(sortedPreferences.get(i).getKey());
+                }
+                
+                // User insights could be stored here for later recommendation use
+            }
+        }
+    }
+    
+    /**
+     * Gets the most popular categories ranked by number of entries
+     * @param limit Maximum number of categories to return
+     * @return Map of categories to their popularity count
+     */
+    public Map<String, Integer> getTopCategories(int limit) {
+        return sortMapByValueAndLimit(categoryPopularity, limit, true);
+    }
+    
+    /**
+     * Gets the highest rated categories
+     * @param limit Maximum number of categories to return
+     * @return Map of categories to their average rating
+     */
+    public Map<String, Double> getHighestRatedCategories(int limit) {
+        // Filter to categories with minimum number of ratings
+        Map<String, Double> filteredRatings = new HashMap<>();
+        for (Map.Entry<String, Double> entry : categoryAverageRatings.entrySet()) {
+            String category = entry.getKey();
+            if (categoryPopularity.getOrDefault(category, 0) >= MIN_ENTRIES_FOR_INSIGHT) {
+                filteredRatings.put(category, entry.getValue());
+            }
+        }
+        
+        return sortMapByValueAndLimit(filteredRatings, limit, true);
+    }
+    
+    /**
+     * Gets the most popular flavors based on user ratings
+     * @param limit Maximum number of flavors to return
+     * @return Map of flavors to their popularity score
+     */
+    public Map<String, Double> getTopFlavors(int limit) {
+        return sortMapByValueAndLimit(flavorPopularity, limit, true);
+    }
+    
+    /**
+     * Gets the most popular flavor combinations
+     * @param limit Maximum number of combinations to return
+     * @return Map of flavor combinations to their popularity count
+     */
+    public Map<String, Integer> getPopularFlavorCombinations(int limit) {
+        // Convert nested map to flat map of combination strings
+        Map<String, Integer> combinations = new HashMap<>();
+        
+        for (Map.Entry<String, Map<String, Integer>> entry : flavorComboPopularity.entrySet()) {
+            String flavor1 = entry.getKey();
+            for (Map.Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
+                String flavor2 = subEntry.getKey();
+                int count = subEntry.getValue();
+                
+                // Create a consistent key for the combination
+                String[] flavors = {flavor1, flavor2};
+                Arrays.sort(flavors);
+                String comboKey = flavors[0] + " + " + flavors[1];
+                
+                combinations.put(comboKey, count);
+            }
+        }
+        
+        return sortMapByValueAndLimit(combinations, limit, true);
+    }
+    
+    /**
+     * Gets flavor correlations above the threshold value
+     * @return Map of flavor pairs to their correlation coefficient
+     */
+    public Map<String, Double> getSignificantFlavorCorrelations() {
+        Map<String, Double> significantCorrelations = new HashMap<>();
+        
+        for (Map.Entry<String, Double> entry : tasteCorrelations.entrySet()) {
+            if (Math.abs(entry.getValue()) >= CORRELATION_THRESHOLD) {
+                significantCorrelations.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        return sortMapByValueAndLimit(significantCorrelations, Integer.MAX_VALUE, true);
+    }
+    
+    /**
+     * Gets the most popular tags used in taste entries
+     * @param limit Maximum number of tags to return
+     * @return Map of tags to their popularity count
+     */
+    public Map<String, Integer> getPopularTags(int limit) {
+        return sortMapByValueAndLimit(tagPopularity, limit, true);
+    }
+    
+    /**
+     * Gets the most popular categories by season
+     * @return Map of season-category pairs to their popularity score
+     */
+    public Map<String, Double> getSeasonalPreferences() {
+        return sortMapByValueAndLimit(seasonalTrends, 20, true);
+    }
+    
+    /**
+     * Gets the time of day preferences for food entries
+     * @return Map of time periods to their entry count
+     */
+    public Map<String, Integer> getTimeOfDayPreferences() {
+        // Sort by time order, not by popularity
+        Map<String, Integer> sortedPreferences = new LinkedHashMap<>();
+        for (String period : TIME_PERIODS) {
+            sortedPreferences.put(period, timeOfDayPreferences.getOrDefault(period, 0));
+        }
+        return sortedPreferences;
+    }
+    
+    /**
+     * Gets the statistical distribution of ratings for a category
+     * @param category The food category to analyze
+     * @return Map of percentile values to rating scores
+     */
+    public Map<Integer, Double> getRatingDistribution(String category) {
+        List<Double> ratings = ratingDistribution.getOrDefault(category, new ArrayList<>());
+        Map<Integer, Double> distribution = new HashMap<>();
+        
+        if (ratings.size() >= MIN_DATA_POINTS) {
+            // Sort ratings
+            Collections.sort(ratings);
+            
+            // Calculate percentiles
+            for (int i = 0; i <= 100; i += 100 / PERCENTILE_INTERVALS) {
+                int index = (int) Math.ceil(ratings.size() * i / 100.0) - 1;
+                if (index >= 0 && index < ratings.size()) {
+                    distribution.put(i, ratings.get(index));
+                }
+            }
+        }
+        
+        return distribution;
+    }
+    
+    /**
+     * Gets personalized flavor recommendations for a user
+     * @param userId The user ID
+     * @param limit Maximum number of recommendations
+     * @return List of recommended flavors
+     */
+    public List<String> getFlavorRecommendations(String userId, int limit) {
+        // Get user's favorite flavors
+        List<String> userFlavors = userFavoriteFlavors.getOrDefault(userId, new ArrayList<>());
+        Set<String> recommendations = new HashSet<>();
+        
+        // For each of the user's favorite flavors, find correlated flavors
+        for (String flavor : userFlavors) {
+            for (Map.Entry<String, Double> entry : tasteCorrelations.entrySet()) {
+                if (entry.getKey().startsWith(flavor + "-") && entry.getValue() > CORRELATION_THRESHOLD) {
+                    String otherFlavor = entry.getKey().substring(flavor.length() + 1);
+                    if (!userFlavors.contains(otherFlavor)) {
+                        recommendations.add(otherFlavor);
+                    }
+                }
+            }
+        }
+        
+        // Convert to list and limit results
+        List<String> result = new ArrayList<>(recommendations);
+        if (result.size() > limit) {
+            result = result.subList(0, limit);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Generates a complete trend report with insights
+     * @return String containing a formatted trend report
+     */
+    public String generateTrendReport() {
+        StringBuilder report = new StringBuilder();
+        report.append("===== Taste Trends Analysis Report =====\n\n");
+        
+        // Top categories
+        report.append("TOP CATEGORIES BY POPULARITY:\n");
+        Map<String, Integer> topCategories = getTopCategories(5);
+        for (Map.Entry<String, Integer> entry : topCategories.entrySet()) {
+            report.append(String.format("- %s: %d entries\n", entry.getKey(), entry.getValue()));
+        }
+        report.append("\n");
+        
+        // Highest rated categories
+        report.append("HIGHEST RATED CATEGORIES:\n");
+        Map<String, Double> topRated = getHighestRatedCategories(5);
+        for (Map.Entry<String, Double> entry : topRated.entrySet()) {
+            report.append(String.format("- %s: %.2f average rating\n", entry.getKey(), entry.getValue()));
+        }
+        report.append("\n");
+        
+        // Popular flavors
+        report.append("MOST POPULAR FLAVORS:\n");
+        Map<String, Double> topFlavors = getTopFlavors(5);
+        for (Map.Entry<String, Double> entry : topFlavors.entrySet()) {
+            report.append(String.format("- %s: %.2f popularity score\n", entry.getKey(), entry.getValue()));
+        }
+        report.append("\n");
+        
+        // Popular flavor combinations
+        report.append("POPULAR FLAVOR COMBINATIONS:\n");
+        Map<String, Integer> topCombos = getPopularFlavorCombinations(5);
+        for (Map.Entry<String, Integer> entry : topCombos.entrySet()) {
+            report.append(String.format("- %s: %d occurrences\n", entry.getKey(), entry.getValue()));
+        }
+        report.append("\n");
+        
+        // Time of day preferences
+        report.append("TIME OF DAY PREFERENCES:\n");
+        Map<String, Integer> timePreferences = getTimeOfDayPreferences();
+        for (Map.Entry<String, Integer> entry : timePreferences.entrySet()) {
+            report.append(String.format("- %s: %d entries\n", entry.getKey(), entry.getValue()));
+        }
+        report.append("\n");
+        
+        // Seasonal preferences
+        report.append("SEASONAL TRENDS:\n");
+        Map<String, Double> seasonalPrefs = getSeasonalPreferences();
+        for (Map.Entry<String, Double> entry : seasonalPrefs.entrySet()) {
+            if (entry.getKey().contains("-trend")) {
+                String category = entry.getKey().replace("-trend", "");
+                String trend = entry.getValue() > 0.1 ? "Increasing" : "Stable";
+                report.append(String.format("- %s: %s popularity trend\n", category, trend));
+            }
+        }
+        
+        report.append("\n=== End of Report ===\n");
+        return report.toString();
+    }
+    
+    /**
+     * Utility method to sort a map by value and return top N entries
+     * @param <K> Key type
+     * @param <V> Value type that extends Comparable
+     * @param map The map to sort
+     * @param limit Maximum number of entries to return
+     * @param descending Whether to sort in descending order
+     * @return A new map with the top N entries
+     */
+    private <K, V extends Comparable<? super V>> Map<K, V> sortMapByValueAndLimit(
+            Map<K, V> map, int limit, boolean descending) {
+        List<Map.Entry<K, V>> entries = new ArrayList<>(map.entrySet());
+        
+        // Sort entries
+        if (descending) {
+            entries.sort(Map.Entry.<K, V>comparingByValue().reversed());
+        } else {
+            entries.sort(Map.Entry.comparingByValue());
+        }
+        
+        // Return top N entries
+        Map<K, V> result = new LinkedHashMap<>();
+        for (int i = 0; i < Math.min(limit, entries.size()); i++) {
+            Map.Entry<K, V> entry = entries.get(i);
+            result.put(entry.getKey(), entry.getValue());
+        }
+        
+        return result;
     }
 }
