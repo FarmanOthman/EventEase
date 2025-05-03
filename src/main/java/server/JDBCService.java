@@ -314,7 +314,7 @@ class FoodItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FoodItem foodItem = (FoodItem) o;
-        return id.equals(foodItem.id);
+        return Objects.equals(id, foodItem.getId());
     }
     
     @Override
