@@ -906,7 +906,6 @@ class AnalyticsEngine {
     private Map<String, Integer> tagPopularity;
     private Map<String, Map<String, Integer>> flavorComboPopularity;
     private Map<String, List<LocalDateTime>> categoryTrends;
-    private final int TREND_INTERVAL_DAYS = 30;
     private final int MAX_FAVORITE_TAGS = 10;
     private final int MIN_ENTRIES_FOR_INSIGHT = 5;
     private static final String[] TIME_PERIODS = {
@@ -1137,7 +1136,6 @@ class AnalyticsEngine {
             for (int j = i + 1; j < flavorList.size(); j++) {
                 String flavor1 = flavorList.get(i);
                 String flavor2 = flavorList.get(j);
-                String comboKey = flavor1 + "+" + flavor2;
                 
                 Map<String, Integer> combos = flavorComboPopularity.getOrDefault(flavor1, new HashMap<>());
                 combos.put(flavor2, combos.getOrDefault(flavor2, 0) + 1);
@@ -1398,10 +1396,9 @@ class AnalyticsEngine {
         // and detect location-specific preferences
         
         // For demonstration, we'll just count the entries
-        for (Map.Entry<String, Map<String, Integer>> entry : locationPopularity.entrySet()) {
             // Additional calculations could be performed here
         }
-    }
+   
     
     /**
      * Calculates insights for individual users
@@ -1411,7 +1408,7 @@ class AnalyticsEngine {
         
         // For each user, calculate their preference profile
         for (Map.Entry<String, Map<String, Double>> entry : userCategoryPreferences.entrySet()) {
-            String userId = entry.getKey();
+          
             Map<String, Double> preferences = entry.getValue();
             
             // Sort categories by preference score
