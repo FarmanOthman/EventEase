@@ -38,7 +38,7 @@ public class Dashboard extends JPanel {
     for (String item : cardItems) {
       if (!item.isEmpty()) {
         RoundedButton card = new RoundedButton(item, 25);
-        card.setBackground(new Color(248, 249, 250)); // Light gray background
+        card.setBackground(new Color(230, 231, 232)); // Light gray background
         card.setFont(new Font("Arial", Font.BOLD, 14));
         card.setForeground(new Color(60, 60, 60)); // Dark gray text
         card.setPreferredSize(new Dimension(180, 40));

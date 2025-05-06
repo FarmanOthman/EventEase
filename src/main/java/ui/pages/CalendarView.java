@@ -426,87 +426,37 @@ public class CalendarView extends JPanel {
     List<Map<String, Object>> events = eventsByDate.getOrDefault(date, new ArrayList<>());
 
     if (events.isEmpty()) {
-      int choice = JOptionPane.showOptionDialog(
-          this,
-          "No events scheduled for " + date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) +
-              "\n\nWould you like to add an event for this date?",
-          "No Events",
-          JOptionPane.YES_NO_OPTION,
-          JOptionPane.INFORMATION_MESSAGE,
-          null,
-          new String[] { "Add Event", "Cancel" },
-          "Cancel");
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            String.format("No events scheduled for %s.\n\nWould you like to add an event for this date?", 
+                date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))),
+            "No Events",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            new String[] { "Add Event", "Cancel" },
+            "Cancel");
 
-      if (choice == 0) { // Add Event was selected
-        showAddEventDialog(date);
-      }
-      return;
+        if (choice == 0) { // Add Event was selected
+            showAddEventDialog(date);
+        }
+        return;
     }
 
-    // Create dialog to show events
-    JDialog eventDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
-        "Events for " + date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")), true);
-    eventDialog.setLayout(new BorderLayout());
-    eventDialog.setSize(450, 350);
-    eventDialog.setLocationRelativeTo(this);
-
-    JPanel contentPanel = new JPanel();
-    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-    contentPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-    contentPanel.setBackground(Color.WHITE);
-
-    // Create header with add button
-    JPanel headerPanel = new JPanel(new BorderLayout());
-    headerPanel.setBackground(Color.WHITE);
-    headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    JLabel headerLabel = new JLabel("Events for " + date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")));
-    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-    headerLabel.setForeground(primaryColor);
-
-    // Add event button
-    JButton addButton = new RoundedButton("+ Add Event", 25);
-    addButton.setBackground(new Color(28, 184, 96)); // Green color
-    addButton.setFont(new Font("Arial", Font.BOLD, 14));
-    addButton.setForeground(Color.white);
-    addButton.setPreferredSize(new Dimension(120, 40));
-    addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    addButton.addActionListener(e -> {
-      eventDialog.dispose();
-      showAddEventDialog(date);
-    });
-
-    headerPanel.add(headerLabel, BorderLayout.WEST);
-    headerPanel.add(addButton, BorderLayout.EAST);
-
-    contentPanel.add(headerPanel);
-    contentPanel.add(Box.createVerticalStrut(20));
-
-    // Add each event panel
+    StringBuilder eventDetails = new StringBuilder("Events for " + date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) + ":\n\n");
     for (Map<String, Object> event : events) {
-      JPanel eventPanel = createEventPanel(event);
-      contentPanel.add(eventPanel);
-      contentPanel.add(Box.createVerticalStrut(10));
+        eventDetails.append("- ").append(event.get("event_name"));
+        if (event.containsKey("event_time")) {
+            eventDetails.append(" at ").append(event.get("event_time"));
+        }
+        eventDetails.append("\n");
     }
 
-    // Add close button
-    RoundedButton closeButton = new RoundedButton("Close", 25);
-    closeButton.setBackground(new Color(64, 133, 219));
-    closeButton.setFont(new Font("Arial", Font.BOLD, 14));
-    closeButton.setForeground(Color.white);
-    closeButton.setPreferredSize(new Dimension(120, 40));
-    closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    closeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    closeButton.addActionListener(e -> eventDialog.dispose());
-    contentPanel.add(Box.createVerticalStrut(20));
-    contentPanel.add(closeButton);
-
-    eventDialog.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
-    eventDialog.setVisible(true);
-
-    // Update status
-    statusLabel.setText(String.format("Displaying %d events for %s",
-        events.size(), date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))));
+    JOptionPane.showMessageDialog(
+        this,
+        eventDetails.toString(),
+        "Scheduled Events",
+        JOptionPane.INFORMATION_MESSAGE);
   }
 
   /**
