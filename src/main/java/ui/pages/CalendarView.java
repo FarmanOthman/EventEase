@@ -3,6 +3,7 @@ package ui.pages;
 import ui.components.Sidebar;
 import services.EventCalendarService;
 import ui.dialogs.EventAddDialog;
+import ui.Router;
 import ui.components.RoundedButton;
 
 import javax.swing.*;
@@ -176,7 +177,8 @@ public class CalendarView extends JPanel {
     addEventButton.setForeground(Color.white);
     addEventButton.setPreferredSize(new Dimension(120, 40));
     addEventButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    addEventButton.addActionListener(e -> showAddEventDialog(null));
+    addEventButton.addActionListener(e ->         Router.showPage("EventView"));
+    ;
 
     JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     leftPanel.setBackground(primaryColor);

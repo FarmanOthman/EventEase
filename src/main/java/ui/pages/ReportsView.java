@@ -112,9 +112,20 @@ public class ReportsView extends JPanel {
         ActionListener searchAction = e -> performSearch(searchField.getText());
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
-        
+
+        // Create a refresh button for the search panel
+        RoundedButton refreshButton = new RoundedButton("Refresh", 25);
+        refreshButton.setBackground(new Color(245, 245, 245));
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setForeground(new Color(64, 133, 219));
+        refreshButton.setPreferredSize(new Dimension(120, 40));
+        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshButton.addActionListener(e -> loadAllEvents());
+      
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+        searchPanel.add(refreshButton);  // Add refresh button next to the search button
+        
 
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
@@ -158,20 +169,8 @@ public class ReportsView extends JPanel {
         contentPanel.add(titlePanel);
         contentPanel.add(Box.createVerticalStrut(15));
 
-        // Add a refresh button next to the Sales Report Analytics title
-        RoundedButton refreshButton = new RoundedButton("Refresh", 25);
-        refreshButton.addActionListener(e -> {
-            loadAllEvents();
-        });
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
-        refreshButton.setBackground(new Color(245, 245, 245));
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setForeground(new Color(64, 133, 219));
-        refreshButton.setPreferredSize(new Dimension(120, 40));
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> loadAllEvents());
-        titlePanel.add(refreshButton, BorderLayout.EAST);
 
         // Add filter/export controls
         JPanel controlsPanel = createFilterPanel();
