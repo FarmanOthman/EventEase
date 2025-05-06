@@ -444,9 +444,7 @@ public class UpcomingEvent extends JPanel {
 
   // Custom renderer for the actions column
   private class ActionRenderer extends JPanel implements TableCellRenderer {
-    private JButton detailsBtn;
     private JButton editBtn;
-    private JButton deleteBtn;
 
     public ActionRenderer() {
       setLayout(new FlowLayout(FlowLayout.CENTER, 8, 5));
