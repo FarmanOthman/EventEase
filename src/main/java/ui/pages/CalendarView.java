@@ -463,6 +463,16 @@ public class CalendarView extends JPanel {
    * Shows dialog to add a new event
    */
   private void showAddEventDialog(LocalDate date) {
+    if (date != null && date.isBefore(LocalDate.now())) {
+        JOptionPane.showMessageDialog(
+            this,
+            "You cannot create an event for a past date.",
+            "Invalid Date",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
+
     EventAddDialog dialog = new EventAddDialog(
         (Frame) SwingUtilities.getWindowAncestor(this),
         date);
