@@ -1,10 +1,14 @@
 package utils;
 
 import java.util.*;
+
+
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 import java.awt.Color;
+
 
 /**
  * This is a large utility class with unfunctional code
@@ -1433,5 +1437,426 @@ public class LargeUtility {
         
         // Test execution history
         System.out.println("\nOperation Count: " + utility.getOperationCount());
+        // Data validation methods
+        System.out.println("Execution History:");
+        for (String log : utility.getExecutionHistory()) {
+            System.out.println(log);
+        }
+        // Test random events generation
+        List<Map<String, Object>> randomEvents = utility.generateRandomEvents(5);
+        System.out.println("\nRandom Events:");
+        for (Map<String, Object> event : randomEvents) {
+            System.out.println(utility.mapToString(event));
+        }
+        // Test random sales data generation
+        List<Map<String, Object>> salesData = utility.generateRandomSalesData("EVENT123", 7);
+        System.out.println("\nRandom Sales Data:");
+        for (Map<String, Object> sale : salesData) {
+            System.out.println(utility.mapToString(sale));
+        }
+        
+        // Test statistics calculation
+        Map<String, Double> stats = utility.calculateStatistics(dataSet);
+        System.out.println("\nStatistics:");
+        System.out.println(utility.mapToString(stats));
+    }
+    
+    /**
+     * Generate a mock event calendar
+     * @param month Month (1-12)
+     * @param year Year
+     * @return Calendar data as a map
+     */
+    public Map<String, Object> generateEventCalendar(int month, int year) {
+        if (month < 1 || month > 12 || year < 2000 || year > 2100) {
+            return new HashMap<>();
+        }
+        
+        Map<String, Object> calendarData = new HashMap<>();
+        calendarData.put("month", month);
+        calendarData.put("year", year);
+        calendarData.put("monthName", getMonthName(month));
+        
+        // Create a list of events for the month
+        List<Map<String, Object>> monthEvents = new ArrayList<>();
+        
+        // Determine number of days in the month
+        int daysInMonth = getDaysInMonth(month, year);
+        
+        // Generate random events (between 5 and 15)
+        int numEvents = 5 + random.nextInt(11);
+        
+        for (int i = 0; i < numEvents; i++) {
+            Map<String, Object> event = new HashMap<>();
+            
+            // Generate random day in the month
+            int day = 1 + random.nextInt(daysInMonth);
+            
+            // Create date string
+            String date = String.format("%04d-%02d-%02d", year, month, day);
+            
+            // Generate event details
+            String eventId = generateUniqueId("CAL");
+            String eventName = generateRandomEvent();
+            String[] eventTypes = {"Concert", "Match", "Conference", "Festival", "Exhibition", "Workshop"};
+            String eventType = eventTypes[random.nextInt(eventTypes.length)];
+            
+            // Duration in hours (1-8)
+            int duration = 1 + random.nextInt(8);
+            
+            // Start time (8-20)
+            int startHour = 8 + random.nextInt(13);
+            String startTime = String.format("%02d:00", startHour);
+            String endTime = String.format("%02d:00", startHour + duration);
+            
+            // Capacity and attendance
+            int capacity = 50 + random.nextInt(950);
+            int attendance = (int)(capacity * (0.5 + random.nextDouble() * 0.5));
+            
+            // Populate event
+            event.put("event_id", eventId);
+            event.put("event_name", eventName);
+            event.put("event_type", eventType);
+            event.put("date", date);
+            event.put("start_time", startTime);
+            event.put("end_time", endTime);
+            event.put("duration_hours", duration);
+            event.put("capacity", capacity);
+            event.put("attendance", attendance);
+            event.put("attendance_percentage", (double)attendance / capacity);
+            
+            monthEvents.add(event);
+        }
+        
+        // Sort events by date
+        monthEvents.sort((e1, e2) -> {
+            String date1 = (String)e1.get("date");
+            String date2 = (String)e2.get("date");
+            return date1.compareTo(date2);
+        });
+        
+        calendarData.put("events", monthEvents);
+        calendarData.put("total_events", monthEvents.size());
+        
+        logOperation("generateEventCalendar", "month=" + month + ", year=" + year,
+                    "Generated calendar with " + monthEvents.size() + " events");
+        
+        return calendarData;
+    }
+    
+    /**
+     * Get the name of a month from its number
+     * @param month Month number (1-12)
+     * @return Month name
+     */
+    private String getMonthName(int month) {
+        String[] monthNames = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        };
+        
+        if (month >= 1 && month <= 12) {
+            return monthNames[month - 1];
+        } else {
+            return "Unknown";
+        }
+    }
+    
+    /**
+     * Get the number of days in a month
+     * @param month Month (1-12)
+     * @param year Year
+     * @return Number of days
+     */
+    private int getDaysInMonth(int month, int year) {
+        switch (month) {
+            case 2:
+                // February - check for leap year
+                if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+                    return 29;
+                } else {
+                    return 28;
+                }
+            case 4:
+            case 6:
+            case 9:
+            case 11:
+                // April, June, September, November
+                return 30;
+            default:
+                // January, March, May, July, August, October, December
+                return 31;
+        }
+    }
+    
+    /**
+     * Generate a mock booking summary
+     * @param eventId Event ID
+     * @return Booking summary as a map
+     */
+    public Map<String, Object> generateBookingSummary(String eventId) {
+        Map<String, Object> summary = new HashMap<>();
+        
+        // Generate base event data
+        Map<String, Object> eventData = generateRandomEventData();
+        
+        // Use provided event ID if available
+        if (eventId != null && !eventId.isEmpty()) {
+            eventData.put("event_id", eventId);
+        }
+        
+        // Extract event details
+        String eventName = (String)eventData.get("event_name");
+        String eventDate = (String)eventData.get("event_date");
+        String eventType = (String)eventData.get("event_type");
+        
+        // Booking statistics
+        int totalCapacity = 1000 + random.nextInt(5000);
+        int bookedSeats = (int)(totalCapacity * (0.6 + random.nextDouble() * 0.4));
+        int availableSeats = totalCapacity - bookedSeats;
+        
+        // Ticket types distribution
+        int vipTickets = (int)(bookedSeats * (0.1 + random.nextDouble() * 0.2));
+        int premiumTickets = (int)(bookedSeats * (0.2 + random.nextDouble() * 0.3));
+        int standardTickets = bookedSeats - vipTickets - premiumTickets;
+        
+        // Revenue calculations
+        double vipTicketPrice = generateRandomTicketPrice("vip");
+        double premiumTicketPrice = generateRandomTicketPrice("premium");
+        double standardTicketPrice = generateRandomTicketPrice("standard");
+        
+        double totalRevenue = (vipTickets * vipTicketPrice) +
+                             (premiumTickets * premiumTicketPrice) +
+                             (standardTickets * standardTicketPrice);
+        
+        // Booking timeline
+        int daysSinceOpened = 30 + random.nextInt(60);
+        int daysUntilEvent = 5 + random.nextInt(30);
+        
+        // Daily booking rate
+        double dailyBookingRate = bookedSeats / (double)daysSinceOpened;
+        
+        // Populate summary
+        summary.put("event_id", eventData.get("event_id"));
+        summary.put("event_name", eventName);
+        summary.put("event_date", eventDate);
+        summary.put("event_type", eventType);
+        summary.put("total_capacity", totalCapacity);
+        summary.put("booked_seats", bookedSeats);
+        summary.put("available_seats", availableSeats);
+        summary.put("booking_percentage", (double)bookedSeats / totalCapacity);
+        summary.put("vip_tickets", vipTickets);
+        summary.put("premium_tickets", premiumTickets);
+        summary.put("standard_tickets", standardTickets);
+        summary.put("vip_price", vipTicketPrice);
+        summary.put("premium_price", premiumTicketPrice);
+        summary.put("standard_price", standardTicketPrice);
+        summary.put("total_revenue", totalRevenue);
+        summary.put("days_since_booking_opened", daysSinceOpened);
+        summary.put("days_until_event", daysUntilEvent);
+        summary.put("daily_booking_rate", dailyBookingRate);
+        
+        logOperation("generateBookingSummary", "eventId=" + eventId,
+                    "Generated booking summary for " + eventName);
+        
+        return summary;
+    }
+    
+    /**
+     * Generate a mock event performance report
+     * @param numEvents Number of events to include
+     * @return Performance report as a map
+     */
+    public Map<String, Object> generateEventPerformanceReport(int numEvents) {
+        if (numEvents <= 0) {
+            numEvents = 5;
+        }
+        
+        Map<String, Object> report = new HashMap<>();
+        List<Map<String, Object>> events = new ArrayList<>();
+        
+        // Reporting period
+        String startDate = "2023-01-01";
+        String endDate = "2023-12-31";
+        
+        // Generate events
+        double totalRevenue = 0;
+        int totalAttendance = 0;
+        
+        for (int i = 0; i < numEvents; i++) {
+            Map<String, Object> event = generateRandomEventData();
+            
+            // Enhance with performance metrics
+            int attendance = 500 + random.nextInt(2000);
+            double ticketPrice = 50 + random.nextDouble() * 100;
+            double revenue = attendance * ticketPrice;
+            
+            double costPerAttendee = 20 + random.nextDouble() * 30;
+            double totalCost = attendance * costPerAttendee;
+            double profit = revenue - totalCost;
+            double roi = profit / totalCost;
+            
+            // Track totals
+            totalRevenue += revenue;
+            totalAttendance += attendance;
+            
+            // Add performance metrics
+            event.put("attendance", attendance);
+            event.put("avg_ticket_price", ticketPrice);
+            event.put("revenue", revenue);
+            event.put("cost_per_attendee", costPerAttendee);
+            event.put("total_cost", totalCost);
+            event.put("profit", profit);
+            event.put("roi", roi);
+            
+            events.add(event);
+        }
+        
+        // Sort by profitability
+        events.sort((e1, e2) -> {
+            Double profit1 = (Double)e1.get("profit");
+            Double profit2 = (Double)e2.get("profit");
+            return profit2.compareTo(profit1); // Descending order
+        });
+        
+        // Calculate averages
+        double avgRevenue = totalRevenue / numEvents;
+        double avgAttendance = totalAttendance / (double)numEvents;
+        
+        // Populate report
+        report.put("report_id", generateUniqueId("REPORT"));
+        report.put("report_name", "Event Performance Analysis");
+        report.put("start_date", startDate);
+        report.put("end_date", endDate);
+        report.put("generated_on", getCurrentTimestamp());
+        report.put("number_of_events", numEvents);
+        report.put("events", events);
+        report.put("total_revenue", totalRevenue);
+        report.put("total_attendance", totalAttendance);
+        report.put("average_revenue_per_event", avgRevenue);
+        report.put("average_attendance_per_event", avgAttendance);
+        
+        logOperation("generateEventPerformanceReport", "numEvents=" + numEvents,
+                    "Generated performance report with " + events.size() + " events");
+        
+        return report;
+    }
+    
+    /**
+     * Generate a mock notification for an event
+     * @param eventId Event ID
+     * @param notificationType Type of notification
+     * @return Notification data
+     */
+    public Map<String, Object> generateEventNotification(String eventId, String notificationType) {
+        Map<String, Object> notification = new HashMap<>();
+        
+        // Default values if parameters are missing
+        if (eventId == null || eventId.isEmpty()) {
+            eventId = generateUniqueId("EVENT");
+        }
+        
+        if (notificationType == null || notificationType.isEmpty()) {
+            String[] types = {"reminder", "update", "cancellation", "rescheduled", "promotion"};
+            notificationType = types[random.nextInt(types.length)];
+        }
+        
+        // Generate base event data
+        Map<String, Object> eventData = generateRandomEventData();
+        eventData.put("event_id", eventId);
+        
+        // Extract event details
+        String eventName = (String)eventData.get("event_name");
+        String eventDate = (String)eventData.get("event_date");
+        
+        // Generate notification content based on type
+        String title;
+        String message;
+        String priority;
+        
+        switch (notificationType.toLowerCase()) {
+            case "reminder":
+                title = "Reminder: " + eventName;
+                message = "This is a reminder that " + eventName + " is scheduled for " + eventDate + ". We look forward to seeing you!";
+                priority = "normal";
+                break;
+                
+            case "update":
+                title = "Update: " + eventName;
+                message = "There has been an update to " + eventName + ". Please check the event details for more information.";
+                priority = "important";
+                break;
+                
+            case "cancellation":
+                title = "CANCELLED: " + eventName;
+                message = "We regret to inform you that " + eventName + " scheduled for " + eventDate + " has been cancelled. Please contact customer support for refunds.";
+                priority = "critical";
+                break;
+                
+            case "rescheduled":
+                // Generate a new date 7-30 days after the original
+                String newDate = calculateDateAfter(eventDate, 7 + random.nextInt(24));
+                title = "RESCHEDULED: " + eventName;
+                message = eventName + " has been rescheduled from " + eventDate + " to " + newDate + ". Your tickets remain valid for the new date.";
+                priority = "critical";
+                break;
+                
+            case "promotion":
+                title = "Special Offer: " + eventName;
+                message = "Limited time offer: Purchase additional tickets for " + eventName + " at a 25% discount! Use code EXTRA25 at checkout.";
+                priority = "normal";
+                break;
+                
+            default:
+                title = "Information: " + eventName;
+                message = "Information update for " + eventName + " scheduled for " + eventDate + ".";
+                priority = "low";
+        }
+        
+        // Notification metadata
+        String notificationId = generateUniqueId("NOTIF");
+        String timestamp = getCurrentTimestamp();
+        boolean requiresAction = "critical".equals(priority) || "important".equals(priority);
+        
+        // Populate notification
+        notification.put("notification_id", notificationId);
+        notification.put("event_id", eventId);
+        notification.put("event_name", eventName);
+        notification.put("event_date", eventDate);
+        notification.put("type", notificationType);
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("priority", priority);
+        notification.put("timestamp", timestamp);
+        notification.put("requires_action", requiresAction);
+        notification.put("sent", true);
+        notification.put("read", false);
+        
+        logOperation("generateEventNotification", "eventId=" + eventId + ", type=" + notificationType,
+                    "Generated notification: " + notificationId);
+        
+        return notification;
+    }
+    
+    /**
+     * Calculate a date after a given date
+     * @param dateStr Date string (yyyy-MM-dd)
+     * @param daysAfter Number of days after
+     * @return Calculated date string
+     */
+    private String calculateDateAfter(String dateStr, int daysAfter) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = format.parse(dateStr);
+            
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.DAY_OF_MONTH, daysAfter);
+            
+            return format.format(calendar.getTime());
+        } catch (Exception e) {
+            return dateStr; // Return original on error
+        }
     }
 }
+
