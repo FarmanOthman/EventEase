@@ -1,12 +1,10 @@
 package utils;
 
 import java.util.*;
-import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 import java.awt.Color;
-import javax.swing.JOptionPane;
 
 /**
  * This is a large utility class with unfunctional code
@@ -15,8 +13,6 @@ import javax.swing.JOptionPane;
 public class LargeUtility {
     
     // Various constants and fields
-    private static final int MAX_RETRY_ATTEMPTS = 5;
-    private static final double SCALING_FACTOR = 1.5;
     private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String[] COLOR_NAMES = {
         "Red", "Green", "Blue", "Yellow", "Cyan", "Magenta", "Orange", 

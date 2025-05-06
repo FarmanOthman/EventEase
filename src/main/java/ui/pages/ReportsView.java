@@ -1,19 +1,29 @@
 package ui.pages;
 
-import services.SalesDataService;
 import ui.components.Sidebar;
+import ui.dialogs.EventDetailsDialog;
+import ui.dialogs.EventEditDialog;
 import ui.components.RoundedButton;
-
 import javax.swing.*;
+import javax.swing.table.*;
+import services.EventServiceSer;
+import java.awt.*;
+import java.util.List;
+import java.text.SimpleDateFormat;
+
+import services.SalesDataService;
+
+
+
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+
 import java.awt.event.*;
-import java.text.SimpleDateFormat;
+
 import java.util.*;
-import java.util.List;
+
 
 /**
  * The main report viewing UI for displaying sales data, applying filters, and
@@ -102,10 +112,25 @@ public class ReportsView extends JPanel {
         ActionListener searchAction = e -> performSearch(searchField.getText());
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
-        
+
+        // Create a refresh button for the search panel
+        RoundedButton refreshButton = new RoundedButton("Refresh", 25);
+        refreshButton.setBackground(new Color(245, 245, 245));
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setForeground(new Color(64, 133, 219));
+        refreshButton.setPreferredSize(new Dimension(120, 40));
+        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshButton.addActionListener(e -> loadAllEvents());
+      
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+<<<<<<< HEAD
         headerPanel.add(searchIcon, BorderLayout.WEST);
+=======
+        searchPanel.add(refreshButton);  // Add refresh button next to the search button
+        
+
+>>>>>>> backend
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
 
@@ -130,13 +155,24 @@ public class ReportsView extends JPanel {
         mainPanel.add(statusPanel, BorderLayout.SOUTH);
     }
 
+    private void loadAllEvents() {
+        try {
+            updateSalesData(salesDataService.getAllSalesData());
+            refreshTable();
+            statusLabel.setText("All events loaded successfully.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading events: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void populateContent() {
         // Sales Reporting Title
         JPanel titlePanel = createStyledPanel("", true);
         JLabel titleLabel = new JLabel("Sales Report Analytics");
         contentPanel.add(titlePanel);
         contentPanel.add(Box.createVerticalStrut(15));
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
 
@@ -349,10 +385,32 @@ public class ReportsView extends JPanel {
         // Populate filter combo with dates and events from the data
         populateFilterCombo();
 
+<<<<<<< HEAD
         JButton applyButton = createStyledButton("Apply Filter", primaryColor);
         
         JButton exportButton = createStyledButton("Export With Analysis", accentColor);
         exportButton.setPreferredSize(new Dimension(150, 30));
+=======
+        RoundedButton applyButton = new RoundedButton("Apply", 25);
+        applyButton.setBounds(85, 195, 180, 40); // Move the button down slightly
+        applyButton.setBackground(new Color(64,133,219,255));
+        applyButton.setForeground(Color.white);
+        applyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        applyButton.setPreferredSize(new Dimension(100, 30));
+        RoundedButton resetButton = new RoundedButton("Reset", 25);
+        resetButton.setBounds(85, 195, 180, 40); // Move the button down slightly
+        resetButton.setBackground(new Color(150, 150, 150));
+        resetButton.setForeground(Color.white);
+        resetButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        resetButton.setPreferredSize(new Dimension(100, 30));
+
+        RoundedButton exportButton = new RoundedButton("Export With Analysis", 25);
+        exportButton.setBounds(85, 195, 180, 40); // Move the button down slightly
+        exportButton.setBackground(new Color(28,184,96,255));
+        exportButton.setForeground(Color.white);
+        exportButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exportButton.setPreferredSize(new Dimension(180, 30));
+>>>>>>> backend
 
         // Action Listener for the Apply Filter button
         applyButton.addActionListener(e -> {
@@ -638,8 +696,14 @@ public class ReportsView extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        JButton viewFullCalendarButton = createStyledButton("View Full Calendar", accentColor);
-        viewFullCalendarButton.setPreferredSize(new Dimension(150, 30));
+        
+        RoundedButton viewFullCalendarButton = new RoundedButton("View Full Calendar", 25);
+        viewFullCalendarButton.setBounds(85, 195, 180, 40); // Move the button down slightly
+        viewFullCalendarButton.setBackground(new Color(28,184,96,255));
+        viewFullCalendarButton.setForeground(Color.white);
+    
+        viewFullCalendarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewFullCalendarButton.setPreferredSize(new Dimension(180, 30));
         viewFullCalendarButton.addActionListener(e -> openCalendarView());
 
         headerPanel.add(viewFullCalendarButton, BorderLayout.EAST);

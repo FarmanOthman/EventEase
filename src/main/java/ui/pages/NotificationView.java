@@ -103,6 +103,16 @@ public class NotificationView extends JPanel {
     controlPanel.add(filterComboBox);
     controlPanel.add(markAllReadButton);
 
+    // Add a refresh button to the control panel
+    RoundedButton refreshButton = new RoundedButton("Refresh", 25);
+    refreshButton.setBackground(new Color(245, 245, 245));
+    refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+    refreshButton.setForeground(new Color(64, 133, 219));
+    refreshButton.setPreferredSize(new Dimension(120, 40));
+    refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    refreshButton.addActionListener(e -> refreshNotifications());
+    controlPanel.add(refreshButton);
+
     headerPanel.add(titlePanel, BorderLayout.WEST);
     headerPanel.add(controlPanel, BorderLayout.EAST);
 

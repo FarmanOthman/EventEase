@@ -454,10 +454,20 @@ public class UpcomingEvent extends JPanel {
       setOpaque(true);
 
       // Create buttons
-      detailsBtn = createButton("Details", new Color(0, 123, 255));
+      
+      RoundedButton detailsBtn = new RoundedButton("Details", 25);
+      detailsBtn.setBounds(85, 195, 180, 40); // Move the button down slightly
+      detailsBtn.setBackground(new Color(0, 123, 255));
+      detailsBtn.setForeground(Color.white);
+      
+      detailsBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+      
       editBtn = createButton("Edit", new Color(255, 153, 0));
-      deleteBtn = createButton("Delete", new Color(220, 53, 69));
-
+      
+      RoundedButton deleteBtn = new RoundedButton("Delete", 25);
+      deleteBtn.setBounds(85, 195, 180, 40); // Move the button down slightly
+      deleteBtn.setBackground(new Color(220, 53, 69));
+      deleteBtn.setForeground(Color.white);
       add(detailsBtn);
       add(editBtn);
       add(deleteBtn);
