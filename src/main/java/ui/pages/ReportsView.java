@@ -1,12 +1,8 @@
 package ui.pages;
 
 import ui.components.Sidebar;
-import ui.dialogs.EventDetailsDialog;
-import ui.dialogs.EventEditDialog;
 import ui.components.RoundedButton;
 import javax.swing.*;
-import javax.swing.table.*;
-import services.EventServiceSer;
 import java.awt.*;
 import java.util.List;
 import java.text.SimpleDateFormat;
@@ -39,7 +35,6 @@ public class ReportsView extends JPanel {
     private TableRowSorter<DefaultTableModel> tableSorter;
     private JLabel statusLabel;
     private Color primaryColor = new Color(64, 133, 219);
-    private Color accentColor = new Color(46, 204, 113);
     private Color lightGrayColor = new Color(245, 245, 245);
 
     public ReportsView() {

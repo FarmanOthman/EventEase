@@ -440,135 +440,15 @@ public class CalendarView extends JPanel {
             "Cancel");
 
         if (choice == 0) { // Add Event was selected
-            showAddEventDialog(date);
+          // Store the selected date in the Router's shared data before navigating
+          Router.putData("selectedDate", date);
+          Router.showPage("EventView");
         }
         return;
     }
-
-    StringBuilder eventDetails = new StringBuilder("Events for " + date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) + ":\n\n");
-    for (Map<String, Object> event : events) {
-        eventDetails.append("- ").append(event.get("event_name"));
-        if (event.containsKey("event_time")) {
-            eventDetails.append(" at ").append(event.get("event_time"));
-        }
-        eventDetails.append("\n");
-    }
-
-    JOptionPane.showMessageDialog(
-        this,
-        eventDetails.toString(),
-        "Scheduled Events",
-        JOptionPane.INFORMATION_MESSAGE);
   }
 
-  /**
-   * Shows dialog to add a new event
-   */
-  private void showAddEventDialog(LocalDate date) {
-    if (date != null && date.isBefore(LocalDate.now())) {
-        JOptionPane.showMessageDialog(
-            this,
-            "You cannot create an event for a past date.",
-            "Invalid Date",
-            JOptionPane.WARNING_MESSAGE
-        );
-        return;
-    }
 
-    EventAddDialog dialog = new EventAddDialog(
-        (Frame) SwingUtilities.getWindowAncestor(this),
-        date);
-    dialog.setVisible(true);
-
-    // If an event was added, refresh the calendar
-    if (dialog.isConfirmed()) {
-      loadEventsForCurrentMonth();
-      updateCalendar();
-      statusLabel.setText("Event added successfully. Calendar updated.");
-    }
-  }
-
-  /**
-   * Creates a formatted panel to display a single event
-   */
-  private JPanel createEventPanel(Map<String, Object> event) {
-    JPanel eventPanel = new JPanel();
-    eventPanel.setLayout(new BorderLayout());
-    eventPanel.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder("VIP".equalsIgnoreCase((String) event.get("category")) ? vipColor : accentColor,
-            1),
-        BorderFactory.createEmptyBorder(8, 8, 8, 8)));
-    eventPanel.setBackground(Color.WHITE);
-    eventPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
-    eventPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    // Event title
-    String eventTitle;
-    if (event.containsKey("team_a") && event.containsKey("team_b")) {
-      eventTitle = event.get("team_a") + " vs " + event.get("team_b");
-    } else {
-      eventTitle = (String) event.get("event_name");
-    }
-
-    JLabel titleLabel = new JLabel(eventTitle);
-    titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-
-    // Event time (extract from date if available)
-    String eventDate = (String) event.get("event_date");
-    String eventTime = "All day";
-
-    if (eventDate.length() > 10) { // Has time component
-      eventTime = eventDate.substring(11); // Get time part
-    }
-
-    JLabel timeLabel = new JLabel(eventTime);
-    timeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-
-    // Event category badge
-    JLabel categoryLabel = new JLabel((String) event.get("category"));
-    categoryLabel.setOpaque(true);
-    categoryLabel.setBackground("VIP".equalsIgnoreCase((String) event.get("category")) ? vipColor : accentColor);
-    categoryLabel.setForeground(Color.WHITE);
-    categoryLabel.setFont(new Font("Arial", Font.BOLD, 11));
-    categoryLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-
-    // Event description
-    String description = (String) event.get("event_description");
-    if (description == null || description.isEmpty()) {
-      description = "No description available";
-    }
-
-    JTextArea descriptionArea = new JTextArea(description);
-    descriptionArea.setWrapStyleWord(true);
-    descriptionArea.setLineWrap(true);
-    descriptionArea.setEditable(false);
-    descriptionArea.setFont(new Font("Arial", Font.PLAIN, 12));
-    descriptionArea.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-    descriptionArea.setBackground(Color.WHITE);
-
-    // Assemble panel
-    JPanel headerPanel = new JPanel(new BorderLayout());
-    headerPanel.setBackground(Color.WHITE);
-
-    JPanel titleTimePanel = new JPanel();
-    titleTimePanel.setLayout(new BoxLayout(titleTimePanel, BoxLayout.Y_AXIS));
-    titleTimePanel.setBackground(Color.WHITE);
-    titleTimePanel.add(titleLabel);
-    titleTimePanel.add(Box.createVerticalStrut(5));
-    titleTimePanel.add(timeLabel);
-
-    headerPanel.add(titleTimePanel, BorderLayout.WEST);
-    headerPanel.add(categoryLabel, BorderLayout.EAST);
-
-    eventPanel.add(headerPanel, BorderLayout.NORTH);
-    eventPanel.add(descriptionArea, BorderLayout.CENTER);
-
-    return eventPanel;
-  }
-
-  /**
-   * Creates a styled button with hover effects
-   */
   private JButton createStyledButton(String text, Color foregroundColor) {
     RoundedButton button = new RoundedButton(text, 25);
     button.setBackground(primaryColor);

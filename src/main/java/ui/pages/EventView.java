@@ -3,6 +3,8 @@ import ui.components.RoundedButton;
 import ui.components.Sidebar;
 import ui.Refreshable;
 import javax.swing.*;
+import ui.Router; // Ensure Router is imported from the correct package
+// If the Router class is in a different package, update the import statement accordingly
 import services.EventServiceSer;
 import java.awt.*;
 import java.text.SimpleDateFormat;
@@ -19,6 +21,8 @@ public class EventView extends JPanel implements Refreshable {
     private EventServiceSer eventServiceSer;
     private JComboBox<String> typeCombo;
     private JComboBox<String> categoryCombo;
+    // Adding dateSpinner as a class field so we can access it in refresh method
+    private JSpinner dateSpinner;
 
     public EventView() {
         setName("EventView"); // Set the name for the Router to identify this panel
@@ -39,8 +43,19 @@ public class EventView extends JPanel implements Refreshable {
 
     @Override
     public void refresh() {
-       
-       
+        // Check if a date was passed from CalendarView
+        Object selectedDateObj = Router.getData("selectedDate");
+        if (selectedDateObj != null && selectedDateObj instanceof java.time.LocalDate) {
+            java.time.LocalDate selectedDate = (java.time.LocalDate) selectedDateObj;
+            
+            // Convert LocalDate to Date for the spinner
+            java.util.Date date = java.sql.Date.valueOf(selectedDate);
+            
+            // Set the date in the dateSpinner
+            dateSpinner.setValue(date);
+            
+            Router.clearData("selectedDate"); // Ensure Router is correctly imported or fully qualified
+        }
     }
 
     private void createMainPanel() {
@@ -119,7 +134,7 @@ public class EventView extends JPanel implements Refreshable {
         dateTimePanel.setBackground(Color.WHITE);
 
         // Date picker using spinner
-        JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
+        dateSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
         dateSpinner.setEditor(dateEditor);
         dateSpinner.setValue(new Date()); // Set current date as default
