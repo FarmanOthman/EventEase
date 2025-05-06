@@ -393,22 +393,11 @@ public class BookingView extends JPanel implements Refreshable {
         buttonPanel.setMaximumSize(new Dimension(800, 50));
 
         // Create a custom rounded button with green background
-<<<<<<< HEAD
-         RoundedButton bookNowButton = new RoundedButton("Book", 25);
-         bookNowButton.setBackground(new Color(28,184,96));
-         bookNowButton.setForeground(Color.WHITE);
-         bookNowButton.setFont(new Font("Arial", Font.BOLD, 14));
-         bookNowButton.setPreferredSize(new Dimension(100, 40));
-         bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
-
-=======
         RoundedButton bookNowButton = new RoundedButton("Book Now", 25);
         bookNowButton.setBackground(new Color(28, 184, 96));
         bookNowButton.setFont(new Font("Arial", Font.BOLD, 14));
         bookNowButton.setForeground(Color.white);
         bookNowButton.setPreferredSize(new Dimension(120, 40));
->>>>>>> backend
         buttonPanel.add(bookNowButton);
         bookNowButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 

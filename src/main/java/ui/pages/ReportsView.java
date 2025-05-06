@@ -124,13 +124,9 @@ public class ReportsView extends JPanel {
       
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-<<<<<<< HEAD
-        headerPanel.add(searchIcon, BorderLayout.WEST);
-=======
         searchPanel.add(refreshButton);  // Add refresh button next to the search button
         
 
->>>>>>> backend
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
 
@@ -385,18 +381,14 @@ public class ReportsView extends JPanel {
         // Populate filter combo with dates and events from the data
         populateFilterCombo();
 
-<<<<<<< HEAD
-        JButton applyButton = createStyledButton("Apply Filter", primaryColor);
         
-        JButton exportButton = createStyledButton("Export With Analysis", accentColor);
-        exportButton.setPreferredSize(new Dimension(150, 30));
-=======
         RoundedButton applyButton = new RoundedButton("Apply", 25);
         applyButton.setBounds(85, 195, 180, 40); // Move the button down slightly
         applyButton.setBackground(new Color(64,133,219,255));
         applyButton.setForeground(Color.white);
         applyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         applyButton.setPreferredSize(new Dimension(100, 30));
+
         RoundedButton resetButton = new RoundedButton("Reset", 25);
         resetButton.setBounds(85, 195, 180, 40); // Move the button down slightly
         resetButton.setBackground(new Color(150, 150, 150));
@@ -410,7 +402,6 @@ public class ReportsView extends JPanel {
         exportButton.setForeground(Color.white);
         exportButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         exportButton.setPreferredSize(new Dimension(180, 30));
->>>>>>> backend
 
         // Action Listener for the Apply Filter button
         applyButton.addActionListener(e -> {
