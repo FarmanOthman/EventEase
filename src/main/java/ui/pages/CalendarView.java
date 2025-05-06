@@ -2,7 +2,6 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import services.EventCalendarService;
-import ui.dialogs.EventAddDialog;
 import ui.Router;
 import ui.components.RoundedButton;
 

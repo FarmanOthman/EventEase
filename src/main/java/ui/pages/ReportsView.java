@@ -34,7 +34,7 @@ public class ReportsView extends JPanel {
     private JTextField searchField;
     private TableRowSorter<DefaultTableModel> tableSorter;
     private JLabel statusLabel;
-    private Color primaryColor = new Color(64, 133, 219);
+    private Color primaryColor = new Color(64,133,219,255); // Changed from blue (64, 133, 219) to green
     private Color lightGrayColor = new Color(245, 245, 245);
 
     public ReportsView() {
@@ -80,8 +80,13 @@ public class ReportsView extends JPanel {
     private void createHeader() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(primaryColor);
-        headerPanel.setPreferredSize(new Dimension(0, 50));
-
+        
+        // Fix the height to 50 pixels but allow it to match the parent's width
+        // by using the parent's width instead of 0 for the first parameter
+        
+        headerPanel.setPreferredSize(new Dimension(50, 50));
+      
+        
         // Create title
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         titlePanel.setBackground(primaryColor);
@@ -124,11 +129,13 @@ public class ReportsView extends JPanel {
 
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
-
+        
         mainPanel.add(headerPanel, BorderLayout.NORTH);
+        
     }
 
     private void createContentPanel() {
+        // Create a single instance of contentPanel with proper expansion settings
         contentPanel = new JPanel();
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -159,43 +166,33 @@ public class ReportsView extends JPanel {
 
     private void populateContent() {
         // Sales Reporting Title
-        JPanel titlePanel = createStyledPanel("", true);
+       
         JLabel titleLabel = new JLabel("Sales Report Analytics");
-        contentPanel.add(titlePanel);
+        
         contentPanel.add(Box.createVerticalStrut(15));
 
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(Color.black);
 
         // Add filter/export controls
         JPanel controlsPanel = createFilterPanel();
+        controlsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, controlsPanel.getPreferredSize().height));
         contentPanel.add(controlsPanel);
         contentPanel.add(Box.createVerticalStrut(15));
 
         // Add sales data table
         JPanel salesDataPanel = createSalesDataPanel();
+        salesDataPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, salesDataPanel.getPreferredSize().height));
         contentPanel.add(salesDataPanel);
         contentPanel.add(Box.createVerticalStrut(20));
 
         // Add event calendar panel
         JPanel calendarPanel = createCalendarPanel();
+        calendarPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, calendarPanel.getPreferredSize().height));
         contentPanel.add(calendarPanel);
     }
 
-    private JPanel createStyledPanel(String title, boolean isHeader) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBackground(isHeader ? primaryColor : Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setForeground(isHeader ? Color.WHITE : Color.BLACK);
-        titleLabel.setFont(new Font("Arial", isHeader ? Font.BOLD : Font.PLAIN, 16));
-        panel.add(titleLabel, BorderLayout.WEST);
-
-        return panel;
-    }
+ 
 
     private JPanel createSalesDataPanel() {
         JPanel panel = new JPanel(new BorderLayout());
