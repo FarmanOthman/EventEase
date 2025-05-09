@@ -3,6 +3,7 @@ package server;
 import database.QueryBuilder;
 import java.time.LocalDate;
 import java.util.*;
+import server.notification.NotificationType;
 
 /**
  * Server-side service to handle calendar event business logic.
@@ -138,8 +139,7 @@ public class CalendarEventService {
 
   /**
    * Add a new event to the calendar
-   */
-  public boolean addEvent(String eventName, String eventDate, String category,
+   */  public boolean addEvent(String eventName, String eventDate, String category,
       String eventType, String teamA, String teamB, String description) {
     try {
       // Create a map for the new event data
@@ -156,6 +156,21 @@ public class CalendarEventService {
 
       // Insert into database
       queryBuilder.insert("Event", eventData);
+      
+      // Send notification for the new event
+      NotificationManager notificationManager = NotificationManager.getInstance();
+      String notificationMessage = "New event created: " + eventName + " (" + category + ")";
+      
+      // Send to admin and manager users
+      notificationManager.sendNotification("admin", notificationMessage, 
+          NotificationType.EVENT_UPCOMING, null);
+      notificationManager.sendNotification("manager", notificationMessage, 
+          NotificationType.EVENT_UPCOMING, null);
+      
+      // Also send a system notification that will be visible to any logged-in user
+      notificationManager.sendSystemNotification(notificationMessage, 
+          NotificationType.EVENT_UPCOMING);
+          
       return true;
     } catch (Exception e) {
       lastErrorMessage = "Error adding event: " + e.getMessage();
