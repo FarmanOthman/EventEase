@@ -60,9 +60,9 @@ public class BookingServiceSer {
   public String[] getPricingOptions() {
     return new String[] {
         "Select Price Category",
-        "VIP - $100",
-        "Regular - Premium - $75",
-        "Regular - Standard - $50"
+        "VIP - $25",
+        "Regular - Premium - $15",
+        "Regular - Standard - $10"
     };
   }
 
