@@ -1,7 +1,9 @@
 package services;
 
 import server.EventService;
+import server.NotificationManager;
 import server.UpcomingEventService;
+import server.notification.NotificationType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -82,7 +84,6 @@ public class EventServiceSer {
       return new ArrayList<>(); // Return empty list on error
     }
   }
-
   /**
    * Add a new event to the system
    * This method acts as an intermediary between the UI and server-side
@@ -93,6 +94,18 @@ public class EventServiceSer {
     try {
       // Call the server-side service to add the event
       eventService.addEvent(eventName, eventDate, teamA, teamB, eventDescription, eventCategory, eventType);
+      
+      // Send notification for the new event
+      NotificationManager notificationManager = NotificationManager.getInstance();
+      String message = "New event created: " + eventName + " (" + eventCategory + ")";
+      
+      // Send to admin and manager users
+      notificationManager.sendNotification("admin", message, NotificationType.EVENT_UPCOMING, null);
+      notificationManager.sendNotification("manager", message, NotificationType.EVENT_UPCOMING, null);
+      
+      // Also send a system notification that will be visible to any logged-in user
+      notificationManager.sendSystemNotification(message, NotificationType.EVENT_UPCOMING);
+      
       return true;
     } catch (Exception e) {
       System.out.println("Error adding event: " + e.getMessage());
@@ -132,33 +145,50 @@ public class EventServiceSer {
    * @param location         New location (can be null if location is not
    *                         supported)
    * @return true if successful, false otherwise
-   */
-  public boolean editEvent(int eventId, String eventName, String eventDate,
+   */  public boolean editEvent(int eventId, String eventName, String eventDate,
       String teamA, String teamB, String eventDescription,
       String eventCategory, String eventType, String location) {
     try {
+      boolean result = false;
+      
       // If location is provided but not supported, use the overloaded method without
       // location
       if (location != null) {
         try {
           // Try with location first
-          boolean result = upcomingEventService.editEvent(eventId, eventName, eventDate,
+          result = upcomingEventService.editEvent(eventId, eventName, eventDate,
               teamA, teamB, eventDescription, eventCategory, eventType, location);
-          return result;
         } catch (Exception e) {
           // If location column doesn't exist, try without it
           if (e.getMessage() != null && e.getMessage().contains("no such column: location")) {
             // Try the edit without location
-            return upcomingEventService.editEvent(eventId, eventName, eventDate,
+            result = upcomingEventService.editEvent(eventId, eventName, eventDate,
                 teamA, teamB, eventDescription, eventCategory, eventType, null);
+          } else {
+            throw e; // Re-throw if it's a different error
           }
-          throw e; // Re-throw if it's a different error
         }
       } else {
         // Location not provided, use base method
-        return upcomingEventService.editEvent(eventId, eventName, eventDate,
+        result = upcomingEventService.editEvent(eventId, eventName, eventDate,
             teamA, teamB, eventDescription, eventCategory, eventType, null);
       }
+      
+      // If successful, send a notification
+      if (result) {
+        // Send notification about the event update
+        NotificationManager notificationManager = NotificationManager.getInstance();
+        String message = "Event updated: " + eventName + " on " + eventDate;
+        
+        // Send to admin and manager
+        notificationManager.sendNotification("admin", message, NotificationType.EVENT_UPDATED, String.valueOf(eventId));
+        notificationManager.sendNotification("manager", message, NotificationType.EVENT_UPDATED, String.valueOf(eventId));
+        
+        // Send system notification for all users
+        notificationManager.sendSystemNotification(message, NotificationType.EVENT_UPDATED);
+      }
+      
+      return result;
     } catch (Exception e) {
       System.out.println("Error editing event: " + e.getMessage());
       lastErrorMessage = e.getMessage();
@@ -171,14 +201,30 @@ public class EventServiceSer {
    * 
    * @param eventId The ID of the event to delete
    * @return true if successful, false otherwise
-   */
-  public boolean deleteEvent(int eventId) {
+   */  public boolean deleteEvent(int eventId) {
     try {
+      // Get event details before deletion for the notification message
+      Map<String, Object> eventDetails = getEventDetails(eventId);
+      String eventName = eventDetails != null ? (String) eventDetails.get("event_name") : "Event #" + eventId;
+      
       // Call the server-side UpcomingEventService to delete the event
       boolean result = upcomingEventService.deleteEvent(eventId);
-      if (!result) {
+      
+      if (result) {
+        // Send notification about the event deletion
+        NotificationManager notificationManager = NotificationManager.getInstance();
+        String message = "Event deleted: " + eventName;
+        
+        // Send to admin and manager
+        notificationManager.sendNotification("admin", message, NotificationType.EVENT_CANCELLED, null);
+        notificationManager.sendNotification("manager", message, NotificationType.EVENT_CANCELLED, null);
+        
+        // Send system notification for all users
+        notificationManager.sendSystemNotification(message, NotificationType.EVENT_CANCELLED);
+      } else {
         lastErrorMessage = "Failed to delete event. Please try again.";
       }
+      
       return result;
     } catch (Exception e) {
       System.out.println("Error deleting event: " + e.getMessage());
