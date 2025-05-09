@@ -1,18 +1,19 @@
 package ui.pages;
 
 import ui.components.Sidebar;
-import services.EventCalendarService;
-import ui.Router;
 import ui.components.RoundedButton;
+import ui.Refreshable;
+import ui.Router;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
+import javax.swing.*;
+
+import services.EventCalendarService;
 
 /**
  * Calendar view that displays events and allows interaction with dates.
@@ -20,7 +21,7 @@ import java.util.List;
  * This class focuses only on presentation logic, delegating data operations to
  * services.
  */
-public class CalendarView extends JPanel {
+public class CalendarView extends JPanel implements Refreshable {
   // UI Components
   private JPanel mainPanel;
   private JPanel calendarPanel;
@@ -41,6 +42,7 @@ public class CalendarView extends JPanel {
   private Color lightGrayColor = new Color(245, 245, 245);
 
   public CalendarView() {
+    setName("CalendarView"); // Set the name for the Router to identify this panel
     setLayout(new BorderLayout());
 
     // Add the Sidebar component
@@ -59,6 +61,36 @@ public class CalendarView extends JPanel {
 
     // Load initial data
     loadEventsForCurrentMonth();
+  }
+
+  @Override
+  public void refresh() {
+    // Reload events for the current month
+    loadEventsForCurrentMonth();
+
+    // Update the calendar UI
+    updateCalendar();
+
+    // Also refresh the sidebar
+    Component sidebarComponent = null;
+    for (Component component : getComponents()) {
+        if (component instanceof Sidebar) {
+            sidebarComponent = component;
+            break;
+        }
+    }
+
+    if (sidebarComponent != null) {
+        // Remove old sidebar
+        remove(sidebarComponent);
+
+        // Add new sidebar
+        Sidebar sidebar = new Sidebar();
+        add(sidebar, BorderLayout.WEST);
+    }
+
+    revalidate();
+    repaint();
   }
 
   /**
@@ -176,8 +208,7 @@ public class CalendarView extends JPanel {
     addEventButton.setForeground(Color.white);
     addEventButton.setPreferredSize(new Dimension(120, 40));
     addEventButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    addEventButton.addActionListener(e ->         Router.showPage("EventView"));
-    ;
+    addEventButton.addActionListener(e -> Router.showPage("EventView"));
 
     JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     leftPanel.setBackground(primaryColor);
@@ -446,7 +477,6 @@ public class CalendarView extends JPanel {
         return;
     }
   }
-
 
   private JButton createStyledButton(String text, Color foregroundColor) {
     RoundedButton button = new RoundedButton(text, 25);

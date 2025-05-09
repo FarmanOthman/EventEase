@@ -43,15 +43,15 @@ public class Router {
       }
     }
 
-    // First try to refresh the page if it's already loaded
-    tryRefreshPage(pageName);
+    // First refresh the page if it implements Refreshable
+    refreshPageIfNeeded(pageName);
 
     // Then show the page
     mainFrame.showPage(pageName);
   }
 
-  // Method to try refreshing a page if it supports the Refreshable interface
-  private static void tryRefreshPage(String pageName) {
+  // Method to refresh a page if it implements Refreshable
+  private static void refreshPageIfNeeded(String pageName) {
     if (mainFrame != null) {
       JPanel cardPanel = mainFrame.getCardPanel();
 
@@ -65,22 +65,11 @@ public class Router {
             componentName = component.getClass().getSimpleName();
           }
 
-          // If this is our target panel, refresh it
-          if (componentName.equals(pageName)) {
-            // Force a repaint on the target panel
-            component.invalidate();
-            component.revalidate();
-            component.repaint();
-
-            // Use reflection to call refresh method if available
-            try {
-              if (component.getClass().getMethod("refresh") != null) {
-                component.getClass().getMethod("refresh").invoke(component);
-              }
-            } catch (Exception e) {
-              // Method doesn't exist or other exception, just continue
-              // Silent catch is intentional - not all panels will have refresh method
-            }
+          // If this is our target panel and it implements Refreshable, refresh it
+          if (componentName.equals(pageName) && component instanceof Refreshable) {
+            System.out.println("Refreshing page: " + pageName);
+            ((Refreshable) component).refresh();
+            break;
           }
         }
       }

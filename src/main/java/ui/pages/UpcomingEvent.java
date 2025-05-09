@@ -3,6 +3,7 @@ import ui.components.Sidebar;
 import ui.dialogs.EventDetailsDialog;
 import ui.dialogs.EventEditDialog;
 import ui.components.RoundedButton;
+import ui.Refreshable;
 import javax.swing.*;
 import javax.swing.table.*;
 import services.EventServiceSer;
@@ -18,8 +19,9 @@ import java.util.Date;
  * Upcoming Events page that displays events from the database.
  * This class only handles the UI aspects, with all business logic
  * and data access delegated to the service layer (EventServiceSer).
+ * Implements Refreshable interface to update content when needed.
  */
-public class UpcomingEvent extends JPanel {
+public class UpcomingEvent extends JPanel implements Refreshable {
   private JPanel mainPanel;
   private JPanel contentPanel;
   private JTable eventsTable;
@@ -29,6 +31,7 @@ public class UpcomingEvent extends JPanel {
   private EventServiceSer eventServiceSer;
 
   public UpcomingEvent() {
+    setName("UpcomingEvent"); // Set the name for the Router to identify this panel
     setLayout(new BorderLayout());
 
     // Initialize the event service
@@ -42,6 +45,48 @@ public class UpcomingEvent extends JPanel {
 
     // Add main panel to this panel
     add(mainPanel, BorderLayout.CENTER);
+  }
+  
+  /**
+   * Refreshes the view by reloading events and updating the UI.
+   * Used when returning to this view to show the most current data.
+   */
+  @Override
+  public void refresh() {
+    // Reload all events to get the latest data
+    loadAllEvents();
+    
+    // Reset filters to default
+    if (categoryFilter != null) {
+      categoryFilter.setSelectedIndex(0);
+    }
+    if (dateFilter != null) {
+      dateFilter.setSelectedIndex(0);
+    }
+    if (locationFilter != null) {
+      locationFilter.setSelectedIndex(0);
+    }
+    
+    // Also refresh the sidebar
+    Component sidebarComponent = null;
+    for (Component component : getComponents()) {
+        if (component instanceof Sidebar) {
+            sidebarComponent = component;
+            break;
+        }
+    }
+
+    if (sidebarComponent != null) {
+        // Remove old sidebar
+        remove(sidebarComponent);
+        
+        // Add new sidebar
+        Sidebar sidebar = new Sidebar();
+        add(sidebar, BorderLayout.WEST);
+    }
+
+    revalidate();
+    repaint();
   }
 
   private void createMainPanel() {

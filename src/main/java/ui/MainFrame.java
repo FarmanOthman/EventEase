@@ -37,17 +37,46 @@ public class MainFrame extends JFrame {
     cardLayout = new CardLayout();
     cardPanel = new JPanel(cardLayout);
 
-    // Add views to card panel with unique identifiers
-    cardPanel.add(new LoginView(), "LoginView");
-    cardPanel.add(new Dashboard(), "Dashboard");
-    cardPanel.add(new EventView(), "EventView");
-    cardPanel.add(new ReportsView(), "ReportsView");
-    cardPanel.add(new BookingView(), "BookingView");
-    cardPanel.add(new CalendarView(), "CalendarView");
-    cardPanel.add(new DataPersistenceView(), "DataPersistenceView");
-    cardPanel.add(new NotificationView(), "NotificationView");
-    cardPanel.add(new UpcomingEvent(), "UpcomingEvent");
-    cardPanel.add(new UserManagementView(), "UserManagementView");
+    // Create and add views to card panel with unique identifiers
+    JPanel loginView = new LoginView();
+    loginView.setName("LoginView");
+    cardPanel.add(loginView, "LoginView");
+    
+    JPanel dashboard = new Dashboard();
+    dashboard.setName("Dashboard");
+    cardPanel.add(dashboard, "Dashboard");
+    
+    JPanel eventView = new EventView();
+    eventView.setName("EventView");
+    cardPanel.add(eventView, "EventView");
+    
+    JPanel reportsView = new ReportsView();
+    reportsView.setName("ReportsView");
+    cardPanel.add(reportsView, "ReportsView");
+    
+    JPanel bookingView = new BookingView();
+    bookingView.setName("BookingView");
+    cardPanel.add(bookingView, "BookingView");
+    
+    JPanel calendarView = new CalendarView();
+    calendarView.setName("CalendarView");
+    cardPanel.add(calendarView, "CalendarView");
+    
+    JPanel dataPersistenceView = new DataPersistenceView();
+    dataPersistenceView.setName("DataPersistenceView");
+    cardPanel.add(dataPersistenceView, "DataPersistenceView");
+    
+    JPanel notificationView = new NotificationView();
+    notificationView.setName("NotificationView");
+    cardPanel.add(notificationView, "NotificationView");
+    
+    JPanel upcomingEvent = new UpcomingEvent();
+    upcomingEvent.setName("UpcomingEvent");
+    cardPanel.add(upcomingEvent, "UpcomingEvent");
+    
+    JPanel userManagementView = new UserManagementView();
+    userManagementView.setName("UserManagementView");
+    cardPanel.add(userManagementView, "UserManagementView");
 
     // Wrap the card panel in a scroll pane
     scrollPane = new JScrollPane(cardPanel);

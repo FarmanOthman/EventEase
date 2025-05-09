@@ -2,6 +2,7 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.components.RoundedButton;
+import ui.Refreshable;
 import services.NotificationService;
 import services.NotificationService.UINotification;
 
@@ -12,7 +13,7 @@ import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-public class NotificationView extends JPanel {
+public class NotificationView extends JPanel implements Refreshable {
   private JPanel mainPanel;
   private JPanel notificationsPanel;
   private JLabel notificationCountLabel;
@@ -22,6 +23,7 @@ public class NotificationView extends JPanel {
   private List<UINotification> notifications;
 
   public NotificationView() {
+    setName("NotificationView"); // Set the name for the Router to identify this panel
     setLayout(new BorderLayout());
     add(new Sidebar(), BorderLayout.WEST);
 
@@ -34,6 +36,33 @@ public class NotificationView extends JPanel {
 
     createMainPanel();
     add(mainPanel, BorderLayout.CENTER);
+  }
+  
+  @Override
+  public void refresh() {
+    // Reload all notifications and update the UI
+    refreshNotifications();
+    
+    // Also refresh the sidebar
+    Component sidebarComponent = null;
+    for (Component component : getComponents()) {
+        if (component instanceof Sidebar) {
+            sidebarComponent = component;
+            break;
+        }
+    }
+
+    if (sidebarComponent != null) {
+        // Remove old sidebar
+        remove(sidebarComponent);
+        
+        // Add new sidebar
+        Sidebar sidebar = new Sidebar();
+        add(sidebar, BorderLayout.WEST);
+    }
+
+    revalidate();
+    repaint();
   }
 
   private void loadNotifications() {

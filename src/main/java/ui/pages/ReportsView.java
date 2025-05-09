@@ -2,6 +2,7 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.components.RoundedButton;
+import ui.Refreshable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.*;
  * The main report viewing UI for displaying sales data, applying filters, and
  * exporting data.
  */
-public class ReportsView extends JPanel {
+public class ReportsView extends JPanel implements Refreshable {
     private JPanel mainPanel, contentPanel;
     private JTable salesTable;
     private SalesDataService salesDataService;
@@ -38,6 +39,7 @@ public class ReportsView extends JPanel {
     private Color lightGrayColor = new Color(245, 245, 245);
 
     public ReportsView() {
+        setName("ReportsView"); // Set the name for the Router to identify this panel
         setLayout(new BorderLayout());
         mainPanel = new JPanel(new BorderLayout());
         currentSalesData = new ArrayList<>();
@@ -59,6 +61,33 @@ public class ReportsView extends JPanel {
                 repaint();
             }
         });
+    }
+
+    @Override
+    public void refresh() {
+        // Reload all sales data and update the UI
+        loadAllEvents();
+        
+        // Also refresh the sidebar
+        Component sidebarComponent = null;
+        for (Component component : getComponents()) {
+            if (component instanceof Sidebar) {
+                sidebarComponent = component;
+                break;
+            }
+        }
+
+        if (sidebarComponent != null) {
+            // Remove old sidebar
+            remove(sidebarComponent);
+            
+            // Add new sidebar
+            Sidebar sidebar = new Sidebar();
+            add(sidebar, BorderLayout.WEST);
+        }
+
+        revalidate();
+        repaint();
     }
 
     private void createMainPanel() {

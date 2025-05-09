@@ -2,6 +2,7 @@ package ui.pages;
 
 import ui.components.Sidebar;
 import ui.components.RoundedButton;
+import ui.Refreshable;
 import services.DataPersistenceService;
 import services.DataPersistenceService.BackupInfo;
 import services.DataPersistenceService.BackupResult;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.text.SimpleDateFormat;
 
-public class DataPersistenceView extends JPanel {
+public class DataPersistenceView extends JPanel implements Refreshable {
   private JPanel mainPanel;
   private JSpinner fromDateSpinner;
   private JSpinner toDateSpinner;
@@ -28,6 +29,7 @@ public class DataPersistenceView extends JPanel {
   private JPanel historyPanel;
 
   public DataPersistenceView() {
+    setName("DataPersistenceView"); // Set the name for the Router to identify this panel
     setLayout(new BorderLayout());
 
     // Initialize the service
@@ -44,6 +46,41 @@ public class DataPersistenceView extends JPanel {
 
     // Refresh backup history
     refreshBackupHistory();
+  }
+  
+  /**
+   * Implements the Refreshable interface to refresh data when navigating to this view.
+   */
+  @Override
+  public void refresh() {
+    // Reset date spinners to current date
+    Date currentDate = new Date();
+    fromDateSpinner.setValue(currentDate);
+    toDateSpinner.setValue(currentDate);
+    
+    // Refresh backup history
+    refreshBackupHistory();
+    
+    // Refresh sidebar
+    Component sidebarComponent = null;
+    for (Component component : getComponents()) {
+        if (component instanceof Sidebar) {
+            sidebarComponent = component;
+            break;
+        }
+    }
+
+    if (sidebarComponent != null) {
+        // Remove old sidebar
+        remove(sidebarComponent);
+        
+        // Add new sidebar
+        Sidebar sidebar = new Sidebar();
+        add(sidebar, BorderLayout.WEST);
+    }
+    
+    revalidate();
+    repaint();
   }
 
   private void createMainPanel() {
