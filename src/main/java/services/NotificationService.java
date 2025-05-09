@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.awt.Color;
+import javax.swing.JOptionPane;
 
 /**
  * Service class to connect the UI with the notification system.
@@ -73,7 +74,6 @@ public class NotificationService implements NotificationObserver {
   public void unregisterView(NotificationView view) {
     registeredViews.remove(view);
   }
-
   /**
    * Get all notifications for the current user
    * 
@@ -82,19 +82,34 @@ public class NotificationService implements NotificationObserver {
    * @return List of UI notifications
    */
   public List<UINotification> getNotifications(NotificationType filterType, boolean onlyUnread) {
-    List<Notification> serverNotifications = notificationManager.getNotificationsForUser(
+    // Get notifications specifically for the current user
+    List<Notification> userNotifications = notificationManager.getNotificationsForUser(
         currentUserId, filterType, onlyUnread);
-
-    return convertToUINotifications(serverNotifications);
+    
+    // Also get system notifications that should be visible to all users
+    List<Notification> systemNotifications = notificationManager.getNotificationsForUser(
+        "system", filterType, onlyUnread);
+    
+    // Combine both lists
+    List<Notification> allNotifications = new ArrayList<>(userNotifications);
+    allNotifications.addAll(systemNotifications);
+    
+    return convertToUINotifications(allNotifications);
   }
-
   /**
    * Get the count of unread notifications for the current user
    * 
    * @return The count of unread notifications
    */
   public int getUnreadCount() {
-    return notificationManager.getUnreadCount(currentUserId);
+    // Count unread notifications for the current user
+    int userCount = notificationManager.getUnreadCount(currentUserId);
+    
+    // Also count unread system notifications
+    int systemCount = notificationManager.getUnreadCount("system");
+    
+    // Return the total
+    return userCount + systemCount;
   }
 
   /**
@@ -116,14 +131,20 @@ public class NotificationService implements NotificationObserver {
   public boolean markAsUnread(String notificationId) {
     return notificationManager.markAsUnread(notificationId);
   }
-
   /**
    * Mark all notifications for the current user as read
    * 
    * @return Number of notifications marked as read
    */
   public int markAllAsRead() {
-    return notificationManager.markAllAsRead(currentUserId);
+    // Mark current user's notifications as read
+    int userCount = notificationManager.markAllAsRead(currentUserId);
+    
+    // Also mark system notifications as read
+    int systemCount = notificationManager.markAllAsRead("system");
+    
+    // Return the total
+    return userCount + systemCount;
   }
 
   /**
@@ -135,12 +156,25 @@ public class NotificationService implements NotificationObserver {
   public boolean deleteNotification(String notificationId) {
     return notificationManager.deleteNotification(notificationId);
   }
-
   @Override
   public void onNotificationReceived(Notification notification) {
-    // Update all registered views
-    for (NotificationView view : registeredViews) {
-      view.refreshNotifications();
+    // Check if this notification is for the current user or is a system notification
+    boolean isForCurrentUser = notification.getUserId().equals(currentUserId);
+    boolean isSystemNotification = notification.getUserId().equals("system");
+    
+    if (isForCurrentUser || isSystemNotification) {
+      // Update all registered views
+      for (NotificationView view : registeredViews) {
+        view.refreshNotifications();
+      }
+      
+      // Optionally show a system tray notification or other UI indicator
+      // that a new notification has arrived
+      JOptionPane.showMessageDialog(
+          null, 
+          notification.getMessage(), 
+          "New Notification", 
+          JOptionPane.INFORMATION_MESSAGE);
     }
   }
 

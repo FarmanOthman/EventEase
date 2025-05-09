@@ -7,6 +7,7 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import server.notification.NotificationType;
 
 public class BookingService {
 
@@ -69,15 +70,23 @@ public class BookingService {
             // database so we don't need to explicitly set them
 
             // Debugging: Print ticket details before insertion
-            System.out.println("Inserting booking with data: " + ticketValues);
-
-            // Call the QueryBuilder to insert the booking into the Ticket table
+            System.out.println("Inserting booking with data: " + ticketValues);            // Call the QueryBuilder to insert the booking into the Ticket table
             queryBuilder.insert("Ticket", ticketValues);
             System.out.println("Booking added to the database successfully!");
             
             // Update the Sales table
             updateSalesTable(ticketType, price);
-            
+              // Send notification for the new ticket
+            NotificationManager notificationManager = NotificationManager.getInstance();
+            // Send to admin and manager users
+            notificationManager.sendNotification("admin", "New " + ticketType + " ticket created for event: " + selectedEvent, 
+                NotificationType.TICKET_AVAILABLE, String.valueOf(eventId));
+            notificationManager.sendNotification("manager", "New " + ticketType + " ticket created for event: " + selectedEvent, 
+                NotificationType.TICKET_AVAILABLE, String.valueOf(eventId));
+            // Also send a system notification that will be visible to any logged-in user
+            notificationManager.sendSystemNotification("New " + ticketType + " ticket created for event: " + selectedEvent, 
+                NotificationType.TICKET_AVAILABLE);
+                
             return true;
         } catch (Exception e) {
             System.out.println("Failed to add booking to the database: " + e.getMessage());
