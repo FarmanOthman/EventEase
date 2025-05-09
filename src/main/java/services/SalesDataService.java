@@ -2,6 +2,8 @@ package services;
 
 import java.util.*;
 import database.QueryBuilder;
+import server.ExcelExportService;
+import server.PDFExportService;
 
 /**
  * Service layer class that handles all operations related to sales data.
@@ -9,10 +11,14 @@ import database.QueryBuilder;
 public class SalesDataService {
     private QueryBuilder queryBuilder;
     private String lastErrorMessage;
+    private ExcelExportService excelExportService;
+    private PDFExportService pdfExportService;
 
     public SalesDataService() {
         this.queryBuilder = new QueryBuilder();
         this.lastErrorMessage = "";
+        this.excelExportService = new ExcelExportService();
+        this.pdfExportService = new PDFExportService();
         initializeSalesData();
     }
 
@@ -143,15 +149,25 @@ public class SalesDataService {
     }
 
     /**
-     * Export sales data to a file (e.g., CSV).
+     * Export sales data to a file with analysis (Excel or PDF).
      */
     public boolean exportSalesData(List<Map<String, Object>> salesData, String filePath) {
         try {
-            // Logic to export data to a file
-            System.out.println("Exporting sales data to: " + filePath);
-            return true;
+            // Define column names for the export
+            String[] columnNames = {"Date", "Category", "Tickets Sold", "Revenue ($)"};
+            
+            // Apply the appropriate export service based on file extension
+            if (filePath.toLowerCase().endsWith(".xlsx")) {
+                return excelExportService.exportToExcel(salesData, filePath, "Sales Report", columnNames);
+            } else if (filePath.toLowerCase().endsWith(".pdf")) {
+                return pdfExportService.exportToPDF(salesData, filePath, "Sales Report Analysis", columnNames);
+            } else {
+                // Default to Excel if extension is not recognized
+                return excelExportService.exportToExcel(salesData, filePath + ".xlsx", "Sales Report", columnNames);
+            }
         } catch (Exception e) {
             lastErrorMessage = "Error exporting sales data: " + e.getMessage();
+            e.printStackTrace();
             return false;
         }
     }

@@ -84,23 +84,23 @@ public class NotificationView extends JPanel implements Refreshable {
     mainPanel = new JPanel(new BorderLayout());
     mainPanel.setBackground(Color.WHITE);
 
-    // Create header panel with notification controls
+    // Create header panel with title and notification count
     JPanel headerPanel = new JPanel(new BorderLayout());
     headerPanel.setBackground(new Color(64, 133, 219));
-    headerPanel.setPreferredSize(new Dimension(600, 60));
+    headerPanel.setPreferredSize(new Dimension(600, 50));
 
-    // Title section
-    JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+    // Title panel with notification count
+    JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
     titlePanel.setBackground(new Color(64, 133, 219));
 
     JLabel headerLabel = new JLabel("Notifications");
     headerLabel.setForeground(Color.WHITE);
-    headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
 
-    // Badge for unread count
-    notificationCountLabel = new JLabel(notificationService.getUnreadCount() + "");
+    // Notification count badge
+    notificationCountLabel = new JLabel("0");
     notificationCountLabel.setOpaque(true);
-    notificationCountLabel.setBackground(Color.RED);
+    notificationCountLabel.setBackground(new Color(231, 76, 60)); // Red background
     notificationCountLabel.setForeground(Color.WHITE);
     notificationCountLabel.setFont(new Font("Arial", Font.BOLD, 12));
     notificationCountLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -132,15 +132,7 @@ public class NotificationView extends JPanel implements Refreshable {
     controlPanel.add(filterComboBox);
     controlPanel.add(markAllReadButton);
 
-    // Add a refresh button to the control panel
-    RoundedButton refreshButton = new RoundedButton("Refresh", 25);
-    refreshButton.setBackground(new Color(245, 245, 245));
-    refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-    refreshButton.setForeground(new Color(64, 133, 219));
-    refreshButton.setPreferredSize(new Dimension(120, 40));
-    refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    refreshButton.addActionListener(e -> refreshNotifications());
-    controlPanel.add(refreshButton);
+    // Remove the refresh button that is no longer used
 
     headerPanel.add(titlePanel, BorderLayout.WEST);
     headerPanel.add(controlPanel, BorderLayout.EAST);
@@ -161,27 +153,29 @@ public class NotificationView extends JPanel implements Refreshable {
     todayLabel.setFont(new Font("Arial", Font.BOLD, 16));
     todayLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     todayLabel.setAlignmentX(LEFT_ALIGNMENT);
+    todayPanel.add(todayLabel);
 
-    // Create notifications panel
+    // Create notifications scroll panel
     notificationsPanel = new JPanel();
     notificationsPanel.setLayout(new BoxLayout(notificationsPanel, BoxLayout.Y_AXIS));
     notificationsPanel.setBackground(Color.WHITE);
     notificationsPanel.setAlignmentX(LEFT_ALIGNMENT);
 
-    // Add notifications
+    // Add notifications to the panel
     renderNotifications();
 
-    // Add components to content panel
-    todayPanel.add(todayLabel);
-    todayPanel.add(notificationsPanel);
-    contentPanel.add(todayPanel);
+    // Add to scroll pane for scrolling if many notifications
+    JScrollPane scrollPane = new JScrollPane(notificationsPanel);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.setAlignmentX(LEFT_ALIGNMENT);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-    // Add empty panel at the bottom for spacing
-    contentPanel.add(Box.createVerticalGlue());
+    todayPanel.add(scrollPane);
+    contentPanel.add(todayPanel);
 
     // Add panels to main panel
     mainPanel.add(headerPanel, BorderLayout.NORTH);
-    mainPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
+    mainPanel.add(contentPanel, BorderLayout.CENTER);
   }
 
   private void renderNotifications() {

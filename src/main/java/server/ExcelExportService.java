@@ -111,15 +111,18 @@ public class ExcelExportService {
   private String getKeyForColumn(String displayColumnName) {
     switch (displayColumnName) {
       case "Date":
-        return "event_date";
+        return "sale_date";
+      case "Category":
+        return "category";
+      case "Tickets Sold":
+        return "tickets_sold";
+      case "Revenue ($)":
+      case "Revenue":
+        return "revenue";
       case "Team A":
         return "team_a";
       case "Team B":
         return "team_b";
-      case "Tickets Sold":
-        return "total_ticket_sold";
-      case "Revenue ($)":
-        return "total_revenue";
       case "VIP Tickets":
         return "vip_tickets";
       case "Standard Tickets":
@@ -160,7 +163,7 @@ public class ExcelExportService {
 
     for (Map<String, Object> rowData : data) {
       // Get revenue value (handling both strings with $ and numeric values)
-      Object revenueObj = rowData.get("total_revenue");
+      Object revenueObj = rowData.get("revenue");
       if (revenueObj != null) {
         if (revenueObj instanceof Number) {
           totalRevenue += ((Number) revenueObj).doubleValue();
@@ -175,7 +178,7 @@ public class ExcelExportService {
       }
 
       // Get tickets sold
-      Object ticketsObj = rowData.get("total_ticket_sold");
+      Object ticketsObj = rowData.get("tickets_sold");
       if (ticketsObj != null) {
         if (ticketsObj instanceof Number) {
           totalTickets += ((Number) ticketsObj).intValue();

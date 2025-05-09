@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.text.SimpleDateFormat;
+import ui.Router;
 
 import services.SalesDataService;
 
@@ -142,19 +143,8 @@ public class ReportsView extends JPanel implements Refreshable {
         searchButton.addActionListener(searchAction);
         searchField.addActionListener(searchAction);
 
-        // Create a refresh button for the search panel
-        RoundedButton refreshButton = new RoundedButton("Refresh", 25);
-        refreshButton.setBackground(new Color(245, 245, 245));
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setForeground(new Color(64, 133, 219));
-        refreshButton.setPreferredSize(new Dimension(120, 40));
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> loadAllEvents());
-      
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-        searchPanel.add(refreshButton);  // Add refresh button next to the search button
-        
 
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(searchPanel, BorderLayout.EAST);
@@ -276,6 +266,12 @@ public class ReportsView extends JPanel implements Refreshable {
         // Add sorting capability
         tableSorter = new TableRowSorter<>(model);
         salesTable.setRowSorter(tableSorter);
+
+        // Set initial sort order - newest dates first (descending order for column 0 - Date)
+        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+        sortKeys.add(new RowSorter.SortKey(0, SortOrder.DESCENDING));
+        tableSorter.setSortKeys(sortKeys);
+        tableSorter.sort();
 
         // Create table header with tooltips
         JPanel tableHeaderPanel = createTableHeader();
@@ -555,7 +551,10 @@ public class ReportsView extends JPanel implements Refreshable {
     }
 
     private void performSearch(String searchTerm) {
-        if (searchTerm == null || searchTerm.isEmpty()) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            // If search term is empty, clear any filter and show all records
+            tableSorter.setRowFilter(null);
+            statusLabel.setText("Displaying " + currentSalesData.size() + " records");
             return;
         }
 
@@ -753,21 +752,7 @@ public class ReportsView extends JPanel implements Refreshable {
     }
 
     private void openCalendarView() {
-        // Get the parent window
-        Window parentWindow = SwingUtilities.getWindowAncestor(this);
-
-        // Create a new JFrame for the calendar
-        JFrame calendarFrame = new JFrame("Event Calendar");
-        calendarFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        calendarFrame.setSize(800, 600);
-        calendarFrame.setLocationRelativeTo(parentWindow);
-
-        // Add the calendar view
-        calendarFrame.add(new ui.pages.CalendarView());
-
-        // Pack the frame to optimal size instead of fixed size
-        calendarFrame.pack();
-        // Show the frame
-        calendarFrame.setVisible(true);
+        // Use Router to navigate to the CalendarView page instead of opening a new window
+        Router.showPage("CalendarView");
     }
 }
