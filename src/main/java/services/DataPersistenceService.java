@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.*;
 
@@ -19,6 +22,7 @@ import database.BackupManager;
 import database.Database;
 import server.ExcelExportService;
 import server.PDFExportService;
+import database.QueryBuilder;
 
 /**
  * Service for managing data persistence operations: import, export, and backup.
@@ -27,10 +31,12 @@ public class DataPersistenceService {
   private static final String BACKUP_DIRECTORY = "backups/";
   private final ExcelExportService excelExportService;
   private final PDFExportService pdfExportService;
+  private final QueryBuilder queryBuilder;
 
   public DataPersistenceService() {
     this.excelExportService = new ExcelExportService();
     this.pdfExportService = new PDFExportService();
+    this.queryBuilder = new QueryBuilder();
     initializeBackupDirectory();
   }
 
@@ -390,6 +396,156 @@ public class DataPersistenceService {
     }
 
     return backups;
+  }
+
+  private List<Map<String, Object>> fetchDataForExport(String dataType, Date fromDate, Date toDate) {
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      String fromDateStr = sdf.format(fromDate);
+      String toDateStr = sdf.format(toDate);
+
+      Map<String, Object> filters = new HashMap<>();
+      String[] columns;
+      String tableName;
+
+      switch (dataType) {
+        case "Events":
+          tableName = "Event";
+          filters.put("event_date >= ", fromDateStr);
+          filters.put("event_date <= ", toDateStr);
+          columns = new String[] {
+              "event_id",
+              "event_name",
+              "event_date",
+              "event_description",
+              "team_a",
+              "team_b",
+              "category",
+              "event_type"
+          };
+          break;
+
+        case "Tickets":
+          tableName = "Ticket";
+          filters.put("ticket_date >= ", fromDateStr);
+          filters.put("ticket_date <= ", toDateStr);
+          columns = new String[] {
+              "ticket_id",
+              "event_id",
+              "ticket_type",
+              "ticket_date",
+              "price",
+              "ticket_status"
+          };
+          break;
+
+        case "Sales Report":
+          tableName = "Sales";
+          filters.put("sale_date >= ", fromDateStr);
+          filters.put("sale_date <= ", toDateStr);
+          columns = new String[] {
+              "sale_id",
+              "sale_date",
+              "tickets_sold",
+              "revenue",
+              "category"
+          };
+          break;
+
+        default:
+          System.err.println("Unknown data type: " + dataType);
+          return new ArrayList<>();
+      }
+
+      List<Map<String, Object>> results = queryBuilder.selectWithFilters(tableName, filters, columns);
+      System.out.println("Fetched " + results.size() + " records from " + tableName);
+
+      // Map the database column names to display names
+      List<Map<String, Object>> mappedResults = new ArrayList<>();
+      for (Map<String, Object> result : results) {
+        Map<String, Object> mappedResult = new HashMap<>();
+        for (Map.Entry<String, Object> entry : result.entrySet()) {
+          String displayName = getDisplayColumnName(entry.getKey());
+          mappedResult.put(displayName.toLowerCase().replace(" ", "_"), entry.getValue());
+        }
+        mappedResults.add(mappedResult);
+      }
+
+      return mappedResults;
+
+    } catch (Exception e) {
+      System.err.println("Error fetching data for export: " + e.getMessage());
+      e.printStackTrace();
+      return new ArrayList<>();
+    }
+  }
+
+  private String getDisplayColumnName(String dbColumnName) {
+    switch (dbColumnName) {
+      case "event_date":
+        return "Date";
+      case "event_name":
+        return "Event Name";
+      case "event_description":
+        return "Description";
+      case "team_a":
+        return "Team A";
+      case "team_b":
+        return "Team B";
+      case "category":
+        return "Category";
+      case "event_type":
+        return "Event Type";
+      case "ticket_type":
+        return "Ticket Type";
+      case "ticket_date":
+        return "Date";
+      case "price":
+        return "Price";
+      case "ticket_status":
+        return "Status";
+      case "sale_date":
+        return "Date";
+      case "tickets_sold":
+        return "Tickets Sold";
+      case "revenue":
+        return "Revenue";
+      default:
+        // Convert snake_case to Title Case
+        return Arrays.stream(dbColumnName.split("_"))
+            .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1))
+            .collect(Collectors.joining(" "));
+    }
+  }
+
+  public List<Map<String, Object>> getExportData(String dataType, Date fromDate, Date toDate) {
+    List<Map<String, Object>> data = fetchDataForExport(dataType, fromDate, toDate);
+
+    // For Sales Report, we need to join with Event table to get team information
+    if (dataType.equals("Sales Report") && !data.isEmpty()) {
+      // Fetch event details for each sale
+      for (Map<String, Object> sale : data) {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("event_date", sale.get("date")); // Using mapped column name
+
+        List<Map<String, Object>> eventDetails = queryBuilder.selectWithFilters(
+            "Event",
+            filters,
+            new String[] { "event_name", "team_a", "team_b" });
+
+        if (!eventDetails.isEmpty()) {
+          // Map the column names before adding to sale
+          Map<String, Object> mappedDetails = new HashMap<>();
+          for (Map.Entry<String, Object> entry : eventDetails.get(0).entrySet()) {
+            String displayName = getDisplayColumnName(entry.getKey());
+            mappedDetails.put(displayName.toLowerCase().replace(" ", "_"), entry.getValue());
+          }
+          sale.putAll(mappedDetails);
+        }
+      }
+    }
+
+    return data;
   }
 
   /**

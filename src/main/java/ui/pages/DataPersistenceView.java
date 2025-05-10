@@ -47,9 +47,10 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     // Refresh backup history
     refreshBackupHistory();
   }
-  
+
   /**
-   * Implements the Refreshable interface to refresh data when navigating to this view.
+   * Implements the Refreshable interface to refresh data when navigating to this
+   * view.
    */
   @Override
   public void refresh() {
@@ -57,28 +58,28 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     Date currentDate = new Date();
     fromDateSpinner.setValue(currentDate);
     toDateSpinner.setValue(currentDate);
-    
+
     // Refresh backup history
     refreshBackupHistory();
-    
+
     // Refresh sidebar
     Component sidebarComponent = null;
     for (Component component : getComponents()) {
-        if (component instanceof Sidebar) {
-            sidebarComponent = component;
-            break;
-        }
+      if (component instanceof Sidebar) {
+        sidebarComponent = component;
+        break;
+      }
     }
 
     if (sidebarComponent != null) {
-        // Remove old sidebar
-        remove(sidebarComponent);
-        
-        // Add new sidebar
-        Sidebar sidebar = new Sidebar();
-        add(sidebar, BorderLayout.WEST);
+      // Remove old sidebar
+      remove(sidebarComponent);
+
+      // Add new sidebar
+      Sidebar sidebar = new Sidebar();
+      add(sidebar, BorderLayout.WEST);
     }
-    
+
     revalidate();
     repaint();
   }
@@ -505,39 +506,121 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     }
 
     // Ensure file has correct extension
-    File selectedFile = fileChooser.getSelectedFile();
-    if (!selectedFile.getName().endsWith("." + extension)) {
-      selectedFile = new File(selectedFile.getAbsolutePath() + "." + extension);
-    }
-
-    // Step 4: Generate sample data (in a real app, this would be from the database)
-    List<Map<String, Object>> data = generateSampleData(selectedType, fromDate, toDate);
-
-    // Step 5: Perform export
-    boolean success = false;
-    String title = selectedType + " Report (" + sdf.format(fromDate) + " to " + sdf.format(toDate) + ")";
-    String[] columnNames = getColumnNames(selectedType);
-
-    if (selectedFormat.contains("Excel")) {
-      success = dataPersistenceService.exportToExcel(data, selectedFile.getAbsolutePath(), selectedType, columnNames);
+    final File selectedFile;
+    if (!fileChooser.getSelectedFile().getName().endsWith("." + extension)) {
+      selectedFile = new File(fileChooser.getSelectedFile().getAbsolutePath() + "." + extension);
     } else {
-      success = dataPersistenceService.exportToPDF(data, selectedFile.getAbsolutePath(), title, columnNames);
+      selectedFile = fileChooser.getSelectedFile();
     }
 
-    // Step 6: Show result message
-    if (success) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Export completed successfully.\nFile saved to: " + selectedFile.getAbsolutePath(),
-          "Export Successful",
-          JOptionPane.INFORMATION_MESSAGE);
-    } else {
-      JOptionPane.showMessageDialog(
-          this,
-          "Failed to export data. Please try again.",
-          "Export Error",
-          JOptionPane.ERROR_MESSAGE);
-    }
+    // Show progress dialog
+    JDialog progressDialog = new JDialog(
+        (Frame) SwingUtilities.getWindowAncestor(this),
+        "Exporting Data",
+        true);
+    progressDialog.setLayout(new BorderLayout());
+    JProgressBar progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    JLabel statusLabel = new JLabel("Preparing export...", SwingConstants.CENTER);
+    progressDialog.add(statusLabel, BorderLayout.NORTH);
+    progressDialog.add(progressBar, BorderLayout.CENTER);
+    progressDialog.setSize(300, 100);
+    progressDialog.setLocationRelativeTo(this);
+
+    // Create a worker thread for the export
+    SwingWorker<Boolean, String> worker = new SwingWorker<Boolean, String>() {
+      @Override
+      protected Boolean doInBackground() throws Exception {
+        String title = selectedType + " Report (" + sdf.format(fromDate) + " to " + sdf.format(toDate) + ")";
+        String[] columnNames = getColumnNames(selectedType);
+        boolean success = false;
+
+        try {
+          // Get the data first
+          List<Map<String, Object>> data = dataPersistenceService.getExportData(selectedType, fromDate, toDate);
+
+          if (data.isEmpty()) {
+            publish("No data found for the selected date range");
+            return false;
+          }
+
+          publish("Retrieved " + data.size() + " records. Creating export file...");
+
+          // Perform the export
+          if (selectedFormat.contains("Excel")) {
+            success = dataPersistenceService.exportToExcel(
+                data,
+                selectedFile.getAbsolutePath(),
+                selectedType,
+                columnNames);
+          } else {
+            success = dataPersistenceService.exportToPDF(
+                data,
+                selectedFile.getAbsolutePath(),
+                title,
+                columnNames);
+          }
+
+          return success;
+        } catch (Exception e) {
+          e.printStackTrace();
+          publish("Error: " + e.getMessage());
+          return false;
+        }
+      }
+
+      @Override
+      protected void process(List<String> chunks) {
+        // Update the status label with the latest message
+        if (!chunks.isEmpty()) {
+          statusLabel.setText(chunks.get(chunks.size() - 1));
+        }
+      }
+
+      @Override
+      protected void done() {
+        progressDialog.dispose();
+        try {
+          boolean success = get();
+          if (success) {
+            JOptionPane.showMessageDialog(
+                DataPersistenceView.this,
+                "Export completed successfully.\nFile saved to: " + selectedFile.getAbsolutePath(),
+                "Export Successful",
+                JOptionPane.INFORMATION_MESSAGE);
+          } else {
+            String errorMsg = statusLabel.getText();
+            if (errorMsg.startsWith("No data found")) {
+              JOptionPane.showMessageDialog(
+                  DataPersistenceView.this,
+                  "No data available for export in the selected date range.\n" +
+                      "Please try a different date range.",
+                  "No Data Available",
+                  JOptionPane.WARNING_MESSAGE);
+            } else {
+              JOptionPane.showMessageDialog(
+                  DataPersistenceView.this,
+                  "Failed to export data: " + errorMsg + "\n" +
+                      "Please check the logs for more details.",
+                  "Export Error",
+                  JOptionPane.ERROR_MESSAGE);
+            }
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(
+              DataPersistenceView.this,
+              "An error occurred during export: " + e.getMessage() + "\n" +
+                  "Please check the logs for more details.",
+              "Export Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+
+    // Start the worker and show the progress dialog
+    worker.execute();
+    progressDialog.setVisible(true);
   }
 
   private String[] getColumnNames(String dataType) {
@@ -551,98 +634,6 @@ public class DataPersistenceView extends JPanel implements Refreshable {
       default:
         return new String[] { "Column 1", "Column 2", "Column 3" };
     }
-  }
-
-  private List<Map<String, Object>> generateSampleData(String dataType, Date fromDate, Date toDate) {
-    // This is sample data for demonstration; in a real application,
-    // you would query the database for this data
-    List<Map<String, Object>> data = new ArrayList<>();
-
-    // Generate different sample data based on type
-    if (dataType.equals("Events")) {
-      Map<String, Object> row1 = new HashMap<>();
-      row1.put("event_name", "Summer Festival");
-      row1.put("event_date", "2025-06-15");
-      row1.put("team_a", "Team Red");
-      row1.put("team_b", "Team Blue");
-      row1.put("category", "VIP");
-      row1.put("event_type", "Event");
-      row1.put("event_description", "Annual summer celebration");
-      data.add(row1);
-
-      Map<String, Object> row2 = new HashMap<>();
-      row2.put("event_name", "Tech Conference");
-      row2.put("event_date", "2025-07-20");
-      row2.put("team_a", "Developer Group");
-      row2.put("team_b", "Industry Leaders");
-      row2.put("category", "Regular");
-      row2.put("event_type", "Event");
-      row2.put("event_description", "Annual technology showcase");
-      data.add(row2);
-
-      Map<String, Object> row3 = new HashMap<>();
-      row3.put("event_name", "Championship Final");
-      row3.put("event_date", "2025-08-10");
-      row3.put("team_a", "Eagles");
-      row3.put("team_b", "Tigers");
-      row3.put("category", "VIP");
-      row3.put("event_type", "Match");
-      row3.put("event_description", "Season finale championship match");
-      data.add(row3);
-    } else if (dataType.equals("Tickets")) {
-      Map<String, Object> row1 = new HashMap<>();
-      row1.put("event_id", 1);
-      row1.put("ticket_type", "VIP");
-      row1.put("ticket_date", "2025-06-15");
-      row1.put("price", 150.00);
-      row1.put("ticket_status", "Available");
-      data.add(row1);
-
-      Map<String, Object> row2 = new HashMap<>();
-      row2.put("event_id", 1);
-      row2.put("ticket_type", "Regular");
-      row2.put("ticket_date", "2025-06-15");
-      row2.put("price", 75.00);
-      row2.put("ticket_status", "Available");
-      data.add(row2);
-
-      Map<String, Object> row3 = new HashMap<>();
-      row3.put("event_id", 2);
-      row3.put("ticket_type", "Regular");
-      row3.put("ticket_date", "2025-07-20");
-      row3.put("price", 299.00);
-      row3.put("ticket_status", "Sold");
-      data.add(row3);
-    } else if (dataType.equals("Sales Report")) {
-      Map<String, Object> row1 = new HashMap<>();
-      row1.put("event_date", "2025-03-15");
-      row1.put("event_name", "Winter Concert");
-      row1.put("team_a", "Orchestra");
-      row1.put("team_b", "Special Guests");
-      row1.put("total_ticket_sold", 3245);
-      row1.put("total_revenue", 243375.00);
-      data.add(row1);
-
-      Map<String, Object> row2 = new HashMap<>();
-      row2.put("event_date", "2025-04-22");
-      row2.put("event_name", "Food Festival");
-      row2.put("team_a", "Local Chefs");
-      row2.put("team_b", "International Chefs");
-      row2.put("total_ticket_sold", 1823);
-      row2.put("total_revenue", 91150.00);
-      data.add(row2);
-
-      Map<String, Object> row3 = new HashMap<>();
-      row3.put("event_date", "2025-05-10");
-      row3.put("event_name", "Business Summit");
-      row3.put("team_a", "Industry Leaders");
-      row3.put("team_b", "Startups");
-      row3.put("total_ticket_sold", 782);
-      row3.put("total_revenue", 156400.00);
-      data.add(row3);
-    }
-
-    return data;
   }
 
   private void handleManageBackups() {

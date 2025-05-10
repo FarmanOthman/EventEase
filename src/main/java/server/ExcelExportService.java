@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Server-side service to export data to Excel format with analysis capability
@@ -31,21 +33,11 @@ public class ExcelExportService {
     try (Workbook workbook = new XSSFWorkbook()) {
       Sheet sheet = workbook.createSheet(sheetName);
 
-      // Create header styles
-      CellStyle headerStyle = workbook.createCellStyle();
-      headerStyle.setFillForegroundColor(IndexedColors.ROYAL_BLUE.getIndex());
-      headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-      Font headerFont = workbook.createFont();
-      headerFont.setColor(IndexedColors.WHITE.getIndex());
-      headerFont.setBold(true);
-      headerStyle.setFont(headerFont);
-
-      // Create cell styles for data
-      CellStyle dataCellStyle = workbook.createCellStyle();
-      dataCellStyle.setBorderBottom(BorderStyle.THIN);
-      dataCellStyle.setBorderTop(BorderStyle.THIN);
-      dataCellStyle.setBorderLeft(BorderStyle.THIN);
-      dataCellStyle.setBorderRight(BorderStyle.THIN);
+      // Create styles
+      CellStyle headerStyle = createHeaderStyle(workbook);
+      CellStyle dataCellStyle = createDataCellStyle(workbook);
+      CellStyle dateStyle = createDateStyle(workbook);
+      CellStyle currencyStyle = createCurrencyStyle(workbook);
 
       // Create header row
       Row headerRow = sheet.createRow(0);
@@ -62,26 +54,11 @@ public class ExcelExportService {
 
         for (int i = 0; i < columnNames.length; i++) {
           Cell cell = row.createCell(i);
+          String columnName = columnNames[i].toLowerCase().replace(" ", "_");
+          Object value = rowData.get(columnName);
 
-          // Get the appropriate key for this column
-          String key = getKeyForColumn(columnNames[i]);
-
-          // Get and format the cell value
-          Object value = rowData.get(key);
-          if (value != null) {
-            if (value instanceof Number) {
-              cell.setCellValue(((Number) value).doubleValue());
-            } else {
-              String strValue = value.toString();
-              // Remove currency symbol if present
-              if (strValue.startsWith("$")) {
-                strValue = strValue.substring(1);
-              }
-              cell.setCellValue(strValue);
-            }
-          }
-
-          cell.setCellStyle(dataCellStyle);
+          // Format cell based on value type and column name
+          formatCell(cell, value, columnName, dateStyle, currencyStyle, dataCellStyle);
         }
       }
 
@@ -103,6 +80,101 @@ public class ExcelExportService {
       e.printStackTrace();
       return false;
     }
+  }
+
+  private CellStyle createHeaderStyle(Workbook workbook) {
+    CellStyle style = workbook.createCellStyle();
+    style.setFillForegroundColor(IndexedColors.ROYAL_BLUE.getIndex());
+    style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    Font headerFont = workbook.createFont();
+    headerFont.setColor(IndexedColors.WHITE.getIndex());
+    headerFont.setBold(true);
+    style.setFont(headerFont);
+    return style;
+  }
+
+  private CellStyle createDataCellStyle(Workbook workbook) {
+    CellStyle style = workbook.createCellStyle();
+    style.setBorderBottom(BorderStyle.THIN);
+    style.setBorderTop(BorderStyle.THIN);
+    style.setBorderLeft(BorderStyle.THIN);
+    style.setBorderRight(BorderStyle.THIN);
+    return style;
+  }
+
+  private CellStyle createDateStyle(Workbook workbook) {
+    CellStyle style = workbook.createCellStyle();
+    style.cloneStyleFrom(createDataCellStyle(workbook));
+    style.setDataFormat(workbook.createDataFormat().getFormat("yyyy-mm-dd"));
+    return style;
+  }
+
+  private CellStyle createCurrencyStyle(Workbook workbook) {
+    CellStyle style = workbook.createCellStyle();
+    style.cloneStyleFrom(createDataCellStyle(workbook));
+    style.setDataFormat(workbook.createDataFormat().getFormat("$#,##0.00"));
+    return style;
+  }
+
+  private void formatCell(Cell cell, Object value, String columnName, CellStyle dateStyle,
+      CellStyle currencyStyle, CellStyle defaultStyle) {
+    if (value == null) {
+      cell.setCellValue("");
+      cell.setCellStyle(defaultStyle);
+      return;
+    }
+
+    // Handle date fields
+    if (columnName.contains("date") || columnName.endsWith("_at")) {
+      if (value instanceof Date) {
+        cell.setCellValue((Date) value);
+      } else if (value instanceof String) {
+        try {
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+          Date date = sdf.parse((String) value);
+          cell.setCellValue(date);
+        } catch (Exception e) {
+          cell.setCellValue(value.toString());
+        }
+      }
+      cell.setCellStyle(dateStyle);
+      return;
+    }
+
+    // Handle numeric fields
+    if (value instanceof Number) {
+      double numValue = ((Number) value).doubleValue();
+      // Use currency format for price, revenue, or amount fields
+      if (columnName.contains("price") || columnName.contains("revenue") ||
+          columnName.contains("amount")) {
+        cell.setCellValue(numValue);
+        cell.setCellStyle(currencyStyle);
+      } else {
+        cell.setCellValue(numValue);
+        cell.setCellStyle(defaultStyle);
+      }
+      return;
+    }
+
+    // Handle description fields - ensure they're not truncated
+    if (columnName.contains("description")) {
+      String strValue = value.toString();
+      cell.setCellValue(strValue);
+      // If description is long, adjust row height
+      if (strValue.length() > 50) {
+        int numberOfLines = strValue.length() / 50 + 1;
+        cell.getRow().setHeight((short) (numberOfLines * 255));
+      }
+      CellStyle wrapStyle = cell.getSheet().getWorkbook().createCellStyle();
+      wrapStyle.cloneStyleFrom(defaultStyle);
+      wrapStyle.setWrapText(true);
+      cell.setCellStyle(wrapStyle);
+      return;
+    }
+
+    // Default handling for other types
+    cell.setCellValue(value.toString());
+    cell.setCellStyle(defaultStyle);
   }
 
   /**

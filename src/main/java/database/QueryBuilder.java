@@ -97,37 +97,93 @@ public class QueryBuilder {
     public List<Map<String, Object>> selectWithFilters(String table, Map<String, Object> filters, String[] columns) {
         Table<?> targetTable = DSL.table(DSL.name(table));
         List<Field<?>> fieldList = new ArrayList<>();
-
-        // Create fields for selected columns
-        for (String column : columns) {
-            fieldList.add(DSL.field(DSL.name(column)));
-        }
-
-        // Build the conditions for filtering
-        Condition conditions = null;
-        for (Map.Entry<String, Object> filter : filters.entrySet()) {
-            Condition newCondition = DSL.field(DSL.name(filter.getKey())).eq(filter.getValue());
-            conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
-        }
-
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         try {
-            // Execute the query with filters
-            SelectConditionStep<Record> query = create.select(fieldList).from(targetTable).where(conditions);
-            Result<Record> result = query.fetch();
+            // Debug log requested columns
+            System.out.println("Requested columns for table " + table + ":");
+            for (String column : columns) {
+                System.out.println("- " + column);
+                fieldList.add(DSL.field(DSL.name(column)));
+            }
 
-            // Convert results to map
+            // Build the conditions for filtering
+            Condition conditions = null;
+            for (Map.Entry<String, Object> filter : filters.entrySet()) {
+                String key = filter.getKey();
+                Object value = filter.getValue();
+
+                System.out.println("Processing filter: " + key + " = " + value);
+
+                // Handle different operators
+                if (key.contains(">=")) {
+                    String fieldName = key.replace(">=", "").trim();
+                    Condition newCondition = DSL.field(DSL.name(fieldName)).greaterOrEqual(value);
+                    conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+                } else if (key.contains("<=")) {
+                    String fieldName = key.replace("<=", "").trim();
+                    Condition newCondition = DSL.field(DSL.name(fieldName)).lessOrEqual(value);
+                    conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+                } else if (key.contains(">")) {
+                    String fieldName = key.replace(">", "").trim();
+                    Condition newCondition = DSL.field(DSL.name(fieldName)).greaterThan(value);
+                    conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+                } else if (key.contains("<")) {
+                    String fieldName = key.replace("<", "").trim();
+                    Condition newCondition = DSL.field(DSL.name(fieldName)).lessThan(value);
+                    conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+                } else {
+                    Condition newCondition = DSL.field(DSL.name(key)).eq(value);
+                    conditions = (conditions == null) ? newCondition : conditions.and(newCondition);
+                }
+            }
+
+            // Execute the query with filters
+            Result<Record> result;
+            if (conditions != null) {
+                result = create.select(fieldList)
+                        .from(targetTable)
+                        .where(conditions)
+                        .fetch();
+            } else {
+                result = create.select(fieldList)
+                        .from(targetTable)
+                        .fetch();
+            }
+
+            System.out.println("Query executed successfully");
+            System.out.println("Query returned " + result.size() + " records");
+
+            // Convert results to map and debug log the values
             for (Record record : result) {
                 Map<String, Object> row = new HashMap<>();
+                System.out.println("\nProcessing record:");
                 for (Field<?> field : fieldList) {
-                    row.put(field.getName(), record.get(field));
+                    Object value = record.get(field);
+                    String fieldName = field.getName();
+
+                    // Special handling for date fields
+                    if (value != null && fieldName.toLowerCase().contains("date")) {
+                        try {
+                            if (value instanceof java.sql.Timestamp) {
+                                value = new java.sql.Date(((java.sql.Timestamp) value).getTime());
+                            } else if (value instanceof String) {
+                                java.sql.Date sqlDate = java.sql.Date.valueOf((String) value);
+                                value = sqlDate;
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error converting date for field " + fieldName + ": " + e.getMessage());
+                        }
+                    }
+
+                    row.put(fieldName, value);
+                    System.out.println("Field: " + fieldName + " = " + value);
                 }
                 resultList.add(row);
             }
         } catch (Exception e) {
+            System.err.println("Error executing query on table " + table + ": " + e.getMessage());
             e.printStackTrace();
-            System.err.println("Error selecting data from table: " + table);
         }
 
         return resultList;

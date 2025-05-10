@@ -104,12 +104,21 @@ public class PDFExportService {
     // Add data rows
     for (Map<String, Object> rowData : data) {
       for (String columnName : columnNames) {
-        // Map display column name to database column name
         String dbColumnName = mapColumnName(columnName);
         Object value = rowData.get(dbColumnName);
 
-        PdfPCell cell = new PdfPCell(new Phrase(value != null ? value.toString() : "", NORMAL_FONT));
-        cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        PdfPCell cell = new PdfPCell(new Phrase(formatValue(value, columnName), NORMAL_FONT));
+
+        // Align numeric values to the right
+        if (value instanceof Number ||
+            columnName.toLowerCase().contains("price") ||
+            columnName.toLowerCase().contains("revenue") ||
+            columnName.toLowerCase().contains("amount")) {
+          cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        } else {
+          cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        }
+
         cell.setPadding(5);
         table.addCell(cell);
       }
@@ -220,10 +229,52 @@ public class PDFExportService {
     labelCell.setBackgroundColor(new BaseColor(240, 240, 240));
     table.addCell(labelCell);
 
-    PdfPCell valueCell = new PdfPCell(new Phrase(value, NORMAL_FONT));
+    PdfPCell valueCell = new PdfPCell(new Phrase(value != null ? value : "-", NORMAL_FONT));
     valueCell.setPadding(5);
     valueCell.setBackgroundColor(new BaseColor(240, 240, 240));
     valueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
     table.addCell(valueCell);
+  }
+
+  private String formatValue(Object value, String columnName) {
+    if (value == null) {
+      return "-";
+    }
+
+    // Handle date fields
+    if (columnName.toLowerCase().contains("date") || columnName.toLowerCase().endsWith("_at")) {
+      if (value instanceof Date) {
+        return new SimpleDateFormat("yyyy-MM-dd").format((Date) value);
+      } else if (value instanceof String) {
+        try {
+          Date date = new SimpleDateFormat("yyyy-MM-dd").parse((String) value);
+          return new SimpleDateFormat("yyyy-MM-dd").format(date);
+        } catch (Exception e) {
+          return value.toString();
+        }
+      }
+    }
+
+    // Handle numeric fields
+    if (value instanceof Number) {
+      double numValue = ((Number) value).doubleValue();
+      if (columnName.toLowerCase().contains("price") ||
+          columnName.toLowerCase().contains("revenue") ||
+          columnName.toLowerCase().contains("amount")) {
+        return String.format("$%.2f", numValue);
+      }
+      return String.format("%.2f", numValue);
+    }
+
+    // Handle description fields
+    if (columnName.toLowerCase().contains("description")) {
+      String desc = value.toString();
+      if (desc.length() > 100) {
+        return desc.substring(0, 97) + "...";
+      }
+      return desc;
+    }
+
+    return value.toString();
   }
 }
