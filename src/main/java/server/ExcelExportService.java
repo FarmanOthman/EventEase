@@ -178,35 +178,6 @@ public class ExcelExportService {
   }
 
   /**
-   * Maps display column names to database column names
-   */
-  private String getKeyForColumn(String displayColumnName) {
-    switch (displayColumnName) {
-      case "Date":
-        return "sale_date";
-      case "Category":
-        return "category";
-      case "Tickets Sold":
-        return "tickets_sold";
-      case "Revenue ($)":
-      case "Revenue":
-        return "revenue";
-      case "Team A":
-        return "team_a";
-      case "Team B":
-        return "team_b";
-      case "VIP Tickets":
-        return "vip_tickets";
-      case "Standard Tickets":
-        return "standard_tickets";
-      case "Premium Tickets":
-        return "premium_tickets";
-      default:
-        return displayColumnName.toLowerCase().replace(" ", "_");
-    }
-  }
-
-  /**
    * Adds an analysis section to the Excel sheet with summary data
    */
   private void addAnalysisSection(Workbook workbook, Sheet sheet,
