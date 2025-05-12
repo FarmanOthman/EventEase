@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -360,16 +361,29 @@ public class DataPersistenceService {
    * 
    * @param backupName Name for the backup file
    * @return Backup result with success flag and message
-   */
-  public BackupResult createBackup(String backupName) {
+   */  public BackupResult createBackup(String backupName) {
     if (backupName == null || backupName.trim().isEmpty()) {
       backupName = "backup_" + System.currentTimeMillis();
     }
 
     String backupPath = BACKUP_DIRECTORY + backupName + ".db";
     try {
+      // Make sure the backup directory exists
+      File backupDir = new File(BACKUP_DIRECTORY);
+      if (!backupDir.exists()) {
+        backupDir.mkdirs();
+      }
+      
+      // Use BackupManager to create a proper SQLite database file
       BackupManager.backupDatabase(backupPath);
-      return new BackupResult(true, "Backup created successfully at " + backupPath);
+      
+      // Verify the backup was created and is a valid SQLite database
+      File backupFile = new File(backupPath);
+      if (backupFile.exists() && isSQLiteDatabase(backupFile)) {
+        return new BackupResult(true, "Backup created successfully at " + backupPath);
+      } else {
+        return new BackupResult(false, "Backup creation failed: Backup file is not a valid SQLite database");
+      }
     } catch (Exception e) {
       return new BackupResult(false, "Backup failed: " + e.getMessage());
     }
@@ -592,6 +606,246 @@ public class DataPersistenceService {
 
     public String getMessage() {
       return message;
+    }
+  }
+
+  /**
+   * Restore database from a backup file
+   * 
+   * @param backupPath Path to the backup file
+   * @return Restore result with success flag and message
+   */  
+  public BackupResult restoreDatabase(String backupPath) {    
+    try {
+      System.out.println("Starting database restore from: " + backupPath);
+      
+      // Debug information about database location and state
+      String currentPath = Database.getDatabasePath();
+      File currentDb = new File(currentPath);
+      if (currentDb.exists()) {
+        System.out.println("Current database exists at: " + currentPath);
+        System.out.println("Current database size: " + currentDb.length() + " bytes");
+        System.out.println("Current database locked: " + isFileLocked(currentDb));
+      } else {
+        System.out.println("No existing database found at: " + currentPath);
+      }
+      
+      // Clean up the backup path by trimming whitespace
+      backupPath = backupPath.trim();
+      
+      // Handle potential Windows UNC path issues
+      if (backupPath.startsWith("\\\\")) {
+        // Ensure UNC paths are handled correctly
+        backupPath = "\\\\"+backupPath.substring(2).replace("\\\\", "\\");
+      }
+      
+      // Check if the backup file exists
+      File backupFile = new File(backupPath);
+      if (!backupFile.exists() || !backupFile.isFile()) {
+        return new BackupResult(false, "Backup file does not exist or is not a valid file: " + backupPath);
+      }
+
+      // Make sure it's a valid SQLite database file by checking for SQLite header
+      if (!isSQLiteDatabase(backupFile)) {
+        return new BackupResult(false, "The selected file is not a valid SQLite database: " + backupPath);
+      }
+      
+      // Instead of trying to copy the backup file to the current database location,
+      // we'll update the configuration to point directly to the backup file
+      boolean configUpdated = updateDatabaseConfig(backupPath);
+      
+      if (configUpdated) {
+        // Test if we can connect to the backup database
+        try (Connection testConn = DriverManager.getConnection("jdbc:sqlite:" + backupPath)) {
+          if (testConn == null || testConn.isClosed()) {
+            return new BackupResult(false, "The backup database is not valid or cannot be connected to.");
+          }
+          
+          // If we're here, the connection was successful
+          System.out.println("Successfully connected to the backup database at: " + backupPath);
+          String backupFilename = new File(backupPath).getName();
+          return new BackupResult(true, 
+              "Database successfully restored. Now using backup: " + backupFilename);
+        } catch (SQLException e) {
+          // If there's an error connecting to the backup, revert the configuration
+          // Revert to the original database URL
+          updateDatabaseConfig(currentPath);
+          return new BackupResult(false, "Error connecting to backup database: " + e.getMessage() + 
+                                 ". Configuration has been reverted.");
+        }
+      } else {
+        return new BackupResult(false, "Failed to update configuration to use backup database.");
+      }
+    } catch (Exception e) {
+      return new BackupResult(false, "Unexpected error during database restore: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Check if a file is a valid SQLite database by looking for the SQLite file signature
+   * 
+   * @param file The file to check
+   * @return true if the file appears to be a valid SQLite database
+   */
+  private boolean isSQLiteDatabase(File file) {
+    try (FileInputStream fis = new FileInputStream(file)) {
+      byte[] header = new byte[16];
+      int bytesRead = fis.read(header);
+      
+      // SQLite database files start with the string "SQLite format 3\0"
+      if (bytesRead >= 16) {
+        String headerStr = new String(header);
+        return headerStr.startsWith("SQLite format 3");
+      }
+      return false;
+    } catch (IOException e) {
+      System.err.println("Error checking SQLite header: " + e.getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Updates the database configuration file to use a different database path
+   * 
+   * @param newDbPath The new database path to use
+   * @return true if the configuration was successfully updated
+   */  private boolean updateDatabaseConfig(String newDbPath) {
+    // The path where config.properties is stored
+    String configPath = "src/main/resources/config.properties";
+    File configFile = new File(configPath);
+    
+    if (!configFile.exists()) {
+      System.err.println("Config file not found at: " + configPath);
+      return false;
+    }
+    
+    try {
+      // Convert Windows backslashes to forward slashes for consistency in property files
+      String normalizedPath = newDbPath.replace('\\', '/');
+      
+      // If the path points to a backup file, format it as requested
+      if (normalizedPath.contains("backups/")) {
+        // Extract just the backup filename
+        String backupFileName = new File(normalizedPath).getName();
+        normalizedPath = "src/backups/" + backupFileName;
+        System.out.println("Using backup-relative path format: " + normalizedPath);
+      }
+      
+      String newDbUrl = "jdbc:sqlite:" + normalizedPath;
+      // Read the existing properties
+      java.util.Properties props = new java.util.Properties();
+      try (java.io.FileInputStream in = new java.io.FileInputStream(configFile)) {
+        props.load(in);
+      }
+      
+      // Store the original URL for backup
+      String originalUrl = props.getProperty("db.url");
+      
+      // Set the new URL
+      props.setProperty("db.url", newDbUrl);
+      
+      // Write the updated properties back to the file
+      try (java.io.FileOutputStream out = new java.io.FileOutputStream(configFile)) {
+        props.store(out, "Updated automatically after database restore");
+      }
+      
+      System.out.println("Database URL changed from: " + originalUrl + " to: " + newDbUrl);      
+      
+      // Also update the class-level database URL if possible
+      try {
+        // After updating config file, we need a more aggressive approach
+        // to update the DB_URL field in memory
+        
+        // 1. Try to modify the final field using reflection
+        java.lang.reflect.Field dbUrlField = Database.class.getDeclaredField("DB_URL");
+        dbUrlField.setAccessible(true);
+        
+        // Different approaches for different Java versions
+        try {
+          // Java 9+ approach
+          java.lang.reflect.Field modifiersField = java.lang.reflect.Field.class.getDeclaredField("modifiers");
+          modifiersField.setAccessible(true);
+          modifiersField.setInt(dbUrlField, dbUrlField.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
+        } catch (NoSuchFieldException e) {
+          // Java 11+ approach - use VarHandle
+          try {
+            // For Java 11+
+            Object unsafe = Class.forName("sun.misc.Unsafe").getDeclaredMethod("getUnsafe").invoke(null);
+            long offset = (long) Class.forName("sun.misc.Unsafe")
+                .getDeclaredMethod("staticFieldOffset", java.lang.reflect.Field.class)
+                .invoke(unsafe, dbUrlField);
+            Class.forName("sun.misc.Unsafe")
+                .getDeclaredMethod("putObject", Object.class, long.class, Object.class)
+                .invoke(unsafe, Class.forName("database.Database"), offset, newDbUrl);
+          } catch (Exception ex) {
+            // This is expected to fail in many cases due to security restrictions
+            System.out.println("Could not use Unsafe to modify final field: " + ex.getMessage());
+            System.out.println("Database URL change will take effect on application restart");
+          }
+        }
+        
+        // Actually set the field value
+        dbUrlField.set(null, newDbUrl);
+        System.out.println("Successfully updated Database.DB_URL field directly in memory");
+        
+        // Verify the change was applied
+        String updatedDbUrl = (String)dbUrlField.get(null);
+        if (updatedDbUrl.equals(newDbUrl)) {
+          System.out.println("Verified that DB_URL field was updated to: " + updatedDbUrl);
+        } else {
+          System.out.println("DB_URL field could not be updated in memory. Current value: " + updatedDbUrl);
+        }
+      } catch (Exception e) {
+        // This is not a failure as config file was updated successfully
+        System.out.println("Could not update DB_URL field directly: " + e.getMessage());
+        System.out.println("Database URL change will take effect on application restart");
+      }
+      
+      return true;
+    } catch (Exception e) {
+      System.err.println("Error updating database configuration: " + e.getMessage());
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  /**
+   * Checks if a file is locked (being used by another process)
+   * 
+   * @param file The file to check
+   * @return true if the file is locked, false otherwise
+   */
+  private boolean isFileLocked(File file) {
+    if (!file.exists()) {
+      return false;
+    }
+    
+    try {
+      // Try to open the file for writing to check if it's locked
+      java.io.RandomAccessFile raf = null;
+      try {
+        raf = new java.io.RandomAccessFile(file, "rw");
+        // Additionally try to obtain an exclusive lock to truly verify no other process
+        // has the file locked
+        java.nio.channels.FileLock lock = raf.getChannel().tryLock();
+        if (lock != null) {
+          lock.release();
+          return false; // File is not locked
+        } else {
+          return true; // Could not obtain lock, file is locked
+        }
+      } finally {
+        if (raf != null) {
+          try {
+            raf.close();
+          } catch (IOException e) {
+            System.err.println("Error closing file during lock check: " + e.getMessage());
+          }
+        }
+      }
+    } catch (IOException e) {
+      System.out.println("File appears to be locked: " + file.getPath() + ", error: " + e.getMessage());
+      return true; // File is locked
     }
   }
 

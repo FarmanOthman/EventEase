@@ -2,6 +2,7 @@ package database;
 
 import java.io.*;
 import java.sql.*;
+import java.util.*;
 import java.util.logging.*;
 
 public class BackupManager {
@@ -11,7 +12,8 @@ public class BackupManager {
 
     /**
      * Backs up the database to the specified backup file path.
-     * It includes both the schema (CREATE statements) and data (INSERT statements).
+     * It creates an actual SQLite database file by making a direct file copy
+     * or by creating a new database with the same schema and data.
      * 
      * @param backupFilePath the path where the backup file will be saved
      */
@@ -24,109 +26,191 @@ public class BackupManager {
         File dbFile = new File(dbPath);
         if (!dbFile.exists() || !dbFile.isFile()) {
             logger.severe("Database file does not exist or is not a valid file: " + dbFile.getAbsolutePath());
-            return; // Stop if the database file doesn't exist
+            
+            // Try to create a new database directly at the backup location
+            try {
+                createNewDatabase(backupFilePath);
+                logger.info("Created a new SQLite database at: " + backupFilePath);
+                return;
+            } catch (Exception e) {
+                logger.severe("Failed to create new database: " + e.getMessage());
+                return;
+            }
         }
 
-        // Attempt to establish a connection to the SQLite database
-        try (Connection conn = Database.getConnection()) {
-            if (conn == null) {
-                logger.severe("Failed to establish connection to the database.");
-                return; // Exit if connection to the database fails
+        // First try a direct file copy which is the most reliable method for SQLite
+        try {
+            // Ensure parent directories exist
+            File backupFile = new File(backupFilePath);
+            if (backupFile.getParentFile() != null && !backupFile.getParentFile().exists()) {
+                backupFile.getParentFile().mkdirs();
             }
-
-            // Create and write to the backup file
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(backupFilePath))) {
-                // Start the backup file with some introductory comments
-                writer.write("-- SQLite Database Backup\n");
-                writer.write("-- Generated on: " + new java.util.Date() + "\n\n");
-
-                // Get all tables in the database to back up their data and structure
-                DatabaseMetaData metaData = conn.getMetaData();
-                ResultSet tables = metaData.getTables(null, null, "%", new String[] { "TABLE" });
-                while (tables.next()) {
-                    String tableName = tables.getString("TABLE_NAME");
-                    logger.info("Backing up table: " + tableName);
-
-                    // Write the schema (CREATE statement) for each table
-                    writeTableSchema(tableName, conn, writer);
-
-                    // Write the data (INSERT statements) for each table
-                    writeTableData(tableName, conn, writer);
+            
+            // Make a direct copy of the SQLite database file
+            try (FileInputStream fis = new FileInputStream(dbFile);
+                 FileOutputStream fos = new FileOutputStream(backupFile)) {
+                
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = fis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, read);
                 }
-
-                logger.info("Database backup completed successfully.");
-            } catch (IOException e) {
-                // Handle failure to write to the backup file
-                logger.severe("Failed to write to the backup file: " + e.getMessage());
+                
+                logger.info("Database backup completed successfully via direct file copy.");
+                return;
             }
+        } catch (IOException e) {
+            logger.warning("Direct file copy failed: " + e.getMessage() + ". Falling back to SQL backup approach.");
+        }
+        
+        // If direct file copy fails, fall back to SQL backup approach
+        try (Connection sourceConn = Database.getConnection();
+             Connection backupConn = DriverManager.getConnection("jdbc:sqlite:" + backupFilePath)) {
+            
+            if (sourceConn == null || backupConn == null) {
+                logger.severe("Failed to establish connections for backup process.");
+                return;
+            }
+            
+            // Create a backup by directly copying the schema and data
+            DatabaseMetaData metaData = sourceConn.getMetaData();
+            ResultSet tables = metaData.getTables(null, null, "%", new String[] { "TABLE" });
+            
+            // Set pragmas for optimal backup performance
+            try (Statement stmt = backupConn.createStatement()) {
+                stmt.executeUpdate("PRAGMA synchronous = OFF");
+                stmt.executeUpdate("PRAGMA journal_mode = MEMORY");
+                stmt.executeUpdate("BEGIN TRANSACTION");
+            }
+            
+            while (tables.next()) {
+                String tableName = tables.getString("TABLE_NAME");
+                logger.info("Backing up table: " + tableName);
+                
+                // Get the schema for this table
+                String createSql = getTableSchema(tableName, sourceConn);
+                if (createSql != null) {
+                    try (Statement stmt = backupConn.createStatement()) {
+                        stmt.executeUpdate(createSql);
+                    }
+                    
+                    // Copy the data
+                    copyTableData(tableName, sourceConn, backupConn);
+                }
+            }
+            
+            // Commit the transaction
+            try (Statement stmt = backupConn.createStatement()) {
+                stmt.executeUpdate("COMMIT");
+                stmt.executeUpdate("PRAGMA optimize");
+            }
+            
+            logger.info("Database backup completed successfully via SQL approach.");
         } catch (SQLException e) {
-            // Handle SQL exceptions while connecting to the database or executing SQL
-            // queries
-            logger.severe("Failed to establish a connection or SQL error: " + e.getMessage());
+            logger.severe("Failed to back up database: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-
+    
     /**
-     * Writes the schema (CREATE statement) for a specified table to the backup
-     * file.
-     * 
-     * @param tableName the name of the table
-     * @param conn      the connection to the database
-     * @param writer    the writer for the backup file
-     * @throws SQLException if a database access error occurs
-     * @throws IOException  if an I/O error occurs while writing
+     * Gets the schema SQL for a table
      */
-    private static void writeTableSchema(String tableName, Connection conn, BufferedWriter writer)
-            throws SQLException, IOException {
+    private static String getTableSchema(String tableName, Connection conn) throws SQLException {
         String sql = "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, tableName); // Set the table name in the query
+            pstmt.setString(1, tableName);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                // Write the CREATE statement to the backup file
-                writer.write("-- Schema for table: " + tableName + "\n");
-                writer.write(rs.getString("sql") + ";\n\n");
+                return rs.getString("sql");
             }
         }
+        return null;
     }
-
+    
     /**
-     * Writes the data (INSERT statements) for a specified table to the backup file.
-     * 
-     * @param tableName the name of the table
-     * @param conn      the connection to the database
-     * @param writer    the writer for the backup file
-     * @throws SQLException if a database access error occurs
-     * @throws IOException  if an I/O error occurs while writing
+     * Copies data from one table to another
      */
-    private static void writeTableData(String tableName, Connection conn, BufferedWriter writer)
-            throws SQLException, IOException {
-        String sql = "SELECT * FROM " + tableName;
-        try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-
-            // Write each row of data as an INSERT statement
-            while (rs.next()) {
-                StringBuilder insertStatement = new StringBuilder("INSERT INTO " + tableName + " VALUES(");
-                for (int i = 1; i <= columnCount; i++) {
-                    String value = rs.getString(i);
-                    if (value == null) {
-                        insertStatement.append("NULL");
-                    } else {
-                        insertStatement.append("'").append(value.replace("'", "''")).append("'"); // Escape single
-                                                                                                  // quotes
-                    }
-                    if (i < columnCount) {
-                        insertStatement.append(", ");
-                    }
+    private static void copyTableData(String tableName, Connection sourceConn, Connection targetConn) throws SQLException {
+        // Get column names
+        DatabaseMetaData metaData = sourceConn.getMetaData();
+        ResultSet columns = metaData.getColumns(null, null, tableName, null);
+        
+        List<String> columnNames = new ArrayList<>();
+        while (columns.next()) {
+            columnNames.add(columns.getString("COLUMN_NAME"));
+        }
+        
+        if (columnNames.isEmpty()) {
+            logger.warning("No columns found for table: " + tableName);
+            return;
+        }
+        
+        // Prepare source query
+        String selectSql = "SELECT * FROM " + tableName;
+        
+        // Prepare insert statement
+        StringBuilder insertSql = new StringBuilder("INSERT INTO " + tableName + " (");
+        insertSql.append(String.join(", ", columnNames));
+        insertSql.append(") VALUES (");
+        insertSql.append(String.join(", ", Collections.nCopies(columnNames.size(), "?")));
+        insertSql.append(")");
+        
+        try (Statement selectStmt = sourceConn.createStatement();
+             ResultSet rows = selectStmt.executeQuery(selectSql);
+             PreparedStatement insertStmt = targetConn.prepareStatement(insertSql.toString())) {
+            
+            int totalRows = 0;
+            while (rows.next()) {
+                for (int i = 0; i < columnNames.size(); i++) {
+                    insertStmt.setObject(i + 1, rows.getObject(columnNames.get(i)));
                 }
-                insertStatement.append(");\n");
-                writer.write(insertStatement.toString()); // Write INSERT statement to the backup file
+                insertStmt.addBatch();
+                totalRows++;
+                
+                // Execute in batches of 500 rows
+                if (totalRows % 500 == 0) {
+                    insertStmt.executeBatch();
+                    insertStmt.clearBatch();
+                }
             }
-            writer.write("\n");
+            
+            // Execute any remaining batch
+            if (totalRows % 500 != 0) {
+                insertStmt.executeBatch();
+            }
+            
+            logger.info("Copied " + totalRows + " rows for table " + tableName);
+        }
+    }
+    
+    /**
+     * Creates a new empty database with the basic schema
+     */
+    private static void createNewDatabase(String dbPath) throws SQLException, IOException {
+        // Create a connection to create the new database file
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+            // Find the schema.sql file in the classpath
+            String schemaPath = "src\\main\\java\\database\\Schema.sql";
+            File schemaFile = new File(schemaPath);
+            
+            if (!schemaFile.exists()) {
+                throw new IOException("Schema file not found at: " + schemaPath);
+            }
+            
+            // Read the schema file
+            StringBuilder schemaSql = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(schemaFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    schemaSql.append(line).append("\n");
+                }
+            }
+            
+            // Execute the schema SQL
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(schemaSql.toString());
+                logger.info("Created new database with schema from " + schemaPath);
+            }
         }
     }
 

@@ -5,10 +5,11 @@ import ui.components.RoundedButton;
 import ui.Refreshable;
 import services.DataPersistenceService;
 import services.DataPersistenceService.BackupInfo;
-import services.DataPersistenceService.BackupResult;
 import services.DataPersistenceService.ImportResult;
 
 import javax.swing.*;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.SpinnerDateModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -187,7 +188,6 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     parent.add(panel);
     parent.add(Box.createVerticalStrut(20));
   }
-
   private void createBackupSettingsSection(JPanel parent) {
     // Create main panel for this section
     JPanel panel = new JPanel();
@@ -196,11 +196,11 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     panel.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createLineBorder(Color.LIGHT_GRAY),
         BorderFactory.createEmptyBorder(15, 15, 15, 15)));
-    panel.setMaximumSize(new Dimension(800, 150));
+    panel.setMaximumSize(new Dimension(800, 120));
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     // Title
-    JLabel title = new JLabel("Automatic Backup Settings");
+    JLabel title = new JLabel("Database Backup");
     title.setFont(new Font("Arial", Font.BOLD, 16));
     title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -208,19 +208,15 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     JPanel settingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     settingsPanel.setBackground(Color.WHITE);
 
-    JLabel frequencyLabel = new JLabel("Backup Frequency:");
-    String[] frequencies = { "Daily", "Weekly", "Monthly", "Quarterly", "Yearly" };
-    JComboBox<String> frequencyCombo = new JComboBox<>(frequencies);
-    frequencyCombo.setPreferredSize(new Dimension(150, 30));
+    JLabel descriptionLabel = new JLabel("Create a backup of your database to prevent data loss:");
+    descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 
-    JButton manageButton = createStyledButton("Create Backup Now", new Color(64, 133, 219));
-    manageButton.addActionListener(e -> handleManageBackups());
+    JButton createBackupButton = createStyledButton("Create Backup Now", new Color(64, 133, 219));
+    createBackupButton.addActionListener(e -> handleManageBackups());
 
-    settingsPanel.add(frequencyLabel);
-    settingsPanel.add(Box.createHorizontalStrut(10));
-    settingsPanel.add(frequencyCombo);
+    settingsPanel.add(descriptionLabel);
     settingsPanel.add(Box.createHorizontalStrut(20));
-    settingsPanel.add(manageButton);
+    settingsPanel.add(createBackupButton);
 
     panel.add(title);
     panel.add(Box.createVerticalStrut(15));
@@ -298,14 +294,121 @@ public class DataPersistenceView extends JPanel implements Refreshable {
     label.setFont(new Font("Arial", Font.PLAIN, 14));
     itemPanel.add(label, BorderLayout.CENTER);
 
-    // Add restore button (could be implemented in a future version)
+    // Create button panel for restore and delete
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+    buttonPanel.setOpaque(false);
+    
+    // Add restore button 
     RoundedButton restoreButton = new RoundedButton("Restore", 25);
     restoreButton.setBackground(new Color(64, 133, 219));
     restoreButton.setFont(new Font("Arial", Font.BOLD, 14));
     restoreButton.setForeground(Color.white);
     restoreButton.setPreferredSize(new Dimension(80, 25));
     restoreButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    itemPanel.add(restoreButton, BorderLayout.EAST);
+    restoreButton.addActionListener(e -> {
+      int option = JOptionPane.showConfirmDialog(
+          DataPersistenceView.this,
+          "Are you sure you want to restore this backup?\nThis will replace your current database.",
+          "Confirm Restore",
+          JOptionPane.YES_NO_OPTION,
+          JOptionPane.WARNING_MESSAGE);
+        if (option == JOptionPane.YES_OPTION) {
+        // Show loading message
+        JDialog loadingDialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(DataPersistenceView.this), "Restoring Database", true);
+        loadingDialog.setLayout(new BorderLayout());
+        JLabel loadingLabel = new JLabel("Restoring database from backup, please wait...", JLabel.CENTER);
+        loadingLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        loadingDialog.add(loadingLabel, BorderLayout.CENTER);
+        loadingDialog.pack();
+        loadingDialog.setLocationRelativeTo(DataPersistenceView.this);
+        
+        // Run the restore operation in a background thread to not freeze the UI
+        SwingWorker<DataPersistenceService.BackupResult, Void> worker = new SwingWorker<>() {
+            @Override
+            protected DataPersistenceService.BackupResult doInBackground() {
+                return dataPersistenceService.restoreDatabase(backup.getPath());
+            }
+            
+            @Override
+            protected void done() {
+                loadingDialog.dispose();
+                try {
+                    DataPersistenceService.BackupResult result = get();
+                    if (result.isSuccess()) {
+                        JOptionPane.showMessageDialog(
+                            DataPersistenceView.this,
+                            result.getMessage(),
+                            "Restore Successful",
+                            JOptionPane.INFORMATION_MESSAGE);
+                        
+                        // Refresh the UI after successful restore
+                        refresh();
+                    } else {
+                        JOptionPane.showMessageDialog(
+                            DataPersistenceView.this,
+                            "Restore failed: " + result.getMessage(),
+                            "Restore Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                        DataPersistenceView.this,
+                        "An unexpected error occurred: " + e.getMessage(),
+                        "Restore Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        
+        // Start the worker and show the loading dialog
+        worker.execute();
+        loadingDialog.setVisible(true);
+      }
+    });
+    
+    // Add delete button
+    RoundedButton deleteButton = new RoundedButton("Delete", 25);
+    deleteButton.setBackground(new Color(220, 53, 69));
+    deleteButton.setFont(new Font("Arial", Font.BOLD, 14));
+    deleteButton.setForeground(Color.white);
+    deleteButton.setPreferredSize(new Dimension(80, 25));
+    deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    deleteButton.addActionListener(e -> {
+      int option = JOptionPane.showConfirmDialog(
+          DataPersistenceView.this,
+          "Are you sure you want to delete this backup?\nThis cannot be undone.",
+          "Confirm Delete",
+          JOptionPane.YES_NO_OPTION,
+          JOptionPane.WARNING_MESSAGE);
+      
+      if (option == JOptionPane.YES_OPTION) {
+        // Delete the backup file
+        File backupFile = new File(backup.getPath());
+        boolean deleted = backupFile.delete();
+        
+        if (deleted) {
+          JOptionPane.showMessageDialog(
+              DataPersistenceView.this,
+              "Backup deleted successfully.",
+              "Delete Successful",
+              JOptionPane.INFORMATION_MESSAGE);
+          
+          // Refresh the backup history
+          refreshBackupHistory();
+        } else {
+          JOptionPane.showMessageDialog(
+              DataPersistenceView.this,
+              "Failed to delete the backup file. It may be in use or protected.",
+              "Delete Failed",
+              JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+    
+    buttonPanel.add(restoreButton);
+    buttonPanel.add(deleteButton);
+    
+    itemPanel.add(buttonPanel, BorderLayout.EAST);
 
     parent.add(itemPanel);
     parent.add(Box.createVerticalStrut(5));
