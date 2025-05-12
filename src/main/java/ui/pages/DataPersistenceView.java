@@ -451,9 +451,7 @@ public class DataPersistenceView extends JPanel implements Refreshable {
           "Invalid Date Range",
           JOptionPane.WARNING_MESSAGE);
       return;
-    }
-
-    // Step 1: Select what to export
+    }    // Step 1: Select what to export
     String[] exportTypes = { "Events", "Tickets", "Sales Report" };
     String selectedType = (String) JOptionPane.showInputDialog(
         this,
@@ -530,49 +528,21 @@ public class DataPersistenceView extends JPanel implements Refreshable {
       @Override
       protected Boolean doInBackground() throws Exception {
         String title = selectedType + " Report (" + sdf.format(fromDate) + " to " + sdf.format(toDate) + ")";
+        
+        // Get the column names for the selected type
         String[] columnNames = getColumnNames(selectedType);
+        
+        // Get the data to export
+        List<Map<String, Object>> data = dataPersistenceService.getExportData(selectedType, fromDate, toDate);
+        
         boolean success = false;
-
-        try {
-          // Get the data first
-          List<Map<String, Object>> data = dataPersistenceService.getExportData(selectedType, fromDate, toDate);
-
-          if (data.isEmpty()) {
-            publish("No data found for the selected date range");
-            return false;
-          }
-
-          publish("Retrieved " + data.size() + " records. Creating export file...");
-
-          // Perform the export
-          if (selectedFormat.contains("Excel")) {
-            success = dataPersistenceService.exportToExcel(
-                data,
-                selectedFile.getAbsolutePath(),
-                selectedType,
-                columnNames);
-          } else {
-            success = dataPersistenceService.exportToPDF(
-                data,
-                selectedFile.getAbsolutePath(),
-                title,
-                columnNames);
-          }
-
-          return success;
-        } catch (Exception e) {
-          e.printStackTrace();
-          publish("Error: " + e.getMessage());
-          return false;
+        if (selectedFormat.contains("Excel")) {
+          success = dataPersistenceService.exportToExcel(data, selectedFile.getAbsolutePath(), selectedType, columnNames);
+        } else {
+          success = dataPersistenceService.exportToPDF(data, selectedFile.getAbsolutePath(), title, columnNames);
         }
-      }
-
-      @Override
-      protected void process(List<String> chunks) {
-        // Update the status label with the latest message
-        if (!chunks.isEmpty()) {
-          statusLabel.setText(chunks.get(chunks.size() - 1));
-        }
+        
+        return success;
       }
 
       @Override
@@ -587,108 +557,72 @@ public class DataPersistenceView extends JPanel implements Refreshable {
                 "Export Successful",
                 JOptionPane.INFORMATION_MESSAGE);
           } else {
-            String errorMsg = statusLabel.getText();
-            if (errorMsg.startsWith("No data found")) {
-              JOptionPane.showMessageDialog(
-                  DataPersistenceView.this,
-                  "No data available for export in the selected date range.\n" +
-                      "Please try a different date range.",
-                  "No Data Available",
-                  JOptionPane.WARNING_MESSAGE);
-            } else {
-              JOptionPane.showMessageDialog(
-                  DataPersistenceView.this,
-                  "Failed to export data: " + errorMsg + "\n" +
-                      "Please check the logs for more details.",
-                  "Export Error",
-                  JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(
+                DataPersistenceView.this,
+                "Export failed. Please check logs for details.",
+                "Export Error",
+                JOptionPane.ERROR_MESSAGE);
           }
         } catch (Exception e) {
-          e.printStackTrace();
           JOptionPane.showMessageDialog(
               DataPersistenceView.this,
-              "An error occurred during export: " + e.getMessage() + "\n" +
-                  "Please check the logs for more details.",
+              "Error during export: " + e.getMessage(),
               "Export Error",
               JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-
+    
     // Start the worker and show the progress dialog
     worker.execute();
     progressDialog.setVisible(true);
   }
 
-  private String[] getColumnNames(String dataType) {
-    switch (dataType) {
+  private String[] getColumnNames(String type) {
+    switch (type) {
       case "Events":
-        return new String[] { "Event Name", "Date", "Team A", "Team B", "Category", "Event Type", "Description" };
+        return new String[] {"ID", "Event Name", "Date", "Description", "Team A", "Team B", "Category", "Event Type"};
       case "Tickets":
-        return new String[] { "Event ID", "Ticket Type", "Date", "Price", "Status" };
+        return new String[] {"ID", "Event ID", "Ticket Type", "Date", "Price", "Status"};
       case "Sales Report":
-        return new String[] { "Date", "Event", "Team A", "Team B", "Tickets Sold", "Revenue" };
+        return new String[] {"ID", "Date", "Tickets Sold", "Revenue", "Category"};
       default:
-        return new String[] { "Column 1", "Column 2", "Column 3" };
+        return new String[0];
     }
   }
 
   private void handleManageBackups() {
-    // Generate a backup name based on the current timestamp
-    String backupName = "backup_" + System.currentTimeMillis();
-
-    // Show a dialog to let the user customize the backup name
-    String customName = JOptionPane.showInputDialog(
+    // Ask for backup name
+    String backupName = JOptionPane.showInputDialog(
         this,
-        "Enter a name for this backup:",
-        backupName);
-
-    // If user provided a name, create the backup
-    if (customName != null && !customName.trim().isEmpty()) {
-      // Show a progress dialog
-      JDialog progressDialog = new JDialog();
-      progressDialog.setTitle("Creating Backup");
-      progressDialog.setLayout(new BorderLayout());
-      progressDialog.setSize(300, 100);
-      progressDialog.setLocationRelativeTo(this);
-
-      JLabel progressLabel = new JLabel("Creating backup... Please wait.", JLabel.CENTER);
-      progressDialog.add(progressLabel, BorderLayout.CENTER);
-
-      // Show the dialog on a separate thread to avoid blocking UI
-      SwingUtilities.invokeLater(() -> progressDialog.setVisible(true));
-
-      // Create the backup on a background thread
-      new Thread(() -> {
-        // Perform the backup
-        BackupResult result = dataPersistenceService.createBackup(customName);
-
-        // Close the progress dialog
-        SwingUtilities.invokeLater(() -> progressDialog.dispose());
-
-        // Show the result message
-        if (result.isSuccess()) {
-          SwingUtilities.invokeLater(() -> {
-            JOptionPane.showMessageDialog(
-                this,
-                result.getMessage(),
-                "Backup Created",
-                JOptionPane.INFORMATION_MESSAGE);
-
-            // Refresh the backup history
-            refreshBackupHistory();
-          });
-        } else {
-          SwingUtilities.invokeLater(() -> {
-            JOptionPane.showMessageDialog(
-                this,
-                "Failed to create backup: " + result.getMessage(),
-                "Backup Error",
-                JOptionPane.ERROR_MESSAGE);
-          });
-        }
-      }).start();
+        "Enter a name for this backup (or leave blank for timestamp name):",
+        "Create Backup",
+        JOptionPane.QUESTION_MESSAGE);
+    
+    // If user canceled, return
+    if (backupName == null) {
+      return;
+    }
+    
+    // Create a backup with the provided name
+    DataPersistenceService.BackupResult result = dataPersistenceService.createBackup(backupName);
+    
+    // Show result to user
+    if (result.isSuccess()) {
+      JOptionPane.showMessageDialog(
+          this,
+          result.getMessage(),
+          "Backup Successful",
+          JOptionPane.INFORMATION_MESSAGE);
+      
+      // Refresh backup history display
+      refreshBackupHistory();
+    } else {
+      JOptionPane.showMessageDialog(
+          this,
+          "Backup failed: " + result.getMessage(),
+          "Backup Error",
+          JOptionPane.ERROR_MESSAGE);
     }
   }
 }

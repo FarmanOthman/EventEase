@@ -479,9 +479,14 @@ public class DataPersistenceService {
       return new ArrayList<>();
     }
   }
-
   private String getDisplayColumnName(String dbColumnName) {
     switch (dbColumnName) {
+      case "event_id":
+        return "ID";
+      case "ticket_id":
+        return "ID";
+      case "sale_id":
+        return "ID";
       case "event_date":
         return "Date";
       case "event_name":

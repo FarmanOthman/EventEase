@@ -62,8 +62,10 @@ public class ExcelExportService {
         }
       }
 
-      // Add analysis section
-      addAnalysisSection(workbook, sheet, data, columnNames, rowNum);
+      // Add analysis section only for Sales Reports
+      if (sheetName.contains("Sales") || sheetName.toLowerCase().contains("sales report")) {
+        addAnalysisSection(workbook, sheet, data, columnNames, rowNum);
+      }
 
       // Auto-size columns
       for (int i = 0; i < columnNames.length; i++) {
