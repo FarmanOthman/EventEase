@@ -13,12 +13,12 @@ import java.util.*;
  * - Editing events
  * - Deleting events
  */
-public class UpcomingEventService {
+public class UpcomingEventServer {
 
     private final QueryBuilder queryBuilder;
 
     // Constructor: Initializes QueryBuilder for database operations
-    public UpcomingEventService() {
+    public UpcomingEventServer() {
         this.queryBuilder = new QueryBuilder();
     }
 

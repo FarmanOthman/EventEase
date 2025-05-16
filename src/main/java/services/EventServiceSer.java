@@ -2,7 +2,7 @@ package services;
 
 import server.EventService;
 import server.NotificationManager;
-import server.UpcomingEventService;
+import server.UpcomingEventServer;
 import server.notification.NotificationType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,12 +15,12 @@ import java.util.Map;
  */
 public class EventServiceSer {
   private EventService eventService;
-  private UpcomingEventService upcomingEventService;
+  private UpcomingEventServer upcomingEventService;
   private String lastErrorMessage = "";
 
   public EventServiceSer() {
     this.eventService = new EventService();
-    this.upcomingEventService = new UpcomingEventService();
+    this.upcomingEventService = new UpcomingEventServer();
   }
 
   /**
