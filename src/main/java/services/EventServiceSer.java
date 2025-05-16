@@ -1,6 +1,6 @@
 package services;
 
-import server.EventService;
+import server.EventServer;
 import server.NotificationManager;
 import server.UpcomingEventServer;
 import server.notification.NotificationType;
@@ -14,12 +14,12 @@ import java.util.Map;
  * Handles all database and business logic operations related to events
  */
 public class EventServiceSer {
-  private EventService eventService;
+  private EventServer eventService;
   private UpcomingEventServer upcomingEventService;
   private String lastErrorMessage = "";
 
   public EventServiceSer() {
-    this.eventService = new EventService();
+    this.eventService = new EventServer();
     this.upcomingEventService = new UpcomingEventServer();
   }
 

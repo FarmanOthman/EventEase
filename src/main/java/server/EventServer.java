@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EventService {
+public class EventServer {
 
     private QueryBuilder queryBuilder;
 
     // Constructor initializes the QueryBuilder
-    public EventService() {
+    public EventServer() {
         queryBuilder = new QueryBuilder(); // Initializes QueryBuilder for database operations
     }
 

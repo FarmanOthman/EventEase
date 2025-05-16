@@ -6,7 +6,7 @@ import ui.Router;
 import ui.Refreshable;
 import javax.swing.*;
 
-import server.EventService;
+import server.EventServer;
 import services.BookingServiceSer;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
@@ -144,7 +144,7 @@ public class BookingView extends JPanel implements Refreshable {
 
             // Retrieve customer details using the ID
             try {
-                EventService.CustomInformationService customInfoService = new EventService.CustomInformationService();
+                EventServer.CustomInformationService customInfoService = new EventServer.CustomInformationService();
                 Map<String, Object> customerInfo = customInfoService.getCustomerDetails(customerId);
                 if (customerInfo != null) {
                     // Populate contact and email fields
@@ -457,7 +457,7 @@ public class BookingView extends JPanel implements Refreshable {
 
             try {
                 // Create an instance of CustomInformationService
-                EventService.CustomInformationService customInfoService = new EventService.CustomInformationService();
+                EventServer.CustomInformationService customInfoService = new EventServer.CustomInformationService();
                 int customerIdToUse;
 
                 // If we don't have a customer ID yet, add the customer to the database
