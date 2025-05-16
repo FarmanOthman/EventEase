@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 import server.notification.NotificationType;
 
-public class BookingService {
+public class BookingServer {
 
     private QueryBuilder queryBuilder;
 
     // Constructor initializes the QueryBuilder
-    public BookingService() {
+    public BookingServer() {
         queryBuilder = new QueryBuilder(); // Initializes QueryBuilder for database operations
     }
 

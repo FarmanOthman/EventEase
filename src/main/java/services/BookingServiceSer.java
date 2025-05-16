@@ -1,7 +1,7 @@
 package services;
 
 import database.QueryBuilder;
-import server.BookingService;
+import server.BookingServer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,13 +13,13 @@ import java.util.Map;
  * the server layer
  */
 public class BookingServiceSer {
-  private BookingService bookingService;
+  private BookingServer bookingService;
   private EventServiceSer eventServiceSer;
   private QueryBuilder queryBuilder;
   private String lastErrorMessage;
 
   public BookingServiceSer() {
-    this.bookingService = new BookingService();
+    this.bookingService = new BookingServer();
     this.eventServiceSer = new EventServiceSer();
     this.queryBuilder = new QueryBuilder();
     this.lastErrorMessage = "";
