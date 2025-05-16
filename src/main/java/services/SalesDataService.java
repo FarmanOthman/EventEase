@@ -3,7 +3,7 @@ package services;
 import java.util.*;
 import database.QueryBuilder;
 import server.ExcelExportService;
-import server.PDFExportService;
+import server.PDFExportServer;
 
 /**
  * Service layer class that handles all operations related to sales data.
@@ -12,13 +12,13 @@ public class SalesDataService {
     private QueryBuilder queryBuilder;
     private String lastErrorMessage;
     private ExcelExportService excelExportService;
-    private PDFExportService pdfExportService;
+    private PDFExportServer pdfExportService;
 
     public SalesDataService() {
         this.queryBuilder = new QueryBuilder();
         this.lastErrorMessage = "";
         this.excelExportService = new ExcelExportService();
-        this.pdfExportService = new PDFExportService();
+        this.pdfExportService = new PDFExportServer();
         initializeSalesData();
     }
 

@@ -22,7 +22,7 @@ import org.apache.poi.ss.usermodel.*;
 import database.BackupManager;
 import database.Database;
 import server.ExcelExportService;
-import server.PDFExportService;
+import server.PDFExportServer;
 import database.QueryBuilder;
 
 /**
@@ -31,12 +31,12 @@ import database.QueryBuilder;
 public class DataPersistenceService {
   private static final String BACKUP_DIRECTORY = "backups/";
   private final ExcelExportService excelExportService;
-  private final PDFExportService pdfExportService;
+  private final PDFExportServer pdfExportService;
   private final QueryBuilder queryBuilder;
 
   public DataPersistenceService() {
     this.excelExportService = new ExcelExportService();
-    this.pdfExportService = new PDFExportService();
+    this.pdfExportService = new PDFExportServer();
     this.queryBuilder = new QueryBuilder();
     initializeBackupDirectory();
   }

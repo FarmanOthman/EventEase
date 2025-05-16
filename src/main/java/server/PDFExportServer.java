@@ -22,7 +22,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 /**
  * Service for exporting data to PDF format
  */
-public class PDFExportService {
+public class PDFExportServer {
   private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY);
   private static final Font HEADER_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.WHITE);
   private static final Font NORMAL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
