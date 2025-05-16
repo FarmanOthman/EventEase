@@ -6,11 +6,11 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReportService {
+public class ReportServer {
 
     private final QueryBuilder queryBuilder;
 
-    public ReportService() {
+    public ReportServer() {
         this.queryBuilder = new QueryBuilder();
     }
 
