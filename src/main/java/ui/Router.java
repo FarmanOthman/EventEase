@@ -5,8 +5,8 @@ import java.util.Map;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.JOptionPane;
-import server.AuthenticationService;
-import server.AuthenticationService.UserRole;
+import server.AuthenticationServer;
+import server.AuthenticationServer.UserRole;
 
 public class Router {
   private static MainFrame mainFrame;
@@ -23,7 +23,7 @@ public class Router {
 
     // Restrict access to UserManagementView
     if (pageName.equals("UserManagementView")) {
-      UserRole currentRole = AuthenticationService.getCurrentUserRole();
+      UserRole currentRole = AuthenticationServer.getCurrentUserRole();
 
       // Only allow MANAGER to access UserManagementView
       if (currentRole == UserRole.ADMIN) {

@@ -1,7 +1,7 @@
 package services;
 
-import server.AuthenticationService;
-import server.AuthenticationService.UserRole;
+import server.AuthenticationServer;
+import server.AuthenticationServer.UserRole;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
@@ -229,8 +229,8 @@ public class UserService {
    * @return Map containing current user info or null if not logged in
    */
   public Map<String, Object> getCurrentUserInfo() {
-    String username = AuthenticationService.getCurrentUsername();
-    UserRole role = AuthenticationService.getCurrentUserRole();
+    String username = AuthenticationServer.getCurrentUsername();
+    UserRole role = AuthenticationServer.getCurrentUserRole();
 
     if (username == null || role == UserRole.UNKNOWN) {
       return null;

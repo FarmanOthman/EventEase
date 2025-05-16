@@ -10,7 +10,7 @@ import java.util.Map;
 import ui.Refreshable;
 import ui.components.Sidebar;
 import ui.components.RoundedButton;
-import server.AuthenticationService.UserRole;
+import server.AuthenticationServer.UserRole;
 import services.UserService;
 
 public class UserManagementView extends JPanel implements Refreshable {

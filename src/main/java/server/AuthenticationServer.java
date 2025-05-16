@@ -10,7 +10,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import database.Database;
 
-public class AuthenticationService {
+public class AuthenticationServer {
 
     // Enum to represent user roles
     public enum UserRole {

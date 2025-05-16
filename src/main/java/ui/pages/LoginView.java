@@ -2,8 +2,8 @@ package ui.pages;
 
 import javax.swing.*;
 import java.awt.*;
-import server.AuthenticationService;
-import server.AuthenticationService.UserRole;
+import server.AuthenticationServer;
+import server.AuthenticationServer.UserRole;
 import services.NotificationService;
 import ui.components.RoundedButton;
 import ui.components.RoundedTextField;
@@ -85,7 +85,7 @@ public class LoginView extends JPanel {
       
 
       // Perform authentication
-      boolean isAuthenticated = AuthenticationService.authenticate(username, password);
+      boolean isAuthenticated = AuthenticationServer.authenticate(username, password);
 
       // Reset UI state
       
@@ -109,7 +109,7 @@ public class LoginView extends JPanel {
       }
 
       // Get the user role from the authentication service
-      UserRole userRole = AuthenticationService.getCurrentUserRole();
+      UserRole userRole = AuthenticationServer.getCurrentUserRole();
 
       // Check if the user has a valid role
       if (userRole == UserRole.ADMIN || userRole == UserRole.MANAGER) {
