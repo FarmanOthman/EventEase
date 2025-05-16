@@ -9,11 +9,11 @@ import server.notification.NotificationType;
  * Server-side service to handle calendar event business logic.
  * This class interacts directly with the database and performs data operations.
  */
-public class CalendarEventService {
+public class CalendarEventServer {
   private QueryBuilder queryBuilder;
   private String lastErrorMessage;
 
-  public CalendarEventService() {
+  public CalendarEventServer() {
     queryBuilder = new QueryBuilder();
     lastErrorMessage = "";
   }

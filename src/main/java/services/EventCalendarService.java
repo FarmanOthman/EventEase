@@ -1,6 +1,6 @@
 package services;
 
-import server.CalendarEventService;
+import server.CalendarEventServer;
 import server.NotificationManager;
 import server.notification.NotificationType;
 import java.time.LocalDate;
@@ -11,11 +11,11 @@ import java.util.*;
  * Acts as a connector between the GUI and server components.
  */
 public class EventCalendarService {
-  private CalendarEventService calendarEventService;
+  private CalendarEventServer calendarEventService;
   private String lastErrorMessage;
 
   public EventCalendarService() {
-    calendarEventService = new CalendarEventService();
+    calendarEventService = new CalendarEventServer();
     lastErrorMessage = "";
   }
 

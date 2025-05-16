@@ -48,9 +48,6 @@ public class CalendarView extends JPanel implements Refreshable {
     // Add the Sidebar component
     add(new Sidebar(), BorderLayout.WEST);
 
-    // Initialize services
-    eventService = new EventCalendarService();
-
     // Initialize data structures
     eventsByDate = new HashMap<>();
     currentYearMonth = YearMonth.now();
